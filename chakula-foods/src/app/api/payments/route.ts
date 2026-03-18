@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { initiateMTNPayment, initiateAirtelPayment, initiateFlutterwavePayment, checkMTNPaymentStatus, checkAirtelPaymentStatus, verifyFlutterwavePayment } from "@/lib/payments";
+import { initiateMTNPayment, initiateAirtelPayment, initiateFlutterwavePayment } from "@/lib/payments";
 import { sendPaymentConfirmation } from "@/lib/sms";
+import { PaymentStatus, PaymentMethod } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,12 +15,12 @@ export async function POST(req: NextRequest) {
 
     const paymentData = {
       userId: user.id,
-      orderId,
-      subscriptionId,
+      orderId: orderId || null,
+      subscriptionId: subscriptionId || null,
       amount: parseFloat(amount),
-      method,
-      status: "PENDING",
-      phoneNumber: phone,
+      method: method as PaymentMethod,
+      status: "PENDING" as PaymentStatus,
+      phoneNumber: phone || null,
     };
 
     const payment = await prisma.payment.create({ data: paymentData });
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
       });
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { providerRef: providerResult.referenceId, status: "PROCESSING" },
+        data: { providerRef: providerResult.referenceId, status: "PROCESSING" as PaymentStatus },
       });
     } else if (method === "AIRTEL_MONEY") {
       providerResult = await initiateAirtelPayment({
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       });
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { providerRef: providerResult.transactionId, status: "PROCESSING" },
+        data: { providerRef: providerResult.transactionId, status: "PROCESSING" as PaymentStatus },
       });
     } else if (method === "VISA_MASTERCARD") {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
     } else {
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { status: "PAID", paidAt: new Date() },
+        data: { status: "PAID" as PaymentStatus, paidAt: new Date() },
       });
     }
 
@@ -88,7 +89,7 @@ export async function PUT(req: NextRequest) {
 
     await prisma.payment.update({
       where: { id: paymentId },
-      data: { status, paidAt: status === "PAID" ? new Date() : undefined },
+      data: { status: status as PaymentStatus, paidAt: status === "PAID" ? new Date() : undefined },
     });
 
     if (status === "PAID") {

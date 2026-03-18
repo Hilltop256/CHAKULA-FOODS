@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus, Minus, ShoppingCart, Search } from "lucide-react";
 import { useCart } from "@/store/cart";
@@ -26,7 +26,7 @@ interface Product {
   preparationTime: number | null;
 }
 
-export default function MenuPage() {
+function MenuContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
   const { addItem, items } = useCart();
@@ -158,5 +158,13 @@ export default function MenuPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+      <MenuContent />
+    </Suspense>
   );
 }

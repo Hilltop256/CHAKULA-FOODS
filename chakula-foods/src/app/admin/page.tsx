@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { Users, ShoppingBag, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { Users, ShoppingBag, Calendar, DollarSign } from "lucide-react";
 
 interface Order {
   id: string;
@@ -13,6 +13,7 @@ interface Order {
   type: string;
   total: number;
   createdAt: string;
+  userId: string;
   user: { name: string; phone: string };
 }
 
@@ -23,7 +24,7 @@ interface Stats {
   totalCustomers: number;
 }
 
-export default function AdminPage() {
+function AdminContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -138,10 +139,18 @@ export default function AdminPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    );
+  }
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+      <AdminContent />
+    </Suspense>
   );
 }
