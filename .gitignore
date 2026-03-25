@@ -6,3 +6,7 @@ package-lock.json
 .vscode/
 .idea/
 vite.config.*s.*
+chakula-foods/node_modules
+chakula-foods/.next
+chakula-foods/.env
+chakula-foods/package-lock.json
