@@ -31,9 +31,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error("Products fetch error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Products fetch error:", errorMessage);
     return NextResponse.json(
-      { error: "Failed to fetch products" },
+      { error: "Failed to fetch products", details: errorMessage },
       { status: 500 }
     );
   }
