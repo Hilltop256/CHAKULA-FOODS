@@ -112,10 +112,12 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
-    if (updates.price) updates.price = parseFloat(updates.price);
-    if (updates.stock) updates.stock = parseInt(updates.stock);
-    if (updates.preparationTime)
+    if (updates.price !== undefined) updates.price = parseFloat(updates.price);
+    if (updates.stock !== undefined) updates.stock = parseInt(updates.stock);
+    if (updates.preparationTime !== undefined)
       updates.preparationTime = parseInt(updates.preparationTime);
+    if (updates.calories !== undefined)
+      updates.calories = parseInt(updates.calories);
 
     const product = await prisma.product.update({
       where: { id },

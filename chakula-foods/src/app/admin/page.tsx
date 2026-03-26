@@ -126,6 +126,9 @@ function AdminContent() {
             totalCustomers: new Set(orders.map((o: Order) => o.userId)).size,
           });
         })
+        .catch((err) => {
+          console.error("Admin data fetch error:", err);
+        })
         .finally(() => setLoading(false));
     }
   }, [user, authLoading, router]);

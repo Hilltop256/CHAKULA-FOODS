@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        address: user.address,
       },
     });
   } catch (error) {

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/store/cart";
 import { useAuth } from "@/store/auth";
@@ -35,6 +35,10 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [address, setAddress] = useState("");
+
+  useEffect(() => {
+    if (user?.phone) setPhone(user.phone);
+  }, [user]);
 
   const deliveryFee = orderType === "DELIVERY" ? 5000 : 0;
   const total = subtotal + deliveryFee;
