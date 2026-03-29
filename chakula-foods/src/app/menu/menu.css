@@ -1,0 +1,370 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* All rules scoped under .chakula-menu to prevent Tailwind conflicts */
+.chakula-menu {
+  --cf-dark: #1A1A2E;
+  --cf-card: #0F3460;
+  --cf-accent: #E94560;
+  --cf-gold: #F5A623;
+  --cf-green: #2DCE89;
+  --cf-white: #FFFFFF;
+  --cf-light: #F8F4EE;
+  --cf-muted: #8a8a9a;
+
+  font-family: 'Poppins', sans-serif;
+  background: var(--cf-light);
+  color: var(--cf-dark);
+}
+
+/* ── HERO ── */
+.chakula-menu .cf-hero {
+  background: var(--cf-dark);
+  color: white;
+  text-align: center;
+  padding: 60px 20px 50px;
+  position: relative;
+  overflow: hidden;
+}
+.chakula-menu .cf-hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, #E9456033 0%, transparent 70%);
+  border-radius: 50%;
+}
+.chakula-menu .cf-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; right: -60px;
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, #F5A62333 0%, transparent 70%);
+  border-radius: 50%;
+}
+.chakula-menu .cf-hero-logo {
+  font-size: 13px;
+  letter-spacing: 6px;
+  color: var(--cf-gold);
+  font-weight: 600;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+.chakula-menu .cf-hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.chakula-menu .cf-hero h1 span { color: var(--cf-accent); }
+.chakula-menu .cf-hero p {
+  font-size: 1rem;
+  color: #aab;
+  font-style: italic;
+  margin-bottom: 30px;
+}
+.chakula-menu .cf-hero-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chakula-menu .cf-hero-tag {
+  padding: 6px 18px;
+  border: 1.5px solid var(--cf-accent);
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+/* ── NAV ── */
+.chakula-menu .cf-nav {
+  position: sticky;
+  top: 64px;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0 20px;
+}
+.chakula-menu .cf-nav::-webkit-scrollbar {
+  height: 0;
+}
+.chakula-menu .cf-nav-inner {
+  display: inline-flex;
+  gap: 0;
+}
+.chakula-menu .cf-nav a {
+  display: inline-block;
+  padding: 16px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cf-muted);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.chakula-menu .cf-nav a:hover,
+.chakula-menu .cf-nav a.cf-active {
+  color: var(--cf-accent);
+  border-bottom-color: var(--cf-accent);
+}
+
+/* ── SECTION ── */
+.chakula-menu .cf-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px 20px;
+}
+.chakula-menu .cf-section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.chakula-menu .cf-section-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.chakula-menu .cf-section-title h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--cf-dark);
+}
+.chakula-menu .cf-section-title p {
+  font-size: 13px;
+  color: var(--cf-muted);
+  margin-top: 2px;
+}
+
+/* ── GRID ── */
+.chakula-menu .cf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 60px;
+}
+.chakula-menu .cf-grid-lg {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+/* ── CARD ── */
+.chakula-menu .cf-card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: default;
+}
+.chakula-menu .cf-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.14);
+}
+.chakula-menu .cf-card-img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  display: block;
+  background: #e0e0e0;
+}
+.chakula-menu .cf-card-img-placeholder {
+  width: 100%;
+  height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: linear-gradient(135deg, #1A1A2E, #0F3460);
+}
+.chakula-menu .cf-card-body {
+  padding: 18px 20px 20px;
+}
+.chakula-menu .cf-card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.chakula-menu .cf-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--cf-dark);
+}
+.chakula-menu .cf-card p {
+  font-size: 13px;
+  color: var(--cf-muted);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.chakula-menu .cf-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chakula-menu .cf-price {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cf-accent);
+}
+.chakula-menu .cf-price-label {
+  font-size: 11px;
+  color: var(--cf-muted);
+  font-weight: 400;
+}
+.chakula-menu .cf-add-btn {
+  background: var(--cf-dark);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.chakula-menu .cf-add-btn:hover { background: var(--cf-accent); }
+
+/* HERO IMAGE CARD */
+.chakula-menu .cf-hero-card {
+  grid-column: span 2;
+  display: flex;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  background: white;
+  transition: transform 0.25s;
+}
+.chakula-menu .cf-hero-card:hover { transform: translateY(-4px); }
+.chakula-menu .cf-hero-card .cf-card-img,
+.chakula-menu .cf-hero-card .cf-card-img-placeholder {
+  width: 50%;
+  height: 260px;
+  flex-shrink: 0;
+}
+.chakula-menu .cf-hero-card .cf-card-body {
+  padding: 28px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chakula-menu .cf-hero-card h3 { font-size: 1.4rem; }
+@media (max-width: 700px) {
+  .chakula-menu .cf-hero-card { grid-column: span 1; flex-direction: column; }
+  .chakula-menu .cf-hero-card .cf-card-img,
+  .chakula-menu .cf-hero-card .cf-card-img-placeholder { width: 100%; height: 200px; }
+}
+
+/* ── DRINKS ── */
+.chakula-menu .cf-drinks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 60px;
+}
+.chakula-menu .cf-drink-card {
+  background: var(--cf-dark);
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transition: transform 0.2s;
+}
+.chakula-menu .cf-drink-card:hover { transform: translateY(-4px); }
+.chakula-menu .cf-drink-card .cf-card-img,
+.chakula-menu .cf-drink-card .cf-card-img-placeholder {
+  height: 170px;
+}
+.chakula-menu .cf-drink-card .cf-card-img-placeholder {
+  background: linear-gradient(135deg, #0F3460, #1A1A2E);
+}
+.chakula-menu .cf-drink-card .cf-card-body { padding: 14px 16px; }
+.chakula-menu .cf-drink-card h3 { font-size: 0.95rem; color: white; margin-bottom: 4px; }
+.chakula-menu .cf-drink-card .cf-price { font-size: 1rem; }
+
+/* ── PLATTERS ── */
+.chakula-menu .cf-platter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 60px;
+}
+@media (max-width: 700px) { .chakula-menu .cf-platter-grid { grid-template-columns: 1fr; } }
+.chakula-menu .cf-platter-card {
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+.chakula-menu .cf-platter-card .cf-card-img,
+.chakula-menu .cf-platter-card .cf-card-img-placeholder {
+  width: 100%;
+  height: 240px;
+}
+.chakula-menu .cf-platter-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  padding: 20px 20px 22px;
+  color: white;
+}
+.chakula-menu .cf-platter-overlay h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.chakula-menu .cf-platter-overlay p { font-size: 12px; color: #ccc; margin-bottom: 10px; }
+.chakula-menu .cf-platter-overlay .cf-price { font-size: 1.1rem; color: var(--cf-gold); }
+
+/* ── DIVIDER ── */
+.chakula-menu .cf-divider {
+  height: 6px;
+  background: linear-gradient(90deg, var(--cf-accent), var(--cf-gold));
+  margin: 0;
+}
+
+/* badge colors */
+.chakula-menu .cf-badge-red { background: #FFE8EC; color: var(--cf-accent); }
+.chakula-menu .cf-badge-gold { background: #FFF3DC; color: #B07A00; }
+.chakula-menu .cf-badge-green { background: #E0FFF3; color: #1A9E63; }
+.chakula-menu .cf-badge-purple { background: #F0E8FF; color: #7B3FE4; }
+.chakula-menu .cf-badge-orange { background: #FFF0E8; color: #C85000; }
+.chakula-menu .cf-badge-dark { background: #E8ECF5; color: #2A3F7A; }
+
+/* sub-category label */
+.chakula-menu .cf-sub-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cf-dark);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  padding: 10px 16px;
+  background: white;
+  border-left: 4px solid var(--cf-accent);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.chakula-menu .cf-sub-label span {
+  font-weight: 400;
+  color: var(--cf-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+
+/* smooth scroll for sections */
+html {
+  scroll-behavior: smooth;
+}

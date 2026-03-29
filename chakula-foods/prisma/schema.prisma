@@ -59,6 +59,12 @@ enum ProductCategory {
   JUICE_BAR
   FRESH_MARKET
   DRY_MARKET
+  WRAPS
+  BOWLS_PIZZA
+  ROASTS
+  SPECIALS_BAKERY
+  PLATTERS
+  DRINKS
 }
 
 enum OrderType {

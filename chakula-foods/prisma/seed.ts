@@ -44,6 +44,12 @@ async function main() {
     { name: "Juice Bar", type: "JUICE_BAR" as const, sortOrder: 3 },
     { name: "Fresh Market", type: "FRESH_MARKET" as const, sortOrder: 4 },
     { name: "Dry Market", type: "DRY_MARKET" as const, sortOrder: 5 },
+    { name: "Wraps", type: "WRAPS" as const, sortOrder: 6 },
+    { name: "Bowls & Pizza", type: "BOWLS_PIZZA" as const, sortOrder: 7 },
+    { name: "Roasts & Grills", type: "ROASTS" as const, sortOrder: 8 },
+    { name: "Specials & Bakery", type: "SPECIALS_BAKERY" as const, sortOrder: 9 },
+    { name: "Platters", type: "PLATTERS" as const, sortOrder: 10 },
+    { name: "Drinks", type: "DRINKS" as const, sortOrder: 11 },
   ];
 
   for (const cat of categories) {
@@ -235,6 +241,122 @@ async function main() {
       category: "DRY_MARKET" as const,
       unit: "2kg",
       tags: ["staple"],
+    },
+
+    // ── New menu categories (placeholder items, will be replaced by HTML menu) ──
+
+    // Wraps
+    {
+      name: "Chicken Wrap",
+      description: "Grilled chicken with fresh vegetables in a warm tortilla",
+      price: 12000,
+      category: "WRAPS" as const,
+      preparationTime: 10,
+      isFeatured: true,
+      tags: ["wrap", "chicken"],
+    },
+    {
+      name: "Beef Wrap",
+      description: "Seasoned beef with lettuce, tomato and sauce",
+      price: 14000,
+      category: "WRAPS" as const,
+      preparationTime: 10,
+      tags: ["wrap", "beef"],
+    },
+
+    // Bowls & Pizza
+    {
+      name: "Chicken Bowl",
+      description: "Rice bowl with grilled chicken, vegetables and sauce",
+      price: 18000,
+      category: "BOWLS_PIZZA" as const,
+      preparationTime: 15,
+      isFeatured: true,
+      tags: ["bowl", "chicken"],
+    },
+    {
+      name: "Pepperoni Pizza",
+      description: "Classic pepperoni pizza with mozzarella cheese",
+      price: 28000,
+      category: "BOWLS_PIZZA" as const,
+      preparationTime: 20,
+      tags: ["pizza"],
+    },
+
+    // Roasts
+    {
+      name: "Roast Chicken",
+      description: "Whole roast chicken with Ugandan spices",
+      price: 35000,
+      category: "ROASTS" as const,
+      preparationTime: 30,
+      isFeatured: true,
+      tags: ["roast", "chicken"],
+    },
+    {
+      name: "Roast Goat",
+      description: "Tender roast goat marinated in local spices",
+      price: 40000,
+      category: "ROASTS" as const,
+      preparationTime: 35,
+      tags: ["roast", "goat"],
+    },
+
+    // Specials & Bakery
+    {
+      name: "Chef's Special Platter",
+      description: "Daily rotating special by our head chef",
+      price: 25000,
+      category: "SPECIALS_BAKERY" as const,
+      preparationTime: 20,
+      isFeatured: true,
+      tags: ["special"],
+    },
+    {
+      name: "Fresh Croissant",
+      description: "Buttery croissant baked fresh daily",
+      price: 5000,
+      category: "SPECIALS_BAKERY" as const,
+      preparationTime: 3,
+      tags: ["bakery", "pastry"],
+    },
+
+    // Platters
+    {
+      name: "Family Platter",
+      description: "Chicken, beef, sides and drinks for 4 people",
+      price: 85000,
+      category: "PLATTERS" as const,
+      preparationTime: 30,
+      isFeatured: true,
+      tags: ["platter", "family"],
+    },
+    {
+      name: "Party Platter",
+      description: "Assorted meats, sides and salads for 8 people",
+      price: 150000,
+      category: "PLATTERS" as const,
+      preparationTime: 45,
+      tags: ["platter", "party"],
+    },
+
+    // Drinks
+    {
+      name: "Fresh Mango Juice",
+      description: "100% fresh mango blended to order",
+      price: 7000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      isFeatured: true,
+      tags: ["juice", "mango"],
+    },
+    {
+      name: "Passion Fruit Smoothie",
+      description: "Creamy passion fruit smoothie with yoghurt",
+      price: 8000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      tags: ["smoothie", "passion"],
     },
   ];
 

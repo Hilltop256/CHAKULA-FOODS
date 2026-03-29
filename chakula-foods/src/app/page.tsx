@@ -4,21 +4,21 @@ import { ArrowRight, Coffee, Utensils, ShoppingBag, Calendar } from "lucide-reac
 const features = [
   {
     icon: Utensils,
-    title: "Fast Food",
-    desc: "Delicious burgers, pizzas, chicken & more",
-    href: "/menu?category=FAST_FOOD",
+    title: "Wraps & Bowls",
+    desc: "Hand-rolled wraps, hearty bowls & wood-fired pizza",
+    href: "/menu#wraps",
   },
   {
     icon: Coffee,
-    title: "Fresh Bakery",
-    desc: "Bread, pastries, cakes baked daily",
-    href: "/menu?category=BAKERY",
+    title: "Roasts & Grills",
+    desc: "Flame-grilled chicken, goat & more",
+    href: "/menu#roasts",
   },
   {
     icon: ShoppingBag,
-    title: "Fresh Market",
-    desc: "Fruits, vegetables & groceries",
-    href: "/menu?category=FRESH_MARKET",
+    title: "Drinks & Smoothies",
+    desc: "Fresh juices, smoothies & hot beverages",
+    href: "/menu#drinks",
   },
   {
     icon: Calendar,
@@ -29,11 +29,12 @@ const features = [
 ];
 
 const categories = [
-  { name: "Fast Food", category: "FAST_FOOD", color: "bg-orange-500", emoji: "🍔" },
-  { name: "Bakery", category: "BAKERY", color: "bg-amber-600", emoji: "🥐" },
-  { name: "Juice Bar", category: "JUICE_BAR", color: "bg-green-500", emoji: "🧃" },
-  { name: "Fresh Market", category: "FRESH_MARKET", color: "bg-green-700", emoji: "🥬" },
-  { name: "Dry Market", category: "DRY_MARKET", color: "bg-yellow-600", emoji: "🌾" },
+  { name: "Wraps", color: "bg-orange-500", emoji: "🌯" },
+  { name: "Bowls & Pizza", color: "bg-red-500", emoji: "🍕" },
+  { name: "Roasts", color: "bg-amber-600", emoji: "🔥" },
+  { name: "Specials", color: "bg-purple-500", emoji: "⭐" },
+  { name: "Platters", color: "bg-green-600", emoji: "🍽️" },
+  { name: "Drinks", color: "bg-blue-500", emoji: "🥤" },
 ];
 
 export default function Home() {
@@ -97,11 +98,11 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Browse by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link
-                key={cat.category}
-                href={`/menu?category=${cat.category}`}
+                key={cat.name}
+                href="/menu"
                 className={`${cat.color} text-white p-6 rounded-2xl text-center hover:scale-105 transition shadow-lg`}
               >
                 <div className="text-4xl mb-2">{cat.emoji}</div>
