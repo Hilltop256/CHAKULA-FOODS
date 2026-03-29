@@ -59,6 +59,7 @@ enum ProductCategory {
   JUICE_BAR
   FRESH_MARKET
   DRY_MARKET
+  ROASTS
 }
 
 enum OrderType {

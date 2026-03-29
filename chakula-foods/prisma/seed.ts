@@ -44,6 +44,7 @@ async function main() {
     { name: "Juice Bar", type: "JUICE_BAR" as const, sortOrder: 3 },
     { name: "Fresh Market", type: "FRESH_MARKET" as const, sortOrder: 4 },
     { name: "Dry Market", type: "DRY_MARKET" as const, sortOrder: 5 },
+    { name: "Roasts & Grills", type: "ROASTS" as const, sortOrder: 6 },
   ];
 
   for (const cat of categories) {
@@ -235,6 +236,90 @@ async function main() {
       category: "DRY_MARKET" as const,
       unit: "2kg",
       tags: ["staple"],
+    },
+
+    // Roasts & Grills — Chicken
+    {
+      name: "Half Chicken",
+      description: "A golden, flame-roasted half bird — crispy skin, juicy meat, served with your choice of fries or matooke and kachumbari.",
+      price: 25000,
+      category: "ROASTS" as const,
+      preparationTime: 25,
+      isFeatured: true,
+      tags: ["popular", "chicken"],
+    },
+    {
+      name: "Whole Chicken",
+      description: "The full bird — slow-roasted to perfection with African spices. Perfect for sharing. Comes with two sides.",
+      price: 40000,
+      category: "ROASTS" as const,
+      preparationTime: 35,
+      tags: ["chicken", "sharing"],
+    },
+
+    // Roasts & Grills — Goat
+    {
+      name: "Goat Skewer",
+      description: "Tender goat pieces threaded on skewers and grilled over open flame. Served with kachumbari and sauce.",
+      price: 12000,
+      category: "ROASTS" as const,
+      preparationTime: 15,
+      isFeatured: true,
+      tags: ["goat", "skewer"],
+    },
+    {
+      name: "Goat Leg",
+      description: "A magnificent slow-roasted goat leg, herb-crusted with rosemary, lemon and garlic. Built for a feast.",
+      price: 180000,
+      category: "ROASTS" as const,
+      preparationTime: 45,
+      tags: ["goat", "premium"],
+    },
+    {
+      name: "Whole Goat",
+      description: "The ultimate centrepiece — a whole goat spit-roasted to smoky perfection. Ideal for large events and celebrations.",
+      price: 550000,
+      category: "ROASTS" as const,
+      preparationTime: 120,
+      tags: ["goat", "event"],
+    },
+
+    // Roasts & Grills — Pork
+    {
+      name: "Pork Skewer",
+      description: "Juicy pork pieces skewered and grilled over charcoal, served with chilli sauce and kachumbari.",
+      price: 12000,
+      category: "ROASTS" as const,
+      preparationTime: 15,
+      tags: ["pork", "skewer"],
+    },
+    {
+      name: "Pork Ribs",
+      description: "Slow-cooked pork ribs with our smoky BBQ glaze, falling off the bone and full of flavour.",
+      price: 22000,
+      category: "ROASTS" as const,
+      preparationTime: 25,
+      isFeatured: true,
+      tags: ["pork", "ribs"],
+    },
+    {
+      name: "Pork Chops",
+      description: "Thick-cut seasoned pork chops, grilled to a beautiful char and served with your choice of side.",
+      price: 25000,
+      category: "ROASTS" as const,
+      preparationTime: 20,
+      tags: ["pork"],
+    },
+
+    // Roasts & Grills — Fish
+    {
+      name: "Grilled Fish",
+      description: "Fresh whole fish, seasoned with lemon, herbs and spices, grilled to perfection and served on a bed of roasted vegetables.",
+      price: 32000,
+      category: "ROASTS" as const,
+      preparationTime: 30,
+      isFeatured: true,
+      tags: ["fish", "fresh"],
     },
   ];
 

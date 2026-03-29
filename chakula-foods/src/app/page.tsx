@@ -34,6 +34,7 @@ const categories = [
   { name: "Juice Bar", category: "JUICE_BAR", color: "bg-green-500", emoji: "🧃" },
   { name: "Fresh Market", category: "FRESH_MARKET", color: "bg-green-700", emoji: "🥬" },
   { name: "Dry Market", category: "DRY_MARKET", color: "bg-yellow-600", emoji: "🌾" },
+  { name: "Roasts & Grills", category: "ROASTS", color: "bg-red-500", emoji: "🔥" },
 ];
 
 export default function Home() {
@@ -97,7 +98,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Browse by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <Link
                 key={cat.category}
