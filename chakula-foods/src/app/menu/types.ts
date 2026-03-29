@@ -1,13 +1,27 @@
+export interface OptionTag {
+  label: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+}
+
+export interface OptionGroup {
+  title: string;
+  tags: OptionTag[];
+}
+
 export interface MenuItem {
   id: string;
   name: string;
   description: string;
   price: number;
   priceRange?: string;
+  priceLabel?: string;
   image?: string;
   badge?: string;
   badgeColor?: string;
   featured?: boolean;
+  optionGroups?: OptionGroup[];
 }
 
 export interface MenuSection {

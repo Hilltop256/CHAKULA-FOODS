@@ -2,6 +2,7 @@ export { MenuHero } from "./MenuHero";
 export { MenuNav } from "./MenuNav";
 export { SectionHeader } from "./SectionHeader";
 export { MenuCard, HeroMenuCard } from "./MenuCard";
+export { BowlCard } from "./BowlCard";
 export { DrinkCard } from "./DrinkCard";
 export { PlatterCard } from "./PlatterCard";
 export { WrapsSection } from "./WrapsSection";

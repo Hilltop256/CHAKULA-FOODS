@@ -30,15 +30,11 @@ function MenuContent() {
 
       <div className="cf-divider" />
 
-      <BowlsSection
-        renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-      />
+      <BowlsSection />
 
       <div className="cf-divider" />
 
-      <PizzaSection
-        renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-      />
+      <PizzaSection />
 
       <div className="cf-divider" />
 
