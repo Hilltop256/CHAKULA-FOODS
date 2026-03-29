@@ -35,6 +35,8 @@ const categories = [
   { name: "Fresh Market", category: "FRESH_MARKET", color: "bg-green-700", emoji: "🥬" },
   { name: "Dry Market", category: "DRY_MARKET", color: "bg-yellow-600", emoji: "🌾" },
   { name: "Roasts & Grills", category: "ROASTS", color: "bg-red-500", emoji: "🔥" },
+  { name: "Specials & Toppings", category: "SPECIALS", color: "bg-green-600", emoji: "⭐" },
+  { name: "Bakery & Breakfast", category: "BREAKFAST", color: "bg-amber-500", emoji: "☕" },
 ];
 
 export default function Home() {

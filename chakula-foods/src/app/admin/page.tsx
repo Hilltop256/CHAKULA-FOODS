@@ -50,6 +50,8 @@ const CATEGORIES = [
   "FRESH_MARKET",
   "DRY_MARKET",
   "ROASTS",
+  "SPECIALS",
+  "BREAKFAST",
 ];
 
 const categoryLabels: Record<string, string> = {
@@ -59,6 +61,8 @@ const categoryLabels: Record<string, string> = {
   FRESH_MARKET: "Fresh Market",
   DRY_MARKET: "Dry Market",
   ROASTS: "Roasts & Grills",
+  SPECIALS: "Specials & Toppings",
+  BREAKFAST: "Bakery & Breakfast",
 };
 
 const statusColors: Record<string, string> = {

@@ -1,4 +1,5 @@
 export function formatCurrency(amount: number): string {
+  if (amount === 0) return "Price TBA";
   return new Intl.NumberFormat("en-UG", {
     style: "currency",
     currency: "UGX",

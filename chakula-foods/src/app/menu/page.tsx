@@ -14,6 +14,8 @@ const categoryLabels: Record<string, string> = {
   FRESH_MARKET: "Fresh Market",
   DRY_MARKET: "Dry Market",
   ROASTS: "Roasts & Grills",
+  SPECIALS: "Specials & Toppings",
+  BREAKFAST: "Bakery & Breakfast",
 };
 
 const categoryEmojis: Record<string, string> = {
@@ -23,6 +25,8 @@ const categoryEmojis: Record<string, string> = {
   FRESH_MARKET: "🥬",
   DRY_MARKET: "🌾",
   ROASTS: "🔥",
+  SPECIALS: "⭐",
+  BREAKFAST: "☕",
 };
 
 interface Product {
@@ -91,6 +95,8 @@ function MenuContent() {
     "FRESH_MARKET",
     "DRY_MARKET",
     "ROASTS",
+    "SPECIALS",
+    "BREAKFAST",
   ];
 
   return (
