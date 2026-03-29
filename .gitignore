@@ -10,3 +10,4 @@ chakula-foods/node_modules
 chakula-foods/.next
 chakula-foods/.env
 chakula-foods/package-lock.json
+.vercel
