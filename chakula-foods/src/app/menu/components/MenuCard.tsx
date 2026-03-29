@@ -27,10 +27,23 @@ export function MenuCard({ item }: MenuCardProps) {
   return (
     <div className="cf-card">
       {item.image ? (
-        <img src={item.image} alt={item.name} className="cf-card-img" />
-      ) : (
-        <div className="cf-card-img-placeholder">🍽️</div>
-      )}
+        <img
+          src={item.image}
+          alt={item.name}
+          className="cf-card-img"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+            const placeholder = (e.target as HTMLImageElement).nextElementSibling;
+            if (placeholder) (placeholder as HTMLElement).style.display = "flex";
+          }}
+        />
+      ) : null}
+      <div
+        className="cf-card-img-placeholder"
+        style={{ display: item.image ? "none" : "flex" }}
+      >
+        🍽️
+      </div>
       <div className="cf-card-body">
         {item.badge && (
           <span className={`cf-card-badge ${item.badgeColor ?? "cf-badge-red"}`}>
@@ -41,10 +54,15 @@ export function MenuCard({ item }: MenuCardProps) {
         <p>{item.description}</p>
         <div className="cf-card-footer">
           <div>
-            <span className="cf-price">{formatCurrency(item.price)}</span>
+            <div className="cf-price">
+              {item.priceRange ?? formatCurrency(item.price)}
+            </div>
+            <div className="cf-price-label">
+              chicken / beef / pork / veggie
+            </div>
           </div>
           <button className="cf-add-btn" onClick={handleAdd}>
-            {added ? "✓ Added" : "+ Add to Cart"}
+            {added ? "✓ Added" : "Order Now"}
           </button>
         </div>
       </div>
@@ -92,7 +110,7 @@ export function HeroMenuCard({ item }: HeroMenuCardProps) {
             <span className="cf-price">{formatCurrency(item.price)}</span>
           </div>
           <button className="cf-add-btn" onClick={handleAdd}>
-            {added ? "✓ Added" : "+ Add to Cart"}
+            {added ? "✓ Added" : "Order Now"}
           </button>
         </div>
       </div>

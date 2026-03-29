@@ -3,6 +3,7 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
+  priceRange?: string;
   image?: string;
   badge?: string;
   badgeColor?: string;
@@ -19,17 +20,14 @@ export interface MenuSection {
 }
 
 export const NAV_LINKS = [
-  { href: "#wraps", label: "Wraps" },
-  { href: "#bowls-pizza", label: "Bowls & Pizza" },
-  { href: "#roasts", label: "Roasts" },
-  { href: "#specials", label: "Specials & Bakery" },
-  { href: "#platters", label: "Platters" },
+  { href: "#wraps", label: "Shawarma / Wraps / Rolex / Burgers" },
+  { href: "#bowls", label: "Bowl Meals" },
+  { href: "#pizza", label: "Pizza" },
+  { href: "#roasts", label: "Roasts & Grills" },
+  { href: "#specials", label: "Specials & Toppings" },
+  { href: "#bakery", label: "Bakery & Breakfast" },
+  { href: "#platters", label: "Party & Group Platters" },
   { href: "#drinks", label: "Drinks" },
 ];
 
-export const HERO_TAGS = [
-  "FRESH DAILY",
-  "FAST DELIVERY",
-  "KAMPALA'S FINEST",
-  "100% LOCAL",
-];
+export const HERO_TAGS = ["Dine In", "Delivery", "WhatsApp Orders", "Subscription"];

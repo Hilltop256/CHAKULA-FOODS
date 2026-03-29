@@ -5,13 +5,14 @@ import {
   MenuHero,
   MenuNav,
   MenuCard,
-  HeroMenuCard,
   DrinkCard,
   PlatterCard,
   WrapsSection,
-  BowlsPizzaSection,
+  BowlsSection,
+  PizzaSection,
   RoastsSection,
-  SpecialsBakerySection,
+  SpecialsSection,
+  BakerySection,
   PlattersSection,
   DrinksSection,
 } from "./components";
@@ -25,28 +26,36 @@ function MenuContent() {
 
       <WrapsSection
         renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-        renderHeroCard={(item: MenuItem) => <HeroMenuCard key={item.id} item={item} />}
       />
 
       <div className="cf-divider" />
 
-      <BowlsPizzaSection
+      <BowlsSection
         renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-        renderHeroCard={(item: MenuItem) => <HeroMenuCard key={item.id} item={item} />}
+      />
+
+      <div className="cf-divider" />
+
+      <PizzaSection
+        renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
       />
 
       <div className="cf-divider" />
 
       <RoastsSection
         renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-        renderHeroCard={(item: MenuItem) => <HeroMenuCard key={item.id} item={item} />}
       />
 
       <div className="cf-divider" />
 
-      <SpecialsBakerySection
+      <SpecialsSection
         renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
-        renderHeroCard={(item: MenuItem) => <HeroMenuCard key={item.id} item={item} />}
+      />
+
+      <div className="cf-divider" />
+
+      <BakerySection
+        renderCard={(item: MenuItem) => <MenuCard key={item.id} item={item} />}
       />
 
       <div className="cf-divider" />
