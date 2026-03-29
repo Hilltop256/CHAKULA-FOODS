@@ -16,6 +16,7 @@ const categoryLabels: Record<string, string> = {
   ROASTS: "Roasts & Grills",
   SPECIALS: "Specials & Toppings",
   BREAKFAST: "Bakery & Breakfast",
+  PLATTERS: "Party & Group Platters",
 };
 
 const categoryEmojis: Record<string, string> = {
@@ -27,6 +28,7 @@ const categoryEmojis: Record<string, string> = {
   ROASTS: "🔥",
   SPECIALS: "⭐",
   BREAKFAST: "☕",
+  PLATTERS: "🎉",
 };
 
 interface Product {
@@ -97,6 +99,7 @@ function MenuContent() {
     "ROASTS",
     "SPECIALS",
     "BREAKFAST",
+    "PLATTERS",
   ];
 
   return (

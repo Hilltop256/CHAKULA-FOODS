@@ -52,6 +52,7 @@ const CATEGORIES = [
   "ROASTS",
   "SPECIALS",
   "BREAKFAST",
+  "PLATTERS",
 ];
 
 const categoryLabels: Record<string, string> = {
@@ -63,6 +64,7 @@ const categoryLabels: Record<string, string> = {
   ROASTS: "Roasts & Grills",
   SPECIALS: "Specials & Toppings",
   BREAKFAST: "Bakery & Breakfast",
+  PLATTERS: "Party & Group Platters",
 };
 
 const statusColors: Record<string, string> = {

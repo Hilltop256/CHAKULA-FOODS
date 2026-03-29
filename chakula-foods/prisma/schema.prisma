@@ -62,6 +62,7 @@ enum ProductCategory {
   ROASTS
   SPECIALS
   BREAKFAST
+  PLATTERS
 }
 
 enum OrderType {

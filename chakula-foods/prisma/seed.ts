@@ -47,6 +47,7 @@ async function main() {
     { name: "Roasts & Grills", type: "ROASTS" as const, sortOrder: 6 },
     { name: "Specials & Toppings", type: "SPECIALS" as const, sortOrder: 7 },
     { name: "Bakery & Breakfast", type: "BREAKFAST" as const, sortOrder: 8 },
+    { name: "Party & Group Platters", type: "PLATTERS" as const, sortOrder: 9 },
   ];
 
   for (const cat of categories) {
@@ -490,6 +491,33 @@ async function main() {
       preparationTime: 5,
       isFeatured: true,
       tags: ["pastry", "sweet"],
+    },
+
+    // Party & Group Platters
+    {
+      name: "Small Platter",
+      description: "Serves 2–3 people · Chicken, beef, fries, wrap slices, sauces",
+      price: 45000,
+      category: "PLATTERS" as const,
+      preparationTime: 30,
+      tags: ["platter", "sharing"],
+    },
+    {
+      name: "Medium Platter",
+      description: "Serves 3–5 people · Full spread with premium cuts and extra sauces",
+      price: 75000,
+      category: "PLATTERS" as const,
+      preparationTime: 40,
+      isFeatured: true,
+      tags: ["platter", "sharing", "premium"],
+    },
+    {
+      name: "Large Platter",
+      description: "Serves 6–8 people · Everything on the menu, built to impress",
+      price: 130000,
+      category: "PLATTERS" as const,
+      preparationTime: 60,
+      tags: ["platter", "sharing", "event"],
     },
   ];
 
