@@ -48,6 +48,7 @@ async function main() {
     { name: "Specials & Toppings", type: "SPECIALS" as const, sortOrder: 7 },
     { name: "Bakery & Breakfast", type: "BREAKFAST" as const, sortOrder: 8 },
     { name: "Party & Group Platters", type: "PLATTERS" as const, sortOrder: 9 },
+    { name: "Drinks & Beverages", type: "DRINKS" as const, sortOrder: 10 },
   ];
 
   for (const cat of categories) {
@@ -518,6 +519,59 @@ async function main() {
       category: "PLATTERS" as const,
       preparationTime: 60,
       tags: ["platter", "sharing", "event"],
+    },
+
+    // Drinks & Beverages
+    {
+      name: "Fresh Juices & Blends",
+      description: "Freshly blended to order — Mango, Avocado, Banana, Watermelon, Orange, Pineapple, Passion Fruit and more. Also available: Weight Loss blends, Digestion mixes, Detox and Metabolism boosters.",
+      price: 5000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      isFeatured: true,
+      unit: "glass",
+      tags: ["juice", "fresh", "healthy"],
+    },
+    {
+      name: "Smoothies",
+      description: "Thick, creamy blended smoothies — Mixed fruit, Banana + Peanut, Tropical blend and more.",
+      price: 8000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      unit: "cup",
+      tags: ["smoothie", "creamy"],
+    },
+    {
+      name: "Coffee",
+      description: "Iced coffee (Americano, Latte, Spanish Latte, Caramel Macchiato, Oreo Latte and more), Milky series (Matcha, Strawberry, Chocolate, Taro) and Hot coffee. Available in 16oz and 22oz.",
+      price: 5000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      isFeatured: true,
+      tags: ["coffee", "hot", "iced"],
+    },
+    {
+      name: "Tea",
+      description: "Hot tea (African Tea, Spiced Chai, Black, Green, Ginger, Lemon, Mint) and Iced tea (Lemon, Peach, Passion, Hibiscus, Green). Brewed fresh.",
+      price: 3000,
+      category: "DRINKS" as const,
+      preparationTime: 5,
+      tags: ["tea", "hot", "iced"],
+    },
+    {
+      name: "Mocktails & Cocktails",
+      description: "Mocktails (Virgin Mojito, Shirley Temple, Piña Colada, and more), Cocktails (Mojito, Cosmopolitan, Margarita, Gin & Tonic, and more), plus Wine & Beer selection.",
+      price: 10000,
+      category: "DRINKS" as const,
+      preparationTime: 8,
+      tags: ["cocktail", "mocktail", "wine", "beer"],
+    },
+    {
+      name: "Water & Sodas",
+      description: "Still water, sparkling water and a range of chilled sodas to go with your meal.",
+      price: 2000,
+      category: "DRINKS" as const,
+      tags: ["water", "soda"],
     },
   ];
 

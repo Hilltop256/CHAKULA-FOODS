@@ -63,6 +63,7 @@ enum ProductCategory {
   SPECIALS
   BREAKFAST
   PLATTERS
+  DRINKS
 }
 
 enum OrderType {

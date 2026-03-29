@@ -38,6 +38,7 @@ const categories = [
   { name: "Specials & Toppings", category: "SPECIALS", color: "bg-green-600", emoji: "⭐" },
   { name: "Bakery & Breakfast", category: "BREAKFAST", color: "bg-amber-500", emoji: "☕" },
   { name: "Party Platters", category: "PLATTERS", color: "bg-pink-500", emoji: "🎉" },
+  { name: "Drinks & Beverages", category: "DRINKS", color: "bg-teal-500", emoji: "🥤" },
 ];
 
 export default function Home() {
