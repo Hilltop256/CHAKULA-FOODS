@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { supabaseQuery, supabaseCount } from "@/lib/supabase";
 import { ProductCategory } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
-    const featured = searchParams.get("featured");
-    const search = searchParams.get("search");
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category");
+  const featured = searchParams.get("featured");
+  const search = searchParams.get("search");
 
+  try {
     const where: Record<string, unknown> = { isAvailable: true };
 
     if (category && Object.values(ProductCategory).includes(category as ProductCategory)) {
@@ -30,14 +31,41 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(products);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error("Products fetch error:", errorMessage);
-    return NextResponse.json(
-      { error: "Failed to fetch products", details: errorMessage },
-      { status: 500 }
-    );
+  } catch {
+    // Fallback: Supabase REST API (works on IPv4 via Supabase gateway)
+    try {
+      const params: Record<string, string> = {
+        isAvailable: "eq.true",
+        select: "id,name,description,price,image,category,isAvailable,isFeatured,preparationTime,unit,tags,allergens,calories,stock,createdAt",
+        order: "isFeatured.desc,createdAt.desc",
+      };
+
+      if (category && Object.values(ProductCategory).includes(category as ProductCategory)) {
+        params.category = `eq.${category}`;
+      }
+      if (featured === "true") {
+        params.isFeatured = "eq.true";
+      }
+      if (search) {
+        params.or = `(name.ilike.*${search}*,description.ilike.*${search}*)`;
+      }
+
+      const products = await supabaseQuery("Product", params);
+
+      return NextResponse.json(
+        products.map((p) => ({
+          ...(p as Record<string, unknown>),
+          categoryRef: null,
+        }))
+      );
+    } catch (restError) {
+      const msg = restError instanceof Error ? restError.message : "Unknown error";
+      console.error("Products fetch error (both Prisma and REST failed):", msg);
+      return NextResponse.json(
+        { error: "Failed to fetch products", details: msg },
+        { status: 500 }
+      );
+    }
   }
 }
 
