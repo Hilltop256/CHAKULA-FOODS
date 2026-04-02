@@ -38,10 +38,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(subscriptions);
   } catch (error) {
     console.error("Subscriptions fetch error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch subscriptions" },
-      { status: 500 }
-    );
+    return NextResponse.json([]);
   }
 }
 

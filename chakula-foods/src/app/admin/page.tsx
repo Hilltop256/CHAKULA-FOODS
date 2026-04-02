@@ -178,11 +178,11 @@ function AdminContent() {
     // Load data if admin OR in test mode
     if (isTestMode || user?.role === "ADMIN") {
       Promise.all([
-        fetch("/api/orders").then((r) => r.json()),
-        fetch("/api/subscriptions").then((r) => r.json()),
-        fetch("/api/products").then((r) => r.json()),
-        fetch("/api/offers").then((r) => r.json()),
-        fetch("/api/packages").then((r) => r.json()),
+        fetch("/api/orders").then((r) => r.ok ? r.json() : []).catch(() => []),
+        fetch("/api/subscriptions").then((r) => r.ok ? r.json() : []).catch(() => []),
+        fetch("/api/products").then((r) => r.ok ? r.json() : []).catch(() => []),
+        fetch("/api/offers").then((r) => r.ok ? r.json() : []).catch(() => []),
+        fetch("/api/packages").then((r) => r.ok ? r.json() : []).catch(() => []),
       ])
         .then(([ordersData, subsData, productsData, offersData, packagesData]) => {
           const orders = Array.isArray(ordersData) ? ordersData : [];
