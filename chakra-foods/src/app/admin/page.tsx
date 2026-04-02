@@ -1,4 +1,5 @@
 "use client";
+// TEST MODE: Admin panel accessible without login
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
