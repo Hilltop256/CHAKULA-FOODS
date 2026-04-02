@@ -143,6 +143,8 @@ model Product {
   orderItems        OrderItem[]
   reviews           Review[]
   subscriptionItems SubscriptionItem[]
+  offers            Offer[]
+  packageItems      PackageItem[]
 }
 
 model Order {
@@ -267,4 +269,58 @@ model Notification {
   isRead    Boolean  @default(false)
   data      Json?
   createdAt DateTime @default(now())
+}
+
+enum OfferType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  BUY_ONE_GET_ONE
+}
+
+model Offer {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  type        OfferType
+  value       Float
+  code        String?
+  image       String?
+  isActive    Boolean    @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  usageLimit  Int?
+  usedCount   Int        @default(0)
+  productId   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model Package {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items PackageItem[]
+}
+
+model PackageItem {
+  id        String  @id @default(cuid())
+  packageId String
+  productId String
+  quantity  Int     @default(1)
+
+  package Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([packageId, productId])
 }
