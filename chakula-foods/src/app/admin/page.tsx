@@ -3,6 +3,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth";
+
+export const dynamic = 'force-dynamic';
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import {
   Users,
