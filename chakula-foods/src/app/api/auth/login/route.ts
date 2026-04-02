@@ -8,6 +8,7 @@ import {
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
+  console.log("[LOGIN] Request received");
   try {
     const body = await req.json();
     const { email, password } = body;
@@ -67,9 +68,10 @@ export async function POST(req: NextRequest) {
         address: user.address,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Login error:", error);
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+    console.error("Error stack:", error.stack);
+    return NextResponse.json({ error: error.message || "Login failed" }, { status: 500 });
   }
 }
 
