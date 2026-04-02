@@ -1,17 +1,42 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-const categories = [
-  { name: "Fast Food", category: "FAST_FOOD", color: "bg-orange-500", emoji: "🍔" },
-  { name: "Bakery", category: "BAKERY", color: "bg-amber-600", emoji: "🥐" },
-  { name: "Juice Bar", category: "JUICE_BAR", color: "bg-green-500", emoji: "🧃" },
-  { name: "Fresh Market", category: "FRESH_MARKET", color: "bg-green-700", emoji: "🥬" },
-  { name: "Dry Market", category: "DRY_MARKET", color: "bg-yellow-600", emoji: "🌾" },
-  { name: "Roasts & Grills", category: "ROASTS", color: "bg-red-500", emoji: "🔥" },
-  { name: "Specials & Toppings", category: "SPECIALS", color: "bg-green-600", emoji: "⭐" },
-  { name: "Bakery & Breakfast", category: "BREAKFAST", color: "bg-amber-500", emoji: "☕" },
-  { name: "Party Platters", category: "PLATTERS", color: "bg-pink-500", emoji: "🎉" },
-  { name: "Drinks & Beverages", category: "DRINKS", color: "bg-teal-500", emoji: "🥤" },
+const serviceGroups = [
+  {
+    name: "Restaurant",
+    emoji: "🍽️",
+    color: "bg-red-600",
+    href: "/menu?group=restaurant",
+    subcategories: ["Fast Foods", "Breakfast Treats", "Roasts & Grills", "Party Platters", "Specials & Toppings"],
+  },
+  {
+    name: "Bakery / Confectionary",
+    emoji: "🥐",
+    color: "bg-amber-600",
+    href: "/menu?category=BAKERY",
+    subcategories: ["Bread", "Cakes", "Pastries", "Cookies", "Doughnuts"],
+  },
+  {
+    name: "Drinks & Beverages",
+    emoji: "🧃",
+    color: "bg-green-600",
+    href: "/menu?group=drinks",
+    subcategories: ["Juice Bar", "Smoothies", "Coffee", "Tea", "Mocktails & Cocktails"],
+  },
+  {
+    name: "Market Special",
+    emoji: "🥬",
+    color: "bg-green-700",
+    href: "/menu?group=market",
+    subcategories: ["Fresh Produce", "Dry Goods", "Fruits"],
+  },
+  {
+    name: "Wines & Spirits Bar",
+    emoji: "🍷",
+    color: "bg-purple-700",
+    href: "/menu?category=WINES_SPIRITS",
+    subcategories: ["Wine", "Spirits", "Beer", "Champagne"],
+  },
 ];
 
 export default function Home() {
@@ -55,15 +80,23 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Browse our Services by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {serviceGroups.map((group) => (
               <Link
-                key={cat.category}
-                href={`/menu?category=${cat.category}`}
-                className={`${cat.color} text-white p-6 rounded-2xl text-center hover:scale-105 transition shadow-lg`}
+                key={group.name}
+                href={group.href}
+                className={`${group.color} text-white p-6 rounded-2xl hover:scale-105 transition shadow-lg flex flex-col`}
               >
-                <div className="text-4xl mb-2">{cat.emoji}</div>
-                <h3 className="font-bold text-lg">{cat.name}</h3>
+                <div className="text-5xl mb-3">{group.emoji}</div>
+                <h3 className="font-bold text-xl mb-3">{group.name}</h3>
+                <ul className="text-sm opacity-90 space-y-1">
+                  {group.subcategories.map((sub) => (
+                    <li key={sub} className="flex items-center gap-1">
+                      <span className="w-1 h-1 bg-white rounded-full shrink-0" />
+                      {sub}
+                    </li>
+                  ))}
+                </ul>
               </Link>
             ))}
           </div>

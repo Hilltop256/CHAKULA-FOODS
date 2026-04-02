@@ -49,6 +49,7 @@ async function main() {
     { name: "Bakery & Breakfast", type: "BREAKFAST" as const, sortOrder: 8 },
     { name: "Party & Group Platters", type: "PLATTERS" as const, sortOrder: 9 },
     { name: "Drinks & Beverages", type: "DRINKS" as const, sortOrder: 10 },
+    { name: "Wines & Spirits", type: "WINES_SPIRITS" as const, sortOrder: 11 },
   ];
 
   for (const cat of categories) {
@@ -572,6 +573,57 @@ async function main() {
       price: 2000,
       category: "DRINKS" as const,
       tags: ["water", "soda"],
+    },
+
+    // Wines & Spirits
+    {
+      name: "Red Wine",
+      description: "A smooth, full-bodied red wine — perfect with grilled meats and hearty meals.",
+      price: 35000,
+      category: "WINES_SPIRITS" as const,
+      unit: "bottle",
+      isFeatured: true,
+      tags: ["wine", "red"],
+    },
+    {
+      name: "White Wine",
+      description: "A crisp, refreshing white wine — ideal with seafood, chicken and light dishes.",
+      price: 35000,
+      category: "WINES_SPIRITS" as const,
+      unit: "bottle",
+      tags: ["wine", "white"],
+    },
+    {
+      name: "Whisky",
+      description: "Premium whisky — smooth, rich and warming. Served neat, on the rocks or with a mixer.",
+      price: 25000,
+      category: "WINES_SPIRITS" as const,
+      unit: "shot",
+      isFeatured: true,
+      tags: ["whisky", "spirits"],
+    },
+    {
+      name: "Gin & Tonic",
+      description: "Classic gin and tonic with fresh lime and premium botanicals.",
+      price: 15000,
+      category: "WINES_SPIRITS" as const,
+      tags: ["gin", "cocktail"],
+    },
+    {
+      name: "Beer",
+      description: "Chilled local and imported beers — the perfect companion to any meal.",
+      price: 8000,
+      category: "WINES_SPIRITS" as const,
+      unit: "bottle",
+      tags: ["beer", "lager"],
+    },
+    {
+      name: "Vodka",
+      description: "Premium vodka — smooth and versatile. Enjoy it straight or in your favourite cocktail.",
+      price: 20000,
+      category: "WINES_SPIRITS" as const,
+      unit: "shot",
+      tags: ["vodka", "spirits"],
     },
   ];
 

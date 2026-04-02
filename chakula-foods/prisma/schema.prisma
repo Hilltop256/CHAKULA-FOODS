@@ -64,6 +64,7 @@ enum ProductCategory {
   BREAKFAST
   PLATTERS
   DRINKS
+  WINES_SPIRITS
 }
 
 enum OrderType {

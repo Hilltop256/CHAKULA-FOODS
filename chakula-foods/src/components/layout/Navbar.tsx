@@ -9,9 +9,9 @@ import { useAuth } from "@/store/auth";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
+  { href: "/menu?group=restaurant", label: "Restaurant" },
   { href: "/menu?category=BAKERY", label: "Bakery" },
-  { href: "/menu?category=JUICE_BAR", label: "Juice Bar" },
-  { href: "/menu?category=FRESH_MARKET", label: "Fresh Market" },
+  { href: "/menu?group=market", label: "Market" },
   { href: "/subscriptions", label: "Subscriptions" },
 ];
 

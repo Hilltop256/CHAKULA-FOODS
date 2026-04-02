@@ -54,6 +54,7 @@ const CATEGORIES = [
   "BREAKFAST",
   "PLATTERS",
   "DRINKS",
+  "WINES_SPIRITS",
 ];
 
 const categoryLabels: Record<string, string> = {
@@ -64,9 +65,10 @@ const categoryLabels: Record<string, string> = {
   DRY_MARKET: "Dry Market",
   ROASTS: "Roasts & Grills",
   SPECIALS: "Specials & Toppings",
-  BREAKFAST: "Bakery & Breakfast",
-  PLATTERS: "Party & Group Platters",
+  BREAKFAST: "Breakfast Treats",
+  PLATTERS: "Party Platters",
   DRINKS: "Drinks & Beverages",
+  WINES_SPIRITS: "Wines & Spirits",
 };
 
 const statusColors: Record<string, string> = {

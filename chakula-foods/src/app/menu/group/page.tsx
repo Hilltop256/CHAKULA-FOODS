@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus, Minus, ShoppingCart, Search } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Search, ArrowLeft } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -35,6 +35,24 @@ const categoryEmojis: Record<string, string> = {
   WINES_SPIRITS: "🍷",
 };
 
+const groupConfigs: Record<string, { title: string; emoji: string; categories: string[] }> = {
+  restaurant: {
+    title: "Restaurant",
+    emoji: "🍽️",
+    categories: ["FAST_FOOD", "BREAKFAST", "ROASTS", "PLATTERS", "SPECIALS"],
+  },
+  drinks: {
+    title: "Drinks & Beverages",
+    emoji: "🧃",
+    categories: ["JUICE_BAR", "DRINKS"],
+  },
+  market: {
+    title: "Market Special",
+    emoji: "🥬",
+    categories: ["FRESH_MARKET", "DRY_MARKET"],
+  },
+};
+
 interface Product {
   id: string;
   name: string;
@@ -47,9 +65,9 @@ interface Product {
   isFeatured: boolean;
 }
 
-function MenuContent() {
+function GroupMenuContent() {
   const searchParams = useSearchParams();
-  const category = searchParams.get("category") ?? "";
+  const groupKey = searchParams.get("group") ?? "";
   const { addItem } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -57,16 +75,30 @@ function MenuContent() {
   const [search, setSearch] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
+  const groupConfig = groupConfigs[groupKey];
+
   useEffect(() => {
+    if (!groupConfig) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const params = new URLSearchParams();
-        if (category) params.set("category", category);
-        if (search) params.set("search", search);
-        const res = await fetch(`/api/products?${params}`);
-        const data = await res.json();
-        setProducts(Array.isArray(data) ? data : []);
+        const results = await Promise.all(
+          groupConfig.categories.map(async (cat) => {
+            const params = new URLSearchParams();
+            params.set("category", cat);
+            if (search) params.set("search", search);
+            const res = await fetch(`/api/products?${params}`);
+            const data = await res.json();
+            return Array.isArray(data) ? data : [];
+          })
+        );
+        const merged = results.flat();
+        setProducts(merged);
       } catch (err) {
         console.error(err);
         setProducts([]);
@@ -75,7 +107,7 @@ function MenuContent() {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [category, search]);
+  }, [groupKey, search]);
 
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] ?? 1;
@@ -93,35 +125,43 @@ function MenuContent() {
   const setQty = (productId: string, qty: number) =>
     setQuantities((prev) => ({ ...prev, [productId]: qty }));
 
-  const allCategories = [
-    "",
-    "FAST_FOOD",
-    "BAKERY",
-    "JUICE_BAR",
-    "FRESH_MARKET",
-    "DRY_MARKET",
-    "ROASTS",
-    "SPECIALS",
-    "BREAKFAST",
-    "PLATTERS",
-    "DRINKS",
-    "WINES_SPIRITS",
-  ];
+  if (!groupConfig) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+        <p className="text-5xl mb-4">🍽️</p>
+        <p className="text-gray-500 text-lg mb-4">Group not found</p>
+        <Link href="/menu" className="text-orange-600 hover:underline">
+          Back to Menu
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <h1 className="text-3xl font-bold">
-          {category
-            ? `${categoryEmojis[category] ?? ""} ${categoryLabels[category] ?? category}`
-            : "Our Menu"}
-        </h1>
+        <div>
+          <Link
+            href="/"
+            className="text-sm text-gray-500 hover:text-orange-600 flex items-center gap-1 mb-2"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Home
+          </Link>
+          <h1 className="text-3xl font-bold">
+            {groupConfig.emoji} {groupConfig.title}
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {groupConfig.categories
+              .map((c) => categoryEmojis[c] + " " + categoryLabels[c])
+              .join(" · ")}
+          </p>
+        </div>
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search menu..."
+            placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -129,21 +169,15 @@ function MenuContent() {
         </div>
       </div>
 
-      {/* Category filter tabs */}
+      {/* Subcategory tabs */}
       <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-        {allCategories.map((cat) => (
+        {groupConfig.categories.map((cat) => (
           <Link
             key={cat}
-            href={cat ? `/menu?category=${cat}` : "/menu"}
-            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition border ${
-              category === cat
-                ? "bg-orange-600 text-white border-orange-600"
-                : "bg-white border-gray-200 hover:bg-gray-50"
-            }`}
+            href={`/menu?category=${cat}`}
+            className="px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition border bg-white border-gray-200 hover:bg-orange-50 hover:border-orange-300"
           >
-            {cat
-              ? `${categoryEmojis[cat]} ${categoryLabels[cat]}`
-              : "All Items"}
+            {categoryEmojis[cat]} {categoryLabels[cat]}
           </Link>
         ))}
       </div>
@@ -192,6 +226,10 @@ function MenuContent() {
                     Featured
                   </span>
                 )}
+                <span className="absolute top-2 right-2 bg-white/90 text-xs px-2 py-0.5 rounded-full font-medium z-10">
+                  {categoryEmojis[product.category] ?? "🍽️"}{" "}
+                  {categoryLabels[product.category] ?? product.category}
+                </span>
                 {product.image ? (
                   <Image
                     src={product.image}
@@ -268,10 +306,10 @@ function MenuContent() {
   );
 }
 
-export default function MenuPage() {
+export default function GroupMenuPage() {
   return (
     <Suspense fallback={<div className="text-center py-16">Loading menu...</div>}>
-      <MenuContent />
+      <GroupMenuContent />
     </Suspense>
   );
 }
