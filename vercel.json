@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "cd chakula-foods && npx prisma generate && npm run build",
-  "outputDirectory": "chakula-foods/.next",
-  "installCommand": "cd chakula-foods && npm install"
+  "buildCommand": "cd chakra-foods && npx prisma generate && npm run build",
+  "outputDirectory": "chakra-foods/.next",
+  "installCommand": "cd chakra-foods && npm install"
 }
