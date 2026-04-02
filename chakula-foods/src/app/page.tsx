@@ -1,32 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Coffee, Utensils, ShoppingBag, Calendar } from "lucide-react";
-
-const features = [
-  {
-    icon: Utensils,
-    title: "Fast Food",
-    desc: "Delicious burgers, pizzas, chicken & more",
-    href: "/menu?category=FAST_FOOD",
-  },
-  {
-    icon: Coffee,
-    title: "Fresh Bakery",
-    desc: "Bread, pastries, cakes baked daily",
-    href: "/menu?category=BAKERY",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Fresh Market",
-    desc: "Fruits, vegetables & groceries",
-    href: "/menu?category=FRESH_MARKET",
-  },
-  {
-    icon: Calendar,
-    title: "Subscriptions",
-    desc: "Daily, weekly & monthly meal plans",
-    href: "/subscriptions",
-  },
-];
+import { ArrowRight } from "lucide-react";
 
 const categories = [
   { name: "Fast Food", category: "FAST_FOOD", color: "bg-orange-500", emoji: "🍔" },
@@ -76,31 +49,11 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 to-transparent" />
       </section>
 
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Our Services</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature) => (
-            <Link
-              key={feature.title}
-              href={feature.href}
-              className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition group border border-gray-100"
-            >
-              <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-600 group-hover:text-white transition">
-                <feature.icon className="w-7 h-7 text-orange-600 group-hover:text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-              <p className="text-gray-500 text-sm">{feature.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* Categories */}
       <section className="bg-orange-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Browse by Category
+            Browse our Services by Category
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (

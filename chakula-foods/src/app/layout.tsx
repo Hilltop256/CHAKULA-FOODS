@@ -65,7 +65,7 @@ export default function RootLayout({
                   <h4 className="font-semibold mb-3">Contact Us</h4>
                   <p className="text-gray-400 text-sm">📍 Kampala, Uganda</p>
                   <p className="text-gray-400 text-sm">
-                    📞 +256 700 000 000
+                    📞 +256 753 300 613
                   </p>
                   <p className="text-gray-400 text-sm">
                     ✉️ info@chakulafoods.ug
@@ -73,7 +73,7 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="max-w-7xl mx-auto px-4 mt-8 pt-4 border-t border-gray-800 text-center text-gray-500 text-sm">
-                © {new Date().getFullYear()} Chakula Foods. All rights
+                © {new Date().getFullYear()} Chakula Foods powered by Fund Trust Uganda. All rights
                 reserved.
               </div>
             </footer>
