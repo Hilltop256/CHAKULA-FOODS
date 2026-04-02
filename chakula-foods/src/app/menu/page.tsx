@@ -37,11 +37,12 @@ const categoryEmojis: Record<string, string> = {
 
 const groups = [
   { key: "", label: "All Items", emoji: "📋", categories: [] as string[] },
-  { key: "restaurant", label: "Restaurant", emoji: "🍽️", categories: ["FAST_FOOD", "BREAKFAST", "ROASTS", "PLATTERS", "SPECIALS"] },
+  { key: "restaurant", label: "Restaurant", emoji: "🍽️", categories: ["FAST_FOOD", "BREAKFAST"] },
   { key: "bakery", label: "Bakery", emoji: "🥐", categories: ["BAKERY"] },
   { key: "drinks", label: "Drinks & Beverages", emoji: "🧃", categories: ["JUICE_BAR", "DRINKS"] },
-  { key: "market", label: "Market Special", emoji: "🥬", categories: ["FRESH_MARKET", "DRY_MARKET"] },
-  { key: "wines", label: "Wines & Spirits", emoji: "🍷", categories: ["WINES_SPIRITS"] },
+  { key: "roasts", label: "Roasts & Grills BBQ", emoji: "🔥", categories: ["ROASTS"] },
+  { key: "platters", label: "Party Platters", emoji: "🎉", categories: ["PLATTERS"] },
+  { key: "specials", label: "Specials & Toppings", emoji: "⭐", categories: ["SPECIALS"] },
 ];
 
 interface Product {
