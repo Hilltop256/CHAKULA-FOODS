@@ -21,7 +21,14 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
+    console.log("[LOGIN] Attempt for email:", email);
+    console.log("[LOGIN] User found:", !!user);
+    if (user) {
+      console.log("[LOGIN] User role:", user.role);
+    }
+
     if (!user) {
+      console.log("[LOGIN] No user found with email");
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -29,8 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     const isValid = await verifyPassword(password, user.password);
+    console.log("[LOGIN] Password valid:", isValid);
 
     if (!isValid) {
+      console.log("[LOGIN] Invalid password");
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
