@@ -23,7 +23,7 @@ interface MenuItem {
   priceMax: number;
   category: string;
   badge?: string;
-  badgeColor: string;
+  badgeColor?: string;
   emoji: string;
 }
 
@@ -642,8 +642,8 @@ export default function MenuPage() {
                       borderRadius: 20,
                       marginBottom: 10,
                       textTransform: "uppercase",
-                      background: badgeStyles[item.badgeColor]?.bg || "#eee",
-                      color: badgeStyles[item.badgeColor]?.color || "#333",
+                      background: item.badgeColor ? badgeStyles[item.badgeColor]?.bg : "#eee",
+                      color: item.badgeColor ? badgeStyles[item.badgeColor]?.color : "#333",
                     }}
                   >
                     {item.badge}
