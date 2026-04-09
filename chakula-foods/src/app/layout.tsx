@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/store/auth";
 import { CartProvider } from "@/store/cart";
@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
+const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Chakula Foods - Uganda's Best Fast Food & Fresh Market",
@@ -21,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col`}>
+      <body className={`${inter.className} min-h-screen bg-gray-50 flex flex-col`} style={{ fontFamily: playfair.style.fontFamily }}>
         <AuthProvider>
           <CartProvider>
             <Navbar />
