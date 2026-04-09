@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus, Minus, ShoppingCart, Search } from "lucide-react";
 import { useCart } from "@/store/cart";
 
@@ -223,6 +224,68 @@ const menuData: MenuItem[] = [
     emoji: "🥬",
   },
   {
+    id: "fresh-matooke",
+    name: "Fresh Matooke (5 pcs)",
+    description: "Green bananas - perfect for boiling or roasting.",
+    price: "UGX 15,000",
+    priceMin: 15000,
+    priceMax: 15000,
+    category: "market",
+    badge: "🥬 FRESH",
+    badgeColor: "badge-green",
+    emoji: "🍌",
+  },
+  {
+    id: "sweet-potatoes",
+    name: "Sweet Potatoes (2kg)",
+    description: "Fresh orange-fleshed sweet potatoes.",
+    price: "UGX 12,000",
+    priceMin: 12000,
+    priceMax: 12000,
+    category: "market",
+    emoji: "🍠",
+  },
+  {
+    id: "cassava",
+    name: "Fresh Cassava (2kg)",
+    description: "Fresh cassava roots - traditional staple.",
+    price: "UGX 8,000",
+    priceMin: 8000,
+    priceMax: 8000,
+    category: "market",
+    emoji: "🫚",
+  },
+  {
+    id: "rice-5kg",
+    name: "Super Rice (5kg)",
+    description: "Premium Ugandan rice, perfect for pilau and stew.",
+    price: "UGX 35,000",
+    priceMin: 35000,
+    priceMax: 35000,
+    category: "market",
+    emoji: "🍚",
+  },
+  {
+    id: "beans-5kg",
+    name: "Beans (5kg)",
+    description: "Red kidney beans - locally sourced.",
+    price: "UGX 25,000",
+    priceMin: 25000,
+    priceMax: 25000,
+    category: "market",
+    emoji: "🫘",
+  },
+  {
+    id: "groundnuts-2kg",
+    name: "Groundnuts (2kg)",
+    description: "Raw groundnuts for cooking or snacks.",
+    price: "UGX 18,000",
+    priceMin: 18000,
+    priceMax: 18000,
+    category: "market",
+    emoji: "🥜",
+  },
+  {
     id: "chapati",
     name: "Chapati (4 pcs)",
     description: "Flaky, layered flatbread - perfect for wrapping or dipping.",
@@ -356,6 +419,46 @@ const menuData: MenuItem[] = [
     category: "drinks",
     emoji: "🥤",
   },
+  {
+    id: "wine-red",
+    name: "Red Wine (Glass)",
+    description: "House red wine by the glass.",
+    price: "UGX 15,000",
+    priceMin: 15000,
+    priceMax: 15000,
+    category: "drinks",
+    emoji: "🍷",
+  },
+  {
+    id: "wine-white",
+    name: "White Wine (Glass)",
+    description: "House white wine by the glass.",
+    price: "UGX 15,000",
+    priceMin: 15000,
+    priceMax: 15000,
+    category: "drinks",
+    emoji: "🥂",
+  },
+  {
+    id: "beer-local",
+    name: "Local Beer (Bottle)",
+    description: "Bottle of your favorite local beer.",
+    price: "UGX 5,000",
+    priceMin: 5000,
+    priceMax: 5000,
+    category: "drinks",
+    emoji: "🍺",
+  },
+  {
+    id: "vodka",
+    name: "Vodka (Shot)",
+    description: "Premium vodka shots.",
+    price: "UGX 8,000",
+    priceMin: 8000,
+    priceMax: 8000,
+    category: "drinks",
+    emoji: "🥃",
+  },
 ];
 
 const categories = [
@@ -364,9 +467,10 @@ const categories = [
   { key: "pizza", label: "Pizza", emoji: "🍕", iconBg: "#FFE8EC" },
   { key: "roasts", label: "Roasts & Grills", emoji: "🔥", iconBg: "#FFF3DC" },
   { key: "specials", label: "Specials & Toppings", emoji: "⭐", iconBg: "#F0E8FF" },
+  { key: "market", label: "Fresh & Dry Market", emoji: "🥬", iconBg: "#E0FFF3" },
   { key: "bakery", label: "Bakery & Breakfast", emoji: "🥐", iconBg: "#E0FFF3" },
   { key: "platters", label: "Party & Group Platters", emoji: "🎉", iconBg: "#FFF0E8" },
-  { key: "drinks", label: "Drinks", emoji: "🥤", iconBg: "#E8ECF5" },
+  { key: "drinks", label: "Drinks & Wines", emoji: "🥤", iconBg: "#E8ECF5" },
 ];
 
 const badgeStyles: Record<string, { bg: string; color: string }> = {
@@ -378,11 +482,24 @@ const badgeStyles: Record<string, { bg: string; color: string }> = {
   "badge-dark": { bg: "#E8ECF5", color: "#2A3F7A" },
 };
 
-export default function MenuPage() {
+function MenuContent() {
+  const searchParams = useSearchParams();
+  const groupParam = searchParams.get("group");
+  const categoryParam = searchParams.get("category");
   const { addItem } = useCart();
-  const [activeCategory, setActiveCategory] = useState("wraps");
+  const [activeCategory, setActiveCategory] = useState(groupParam || "wraps");
   const [search, setSearch] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (groupParam) {
+      setActiveCategory(groupParam);
+    } else if (categoryParam === "WINES_SPIRITS") {
+      setActiveCategory("drinks");
+    } else if (categoryParam === "FRESH_MARKET" || categoryParam === "DRY_MARKET") {
+      setActiveCategory("specials");
+    }
+  }, [groupParam, categoryParam]);
 
   const filteredItems = menuData.filter((item) => {
     const matchesCategory = item.category === activeCategory;
@@ -800,5 +917,13 @@ export default function MenuPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "40px", textAlign: "center" }}>Loading menu...</div>}>
+      <MenuContent />
+    </Suspense>
   );
 }
