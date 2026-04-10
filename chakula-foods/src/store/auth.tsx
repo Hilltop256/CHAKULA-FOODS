@@ -14,6 +14,7 @@ interface User {
   phone: string;
   role: string;
   address?: string;
+  referralCode?: string;
 }
 
 interface AuthContextType {
@@ -25,6 +26,7 @@ interface AuthContextType {
     email: string;
     phone: string;
     password: string;
+    referralCode?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string;
     phone: string;
     password: string;
+    referralCode?: string;
   }) => {
     const res = await fetch("/api/auth/register", {
       method: "POST",

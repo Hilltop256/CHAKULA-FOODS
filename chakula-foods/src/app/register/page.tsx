@@ -1,12 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/store/auth";
-import { ChefHat } from "lucide-react";
+import { ChefHat, Gift } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref") || "";
   const { register } = useAuth();
   const [form, setForm] = useState({
     name: "",
@@ -38,6 +40,7 @@ export default function RegisterPage() {
         email: form.email,
         phone: form.phone,
         password: form.password,
+        referralCode,
       });
       router.push("/");
     } catch (err) {
@@ -58,6 +61,12 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold text-orange-600">Chakula Foods</h1>
           </div>
           <p className="text-gray-500">Create your account to get started.</p>
+          {referralCode && (
+            <div className="mt-3 bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              <span className="text-sm">Joining with member code: <strong>{referralCode}</strong></span>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -164,5 +173,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

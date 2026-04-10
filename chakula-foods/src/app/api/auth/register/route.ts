@@ -3,10 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, createSession } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+function generateReferralCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "SA";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, password } = body;
+    const { name, email, phone, password, referralCode } = body;
 
     if (!email || !password || !name || !phone) {
       return NextResponse.json(
@@ -38,10 +47,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let referredById: string | null = null;
+    if (referralCode) {
+      const referrer = await prisma.user.findUnique({
+        where: { referralCode },
+      });
+      if (referrer) {
+        referredById = referrer.id;
+      }
+    }
+
+    const userReferralCode = generateReferralCode();
     const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
-      data: { name, email, phone, password: hashedPassword },
+      data: { 
+        name, 
+        email, 
+        phone, 
+        password: hashedPassword,
+        referralCode: userReferralCode,
+        referredById,
+      },
     });
 
     const token = await createSession(user.id);
@@ -63,6 +90,7 @@ export async function POST(req: NextRequest) {
         phone: user.phone,
         role: user.role,
         address: user.address,
+        referralCode: user.referralCode,
       },
     });
   } catch (error) {

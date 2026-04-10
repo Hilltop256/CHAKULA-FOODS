@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag, Star, Share2, Copy } from "lucide-react";
 
 interface OrderItem {
   product: { name: string };
@@ -116,6 +116,57 @@ function AccountContent() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-semibold text-gray-500 text-sm uppercase mb-3">
+            My Member Code
+          </h2>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <p className="text-sm text-gray-600 mb-2">Share this code with members to join:</p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-orange-600 tracking-wider">
+                {user.referralCode || "Generating..."}
+              </span>
+              <button
+                onClick={() => {
+                  if (user.referralCode) {
+                    navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.referralCode}`);
+                    alert("Registration link copied!");
+                  }
+                }}
+                className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
+                title="Copy registration link"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Link: {typeof window !== "undefined" ? window.location.origin : ""}/register?ref={user.referralCode || ""}
+            </p>
+          </div>
+        </div>
+          <div className="space-y-2">
+            <Link
+              href="/menu"
+              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+            >
+              🍔 Browse Menu
+            </Link>
+            <Link
+              href="/subscriptions"
+              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+            >
+              📅 Manage Subscription
+            </Link>
+            <Link
+              href="/cart"
+              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+            >
+              🛒 View Cart
+            </Link>
+          </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h2 className="font-semibold text-gray-500 text-sm uppercase mb-3">
             Quick Actions
           </h2>
           <div className="space-y-2">
@@ -139,7 +190,6 @@ function AccountContent() {
             </Link>
           </div>
         </div>
-      </div>
 
       {/* Order history */}
       <h2 className="text-2xl font-bold mb-6">Order History</h2>
