@@ -87,13 +87,8 @@ model User {
   latitude      Float?
   longitude     Float?
   emailVerified DateTime?
-  referralCode  String?   @unique
-  referredById  String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  referredBy    User?     @relation("Referrals", fields: [referredById], references: [id])
-  referrals     User[]    @relation("Referrals")
 
   orders        Order[]
   subscriptions Subscription[]

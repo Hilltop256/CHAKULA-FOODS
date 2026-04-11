@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense, RefObject } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth";
@@ -39,7 +39,7 @@ function AccountContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  let fileInputRef: HTMLInputElement | null = null;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,7 +129,7 @@ function AccountContent() {
               <label className="absolute bottom-0 right-0 bg-orange-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-orange-700 transition">
                 <Camera className="w-4 h-4" />
                 <input
-                  ref={(el) => (fileInputRef = el)}
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarUpload}
@@ -222,7 +222,6 @@ function AccountContent() {
             >
               🛒 View Cart
             </Link>
-          </div>
           </div>
         </div>
 

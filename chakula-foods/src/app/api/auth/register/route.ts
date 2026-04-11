@@ -48,16 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     let referredById: string | null = null;
-    if (referralCode) {
-      const referrer = await prisma.user.findUnique({
-        where: { referralCode },
-      });
-      if (referrer) {
-        referredById = referrer.id;
-      }
-    }
-
-    const userReferralCode = generateReferralCode();
+    
     const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
@@ -66,8 +57,6 @@ export async function POST(req: NextRequest) {
         email, 
         phone, 
         password: hashedPassword,
-        referralCode: userReferralCode,
-        referredById,
       },
     });
 
@@ -90,7 +79,6 @@ export async function POST(req: NextRequest) {
         phone: user.phone,
         role: user.role,
         address: user.address,
-        referralCode: user.referralCode,
         avatar: user.avatar,
       },
     });

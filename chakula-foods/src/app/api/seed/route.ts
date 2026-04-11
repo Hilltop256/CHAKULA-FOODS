@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { ProductCategory } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // First create categories
-    const categories = [
+    const categories: { name: string; type: ProductCategory; sortOrder: number }[] = [
       { name: "Fast Food", type: "FAST_FOOD", sortOrder: 1 },
       { name: "Bakery", type: "BAKERY", sortOrder: 2 },
       { name: "Juice Bar", type: "JUICE_BAR", sortOrder: 3 },
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Then create products
-    const products = [
+    const products: { name: string; description: string; price: number; category: ProductCategory; preparationTime?: number; isFeatured?: boolean; unit?: string }[] = [
       { name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", preparationTime: 15, isFeatured: true },
       { name: "Beef Burger", description: "Juicy beef patty with cheese, onions and pickles", price: 18000, category: "FAST_FOOD", preparationTime: 15, isFeatured: true },
       { name: "Shawarma", description: "Marinated meat, garlic sauce, pickles & fresh veggies", price: 10000, category: "FAST_FOOD", preparationTime: 10, isFeatured: true },

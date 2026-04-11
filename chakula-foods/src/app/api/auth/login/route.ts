@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
         phone: user.phone,
         role: user.role,
         address: user.address,
-        referralCode: user.referralCode,
         avatar: user.avatar,
       },
     });
@@ -80,7 +79,6 @@ export async function GET() {
         phone: user.phone,
         role: user.role,
         address: user.address,
-        referralCode: user.referralCode,
         avatar: user.avatar,
       },
     });
