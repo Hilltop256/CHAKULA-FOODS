@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Test connection
+    await prisma.$connect();
+    
+    // Create categories
     const categories: { name: string; type: ProductCategory; sortOrder: number }[] = [
       { name: "Fast Food", type: "FAST_FOOD", sortOrder: 1 },
       { name: "Bakery", type: "BAKERY", sortOrder: 2 },
@@ -32,13 +36,15 @@ export async function GET(req: NextRequest) {
         await prisma.category.upsert({
           where: { type: cat.type },
           update: {},
-          create: { ...cat, isActive: true },
+          create: { name: cat.name, type: cat.type, sortOrder: cat.sortOrder, isActive: true },
         });
         catCount++;
-      } catch (e) { /* skip */ }
+      } catch (e: any) {
+        console.log("Category error:", e.message);
+      }
     }
 
-    // Then create products
+    // Create products
     const products: { name: string; description: string; price: number; category: ProductCategory; preparationTime?: number; isFeatured?: boolean; unit?: string }[] = [
       { name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", preparationTime: 15, isFeatured: true },
       { name: "Beef Burger", description: "Juicy beef patty with cheese, onions and pickles", price: 18000, category: "FAST_FOOD", preparationTime: 15, isFeatured: true },
@@ -73,6 +79,7 @@ export async function GET(req: NextRequest) {
     ];
 
     let prodCount = 0;
+    let errors: string[] = [];
     for (const product of products) {
       try {
         await prisma.product.create({
@@ -90,11 +97,19 @@ export async function GET(req: NextRequest) {
           },
         });
         prodCount++;
-      } catch (e) { /* skip duplicates */ }
+      } catch (e: any) {
+        errors.push(`${product.name}: ${e.message}`);
+      }
     }
 
-    return NextResponse.json({ success: true, categories: catCount, products: prodCount });
+    return NextResponse.json({ 
+      success: true, 
+      categories: catCount, 
+      products: prodCount,
+      errors: errors.length > 0 ? errors : undefined
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Seed error:", error);
+    return NextResponse.json({ error: error.message || "Unknown error" }, { status: 500 });
   }
 }
