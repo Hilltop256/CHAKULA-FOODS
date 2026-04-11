@@ -15,6 +15,7 @@ interface User {
   role: string;
   address?: string;
   referralCode?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {

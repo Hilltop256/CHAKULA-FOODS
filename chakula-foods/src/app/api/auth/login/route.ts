@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
         role: user.role,
         address: user.address,
         referralCode: user.referralCode,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
@@ -80,6 +81,7 @@ export async function GET() {
         role: user.role,
         address: user.address,
         referralCode: user.referralCode,
+        avatar: user.avatar,
       },
     });
   } catch {

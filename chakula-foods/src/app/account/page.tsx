@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, RefObject } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { ShoppingBag, Star, Share2, Copy } from "lucide-react";
+import { ShoppingBag, Star, Share2, Copy, Camera, User } from "lucide-react";
 
 interface OrderItem {
   product: { name: string };
@@ -35,9 +35,40 @@ function AccountContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const newOrder = searchParams.get("order");
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refresh } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  let fileInputRef: HTMLInputElement | null = null;
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "avatar");
+      
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (res.ok) {
+        await refresh();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Upload failed");
+      }
+    } catch {
+      alert("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -82,12 +113,42 @@ function AccountContent() {
           <h2 className="font-semibold text-gray-500 text-sm uppercase mb-3">
             Profile
           </h2>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative">
+              {user.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name} 
+                  className="w-20 h-20 rounded-full object-cover border-2 border-orange-200"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center border-2 border-orange-200">
+                  <User className="w-10 h-10 text-orange-600" />
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 bg-orange-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-orange-700 transition">
+                <Camera className="w-4 h-4" />
+                <input
+                  ref={(el) => (fileInputRef = el)}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {uploading && (
+              <span className="text-sm text-gray-500">Uploading...</span>
+            )}
+          </div>
           <p className="font-bold text-lg">{user.name}</p>
           <p className="text-gray-500 text-sm">{user.email}</p>
           <p className="text-gray-500 text-sm">{user.phone}</p>
           {user.address && (
             <p className="text-gray-500 text-sm mt-1">{user.address}</p>
           )}
+          <p className="text-xs text-gray-400 mt-2">Tap camera icon to change photo</p>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
