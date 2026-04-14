@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
+const demoOffers = [
+  { id: "1", name: "Summer Promo", description: "Get 20% off all juices this summer", type: "PERCENTAGE", value: 20, code: "SUMMER20", isActive: true, usedCount: 45 },
+  { id: "2", name: "New Customer", description: "5000 UGX off your first order", type: "FIXED_AMOUNT", value: 5000, code: "WELCOME500", isActive: true, usedCount: 120 },
+  { id: "3", name: "Free Delivery", description: "Free delivery on orders over 50000", type: "FIXED_AMOUNT", value: 5000, code: "FREEDELIVERY", isActive: true, usedCount: 89 },
+];
+
+const hasDatabase = !!process.env.DATABASE_URL;
+
 export async function GET() {
+  if (!hasDatabase) {
+    return NextResponse.json(demoOffers);
+  }
+
   try {
     const offers = await prisma.offer.findMany({
       include: { product: { select: { id: true, name: true } } },
@@ -11,11 +23,15 @@ export async function GET() {
     return NextResponse.json(offers);
   } catch (error) {
     console.error("Offers fetch error:", error);
-    return NextResponse.json([]);
+    return NextResponse.json(demoOffers);
   }
 }
 
 export async function POST(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
@@ -53,6 +69,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
@@ -86,6 +106,10 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
