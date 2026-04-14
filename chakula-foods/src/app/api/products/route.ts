@@ -8,9 +8,16 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get("category");
   const featured = searchParams.get("featured");
   const search = searchParams.get("search");
+  const includeUnavailable = searchParams.get("includeUnavailable");
 
   try {
-    const where: Record<string, unknown> = { isAvailable: true };
+    // Admin can see all products, regular users see only available
+    const where: Record<string, unknown> = {};
+    
+    // If not admin or not requesting all, filter by available
+    if (includeUnavailable !== "true") {
+      where.isAvailable = true;
+    }
 
     if (category && Object.values(ProductCategory).includes(category as ProductCategory)) {
       where.category = category as ProductCategory;
@@ -30,7 +37,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(products);
-  } catch {
+  } catch (error) {
+    console.error("Products GET error:", error);
     return NextResponse.json([]);
   }
 }

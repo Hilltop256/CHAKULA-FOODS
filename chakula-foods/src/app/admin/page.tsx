@@ -180,7 +180,7 @@ function AdminContent() {
       Promise.all([
         fetch("/api/orders").then((r) => r.ok ? r.json() : []).catch(() => []),
         fetch("/api/subscriptions").then((r) => r.ok ? r.json() : []).catch(() => []),
-        fetch("/api/products").then((r) => r.ok ? r.json() : []).catch(() => []),
+        fetch("/api/products?includeUnavailable=true").then((r) => r.ok ? r.json() : []).catch(() => []),
         fetch("/api/offers").then((r) => r.ok ? r.json() : []).catch(() => []),
         fetch("/api/packages").then((r) => r.ok ? r.json() : []).catch(() => []),
       ])

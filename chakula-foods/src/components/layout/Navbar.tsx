@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/menu?group=market", label: "Market Specials" },
   { href: "/menu?category=WINES_SPIRITS", label: "Wines & Spirit Delivery" },
   { href: "/subscriptions", label: "Subscriptions" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export default function Navbar() {
