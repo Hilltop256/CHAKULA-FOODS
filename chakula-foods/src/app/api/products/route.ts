@@ -36,7 +36,19 @@ const demoProducts = [
   { id: "30", name: "Vodka", description: "Premium vodka", price: 20000, category: "WINES_SPIRITS", isAvailable: true, unit: "shot", image: "https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&h=300&fit=crop" },
 ];
 
-const hasDatabase = !!process.env.DATABASE_URL;
+const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10);
+
+function getFilteredProducts(products: typeof demoProducts, category: string | null, featured: string | null, search: string | null, includeUnavailable: string | null) {
+  let filtered = [...products];
+  if (category) filtered = filtered.filter(p => p.category === category);
+  if (featured === "true") filtered = filtered.filter(p => p.isFeatured);
+  if (search) {
+    const s = search.toLowerCase();
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(s) || (p.description && p.description.toLowerCase().includes(s)));
+  }
+  if (includeUnavailable !== "true") filtered = filtered.filter(p => p.isAvailable);
+  return NextResponse.json(filtered);
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -45,32 +57,14 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search");
   const includeUnavailable = searchParams.get("includeUnavailable");
 
-  // Return demo products if no database URL is set
-  if (!hasDatabase) {
-    let products = [...demoProducts];
-    
-    if (category) {
-      products = products.filter(p => p.category === category);
-    }
-    if (featured === "true") {
-      products = products.filter(p => p.isFeatured);
-    }
-    if (search) {
-      const s = search.toLowerCase();
-      products = products.filter(p => 
-        p.name.toLowerCase().includes(s) || 
-        (p.description && p.description.toLowerCase().includes(s))
-      );
-    }
-    if (includeUnavailable !== "true") {
-      products = products.filter(p => p.isAvailable);
-    }
-    
-    return NextResponse.json(products);
+  // Return demo products if database is not available
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
+    return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
   }
 
+  // Try database, fallback to demo on error
   try {
-    // Try to test connection first
     await prisma.$connect();
     
     const where: Record<string, unknown> = {};
@@ -99,35 +93,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(products);
   } catch (error) {
     console.error("Products GET error:", error);
-    // Fall back to demo products if database connection fails
-    let products = [...demoProducts];
-    
-    if (category) {
-      products = products.filter(p => p.category === category);
-    }
-    if (featured === "true") {
-      products = products.filter(p => p.isFeatured);
-    }
-    if (search) {
-      const s = search.toLowerCase();
-      products = products.filter(p => 
-        p.name.toLowerCase().includes(s) || 
-        (p.description && p.description.toLowerCase().includes(s))
-      );
-    }
-    if (includeUnavailable !== "true") {
-      products = products.filter(p => p.isAvailable);
-    }
-    
-    return NextResponse.json(products);
+    return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
   } finally {
     await prisma.$disconnect();
   }
 }
 
 export async function POST(req: NextRequest) {
-  if (!hasDatabase) {
-    return NextResponse.json({ error: "Demo mode - upload disabled" }, { status: 400 });
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
+    return NextResponse.json({ error: "Demo mode - create disabled" }, { status: 400 });
   }
 
   try {
@@ -187,7 +162,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!hasDatabase) {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
     return NextResponse.json({ error: "Demo mode - edit disabled" }, { status: 400 });
   }
 
@@ -227,7 +203,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!hasDatabase) {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
     return NextResponse.json({ error: "Demo mode - delete disabled" }, { status: 400 });
   }
 
