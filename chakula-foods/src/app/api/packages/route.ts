@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
+const demoPackages = [
+  { id: "1", name: "Family Feast", description: "Perfect for 4-5 people", price: 85000, isActive: true, items: [{ id: "1", quantity: 2, product: { id: "13", name: "Half Chicken", price: 25000, image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop" } }, { id: "2", quantity: 1, product: { id: "9", name: "Matooke (bunch)", price: 10000, image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&h=300&fit=crop" } }] },
+  { id: "2", name: "Office Lunch Combo", description: "Quick lunch for the team", price: 45000, isActive: true, items: [{ id: "3", quantity: 3, product: { id: "3", name: "Shawarma", price: 10000, image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop" } }] },
+];
+
+const hasDatabase = !!process.env.DATABASE_URL;
+
 export async function GET() {
+  if (!hasDatabase) {
+    return NextResponse.json(demoPackages);
+  }
+
   try {
+    await prisma.$connect();
     const packages = await prisma.package.findMany({
       include: {
         items: {
@@ -17,11 +29,17 @@ export async function GET() {
     return NextResponse.json(packages);
   } catch (error) {
     console.error("Packages fetch error:", error);
-    return NextResponse.json([]);
+    return NextResponse.json(demoPackages);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
 export async function POST(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
@@ -67,6 +85,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
@@ -82,7 +104,6 @@ export async function PUT(req: NextRequest) {
 
     if (updates.price !== undefined) updates.price = parseFloat(updates.price);
 
-    // If items are provided, replace all items
     if (items !== undefined) {
       await prisma.packageItem.deleteMany({ where: { packageId: id } });
       if (items.length > 0) {
@@ -116,6 +137,10 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Demo mode" }, { status: 400 });
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {

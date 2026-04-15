@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get("search");
   const includeUnavailable = searchParams.get("includeUnavailable");
 
-  // Return demo products if no database
+  // Return demo products if no database URL is set
   if (!hasDatabase) {
     let products = [...demoProducts];
     
@@ -70,6 +70,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Try to test connection first
+    await prisma.$connect();
+    
     const where: Record<string, unknown> = {};
     
     if (includeUnavailable !== "true") {
@@ -96,7 +99,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(products);
   } catch (error) {
     console.error("Products GET error:", error);
-    return NextResponse.json(demoProducts);
+    // Fall back to demo products if database connection fails
+    let products = [...demoProducts];
+    
+    if (category) {
+      products = products.filter(p => p.category === category);
+    }
+    if (featured === "true") {
+      products = products.filter(p => p.isFeatured);
+    }
+    if (search) {
+      const s = search.toLowerCase();
+      products = products.filter(p => 
+        p.name.toLowerCase().includes(s) || 
+        (p.description && p.description.toLowerCase().includes(s))
+      );
+    }
+    if (includeUnavailable !== "true") {
+      products = products.filter(p => p.isAvailable);
+    }
+    
+    return NextResponse.json(products);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

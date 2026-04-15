@@ -11,11 +11,13 @@ const demoOffers = [
 const hasDatabase = !!process.env.DATABASE_URL;
 
 export async function GET() {
+  // Return demo offers if no database URL
   if (!hasDatabase) {
     return NextResponse.json(demoOffers);
   }
 
   try {
+    await prisma.$connect();
     const offers = await prisma.offer.findMany({
       include: { product: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
@@ -24,6 +26,8 @@ export async function GET() {
   } catch (error) {
     console.error("Offers fetch error:", error);
     return NextResponse.json(demoOffers);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
