@@ -162,6 +162,16 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Admin */}
+      <section className="bg-gray-100 py-8 text-center">
+        <Link
+          href="/admin"
+          className="text-gray-400 text-sm hover:text-gray-600 transition"
+        >
+          Admin Panel
+        </Link>
+      </section>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { ProductCategory } from "@prisma/client";
 
@@ -58,11 +57,12 @@ export async function GET(req: NextRequest) {
   const includeUnavailable = searchParams.get("includeUnavailable");
 
   // Return demo products if database is not available
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl || dbUrl.length < 10) {
+  if (!hasDatabase) {
     return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
   }
 
+  const { prisma } = await import("@/lib/prisma");
+  
   // Try database, fallback to demo on error
   try {
     await prisma.$connect();
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { prisma } = await import("@/lib/prisma");
     const body = await req.json();
     const {
       name,
@@ -173,6 +174,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { prisma } = await import("@/lib/prisma");
     const body = await req.json();
     const { id, ...updates } = body;
 
@@ -214,6 +216,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { prisma } = await import("@/lib/prisma");
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
