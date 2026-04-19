@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl || dbUrl.length < 10) {
-    return NextResponse.json({ error: "Demo mode - create disabled" }, { status: 400 });
+    return NextResponse.json({ error: "Database not connected. Please connect a PostgreSQL database to save products." }, { status: 400 });
   }
 
   try {
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl || dbUrl.length < 10) {
-    return NextResponse.json({ error: "Demo mode - edit disabled" }, { status: 400 });
+    return NextResponse.json({ error: "Database not connected. Please connect a PostgreSQL database to save products." }, { status: 400 });
   }
 
   try {
