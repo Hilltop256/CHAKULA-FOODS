@@ -157,8 +157,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error("Product create error:", error);
+    const message = error instanceof Error ? error.message : "Failed to create product";
     return NextResponse.json(
-      { error: "Failed to create product" },
+      { error: message },
       { status: 500 }
     );
   }
