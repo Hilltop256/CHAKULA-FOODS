@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, createSession } from "@/lib/auth";
+import { hashPassword, createSession, deleteSession } from "@/lib/auth";
 import { cookies } from "next/headers";
-
-function generateReferralCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "SA";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password || !name || !phone) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Name, email, phone and password are required" },
         { status: 400 }
       );
     }
@@ -31,31 +22,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ email }, { phone }] },
-    });
-
-    if (existingUser) {
+    // Check valid email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        {
-          error:
-            existingUser.email === email
-              ? "Email already in use"
-              : "Phone number already in use",
-        },
+        { error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    let referredById: string | null = null;
-    
+    // Check valid phone (Uganda format)
+    const phoneClean = phone.replace(/[\s-]/g, "");
+    if (!phoneClean.match(/^(\+256|0)[7-9][0-9]{8}$/)) {
+      return NextResponse.json(
+        { error: "Enter valid Uganda phone (e.g., 0771234567 or +256771234567)" },
+        { status: 400 }
+      );
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: { OR: [{ email: email.toLowerCase() }, { phone }] },
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email.toLowerCase()) {
+        return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+      }
+      return NextResponse.json({ error: "Phone number already registered" }, { status: 400 });
+    }
+
     const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        phone, 
+      data: {
+        name,
+        email: email.toLowerCase(),
+        phone,
         password: hashedPassword,
       },
     });
@@ -78,15 +80,11 @@ export async function POST(req: NextRequest) {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        address: user.address,
-        avatar: user.avatar,
       },
+      message: "Registration successful",
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return NextResponse.json(
-      { error: "Registration failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 }
