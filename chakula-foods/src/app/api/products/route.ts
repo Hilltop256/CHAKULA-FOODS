@@ -173,7 +173,14 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { prisma } = await import("@/lib/prisma");
+    let prisma;
+    try {
+      const p = await import("@/lib/prisma");
+      prisma = p.prisma;
+    } catch (e) {
+      console.error("Prisma import error:", e);
+      return NextResponse.json({ error: "Prisma import failed" }, { status: 500 });
+    }
     const body = await req.json();
     const { id, ...updates } = body;
 
