@@ -2,7 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ProductCategory } from "@prisma/client";
 
+const demoProducts = [
+  { id: "1", name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
+  { id: "2", name: "Beef Burger", description: "Juicy beef patty with cheese, onions and pickles", price: 18000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
+  { id: "3", name: "Rolex", description: "Uganda's favourite street food", price: 5000, category: "FAST_FOOD", isAvailable: true, preparationTime: 8, image: "https://images.unsplash.com/photo-1626804475297-411d863b7608?w=400&h=300&fit=crop" },
+];
+
+const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10);
+
 export async function GET() {
+  if (!hasDatabase) {
+    return NextResponse.json(demoProducts);
+  }
   try {
     const products = await prisma.product.findMany({
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
@@ -10,7 +21,7 @@ export async function GET() {
     return NextResponse.json(products);
   } catch (error) {
     console.error("GET error:", error);
-    return NextResponse.json([]);
+    return NextResponse.json(demoProducts);
   }
 }
 
