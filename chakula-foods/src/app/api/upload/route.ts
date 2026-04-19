@@ -20,8 +20,9 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    if (buffer.length > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large. Maximum 5MB." }, { status: 400 });
+    // Max 1MB to avoid serverless limits
+    if (buffer.length > 1 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large. Maximum 1MB. Please compress the image." }, { status: 400 });
     }
 
     const base64 = buffer.toString("base64");
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: dataUrl, id }, { status: 201 });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: "Upload failed: " + msg }, { status: 500 });
   }
 }
