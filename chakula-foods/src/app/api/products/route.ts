@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const isTestMode = process.env.NODE_ENV !== "production";
+const isTestMode = process.env.NODE_ENV !== "production" || process.env.API_TEST_MODE === "true";
 
 export async function POST(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
