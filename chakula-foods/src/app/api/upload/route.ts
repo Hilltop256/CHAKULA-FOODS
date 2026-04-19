@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const base64Cache: Record<string, string> = {};
+import { uploadToStorage } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,33 +18,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    if (buffer.length > 5 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json({ error: "File too large. Maximum 5MB." }, { status: 400 });
     }
 
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${file.type};base64,${base64}`;
-    const id = `img-${Date.now()}`;
-    
-    base64Cache[id] = dataUrl;
+    const result = await uploadToStorage("uploads", file);
 
-    return NextResponse.json({ url: dataUrl, id }, { status: 201 });
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    return NextResponse.json({ url: result.url, id: result.path }, { status: 201 });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
-}
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-  
-  if (id && base64Cache[id]) {
-    return NextResponse.json({ url: base64Cache[id] });
-  }
-  
-  return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
