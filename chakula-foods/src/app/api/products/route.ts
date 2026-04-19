@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = isTestMode ? { role: "ADMIN" } : await getCurrentUser();
+    const user = isTestMode ? { role: "ADMIN", id: "test" } : await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -171,7 +171,7 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const user = isTestMode ? { role: "ADMIN" } : await getCurrentUser();
+    const user = isTestMode ? { role: "ADMIN", id: "test" } : await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -213,7 +213,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const user = isTestMode ? { role: "ADMIN" } : await getCurrentUser();
+    const user = isTestMode ? { role: "ADMIN", id: "test" } : await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
