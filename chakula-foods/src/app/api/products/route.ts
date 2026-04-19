@@ -178,6 +178,12 @@ export async function PUT(req: NextRequest) {
     }
 
     const { prisma } = await import("@/lib/prisma");
+    try {
+      await prisma.$connect();
+    } catch (connErr) {
+      console.error("Prisma connection error:", connErr);
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
+    }
     const body = await req.json();
     const { id, ...updates } = body;
 
@@ -200,8 +206,9 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(product);
   } catch (error) {
     console.error("Product update error:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: "Update failed: " + message },
       { status: 500 }
     );
   }
