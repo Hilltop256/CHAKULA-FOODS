@@ -7,7 +7,17 @@ import {
 } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+const dbUrl = process.env.DATABASE_URL || "";
+const hasDatabase = dbUrl.length > 20 && (dbUrl.startsWith("postgresql") || dbUrl.startsWith("postgres"));
+
 export async function POST(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json(
+      { error: "Login unavailable. Please contact support." },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { email, password } = body;

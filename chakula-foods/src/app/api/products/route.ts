@@ -35,7 +35,8 @@ const demoProducts = [
   { id: "30", name: "Pizza Margherita", description: "Classic tomato sauce with mozzarella and fresh basil", price: 25000, category: "FAST_FOOD", isAvailable: true, preparationTime: 20, image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop" },
 ];
 
-const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 20 && (process.env.DATABASE_URL.startsWith("postgresql://") || process.env.DATABASE_URL.startsWith("postgres://")));
+const dbUrl = process.env.DATABASE_URL || "";
+const hasDatabase = dbUrl.length > 20 && (dbUrl.startsWith("postgresql") || dbUrl.startsWith("postgres"));
 
 export async function GET() {
   if (!hasDatabase) {

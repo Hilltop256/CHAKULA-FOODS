@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, getCurrentUser } from "@/lib/auth";
 
+const dbUrl = process.env.DATABASE_URL || "";
+const hasDatabase = dbUrl.length > 20 && (dbUrl.startsWith("postgresql") || dbUrl.startsWith("postgres"));
+
 export async function POST(req: NextRequest) {
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+  }
   try {
     const user = await getCurrentUser();
 
