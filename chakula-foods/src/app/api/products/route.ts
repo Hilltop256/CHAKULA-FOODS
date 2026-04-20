@@ -89,9 +89,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const dbUrl = process.env.DATABASE_URL || "";
+  console.log("PUT - DB_URL length:", dbUrl.length, "starts:", dbUrl.substring(0, 20));
+  
   try {
     const body = await req.json();
     const { id, ...updates } = body;
+    console.log("PUT - updating product:", id, updates);
 
     if (!id) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
@@ -107,10 +111,12 @@ export async function PUT(req: NextRequest) {
       data: updates,
     });
 
+    console.log("PUT - success:", product.name);
     return NextResponse.json(product);
   } catch (error) {
     console.error("PUT error:", error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: "Update failed: " + msg }, { status: 500 });
   }
 }
 
