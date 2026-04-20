@@ -82,10 +82,12 @@ function MenuContent() {
     fetch("/api/products")
       .then((r) => r.json())
       .then((data) => {
+        console.log("Products loaded:", Array.isArray(data) ? data.length : "error", data);
         setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Products fetch error:", err);
         setProducts([]);
         setLoading(false);
       });

@@ -39,21 +39,19 @@ const dbUrl = process.env.DATABASE_URL || "";
 const hasDatabase = dbUrl.length > 20 && (dbUrl.startsWith("postgresql") || dbUrl.startsWith("postgres"));
 
 export async function GET() {
-  if (!hasDatabase) {
-    return NextResponse.json(demoProducts);
-  }
+  // Always try to return products - first try database, fallback to demo
   try {
     const products = await prisma.product.findMany({
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     });
-    if (products.length === 0) {
-      return NextResponse.json(demoProducts);
+    if (products.length > 0) {
+      return NextResponse.json(products);
     }
-    return NextResponse.json(products);
   } catch (error) {
-    console.error("GET error:", error);
-    return NextResponse.json(demoProducts);
+    console.error("DB error:", error);
   }
+  // Return demo products as fallback
+  return NextResponse.json(demoProducts);
 }
 
 export async function POST(req: NextRequest) {
