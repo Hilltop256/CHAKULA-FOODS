@@ -35,29 +35,31 @@ const demoProducts = [
   { id: "30", name: "Pizza Margherita", description: "Classic tomato sauce with mozzarella and fresh basil", price: 25000, category: "FAST_FOOD", isAvailable: true, preparationTime: 20, image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop" },
 ];
 
-const dbUrl = process.env.DATABASE_URL || "";
-const hasDatabase = dbUrl.length > 20 && (dbUrl.startsWith("postgresql") || dbUrl.startsWith("postgres"));
+const demoImageMap: Record<string, string> = {};
+demoProducts.forEach(p => {
+  if (p.image) demoImageMap[p.name.toLowerCase()] = p.image;
+});
 
 export async function GET() {
-  // Always try to return products - first try database, fallback to demo
   try {
-    const products = await prisma.product.findMany({
+    let products = await prisma.product.findMany({
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     });
+    
     if (products.length > 0) {
+      products = products.map(p => ({
+        ...p,
+        image: p.image || demoImageMap[p.name.toLowerCase()] || null
+      }));
       return NextResponse.json(products);
     }
   } catch (error) {
     console.error("DB error:", error);
   }
-  // Return demo products as fallback
   return NextResponse.json(demoProducts);
 }
 
 export async function POST(req: NextRequest) {
-  if (!hasDatabase) {
-    return NextResponse.json({ error: "Database not connected. Please set DATABASE_URL in Vercel env vars." }, { status: 400 });
-  }
   try {
     const body = await req.json();
     const { name, description, price, image, category, preparationTime, isFeatured, unit } = body;
@@ -87,9 +89,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!hasDatabase) {
-    return NextResponse.json({ error: "Database not connected. Please set DATABASE_URL in Vercel env vars." }, { status: 400 });
-  }
   try {
     const body = await req.json();
     const { id, ...updates } = body;
@@ -116,9 +115,6 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!hasDatabase) {
-    return NextResponse.json({ error: "Database not connected. Please set DATABASE_URL in Vercel env vars." }, { status: 400 });
-  }
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
