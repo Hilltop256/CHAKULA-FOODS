@@ -115,12 +115,19 @@ type Tab = "orders" | "menu" | "offers" | "packages";
 
 // ── Image Upload Helper ─────────────────────────────────────────────────────
 async function uploadImage(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
-  if (!res.ok) throw new Error("Upload failed");
-  const data = await res.json();
-  return data.url;
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Upload failed");
+    }
+    return data.url;
+  } catch (err) {
+    console.error("Upload error:", err);
+    throw err;
+  }
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
