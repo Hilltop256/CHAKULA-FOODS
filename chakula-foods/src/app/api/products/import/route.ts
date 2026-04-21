@@ -98,13 +98,15 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await prisma.product.update({
             where: { id: existing.id },
-            data: data as Parameters<typeof prisma.product.update<unknown, unknown>>[1]["data"],
+            data: data as any,
           });
           results.updated++;
         } else {
-          await prisma.product.create({ data: data as Parameters<typeof prisma.product.create<unknown>>[1]["data"] });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await prisma.product.create({ data: data as any });
           results.created++;
         }
       } catch (err) {

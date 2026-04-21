@@ -241,6 +241,9 @@ async function main() {
       category: "FRESH_MARKET" as const,
       unit: "kg",
       tags: ["vegetables"],
+      availableFrom: "07:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Matooke (bunch)",
@@ -250,6 +253,9 @@ async function main() {
       unit: "bunch",
       isFeatured: true,
       tags: ["local", "staple"],
+      availableFrom: "07:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Avocado (3 pieces)",
@@ -258,6 +264,9 @@ async function main() {
       category: "FRESH_MARKET" as const,
       unit: "3 pieces",
       tags: ["fruit"],
+      availableFrom: "07:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
 
     // Dry Market
@@ -268,6 +277,9 @@ async function main() {
       category: "DRY_MARKET" as const,
       unit: "2kg",
       tags: ["staple"],
+      availableFrom: "08:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
     },
     {
       name: "Beans (1kg)",
@@ -276,6 +288,9 @@ async function main() {
       category: "DRY_MARKET" as const,
       unit: "kg",
       tags: ["protein"],
+      availableFrom: "08:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
     },
     {
       name: "Posho (2kg)",
@@ -284,6 +299,9 @@ async function main() {
       category: "DRY_MARKET" as const,
       unit: "2kg",
       tags: ["staple"],
+      availableFrom: "08:00",
+      availableTo: "19:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
     },
 
     // Roasts & Grills — Chicken
@@ -295,6 +313,9 @@ async function main() {
       preparationTime: 25,
       isFeatured: true,
       tags: ["popular", "chicken"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Whole Chicken",
@@ -303,6 +324,9 @@ async function main() {
       category: "ROASTS" as const,
       preparationTime: 35,
       tags: ["chicken", "sharing"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
 
     // Roasts & Grills — Goat
@@ -314,6 +338,9 @@ async function main() {
       preparationTime: 15,
       isFeatured: true,
       tags: ["goat", "skewer"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Goat Leg",
@@ -322,6 +349,9 @@ async function main() {
       category: "ROASTS" as const,
       preparationTime: 45,
       tags: ["goat", "premium"],
+      availableFrom: "12:00",
+      availableTo: "20:00",
+      availableDays: ["fri", "sat", "sun"],
     },
     {
       name: "Whole Goat",
@@ -330,6 +360,9 @@ async function main() {
       category: "ROASTS" as const,
       preparationTime: 120,
       tags: ["goat", "event"],
+      availableFrom: "10:00",
+      availableTo: "20:00",
+      availableDays: ["sat", "sun"],
     },
 
     // Roasts & Grills — Pork
@@ -340,6 +373,9 @@ async function main() {
       category: "ROASTS" as const,
       preparationTime: 15,
       tags: ["pork", "skewer"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Pork Ribs",
@@ -349,6 +385,9 @@ async function main() {
       preparationTime: 25,
       isFeatured: true,
       tags: ["pork", "ribs"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Pork Chops",
@@ -357,6 +396,9 @@ async function main() {
       category: "ROASTS" as const,
       preparationTime: 20,
       tags: ["pork"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
 
     // Roasts & Grills — Fish
@@ -368,6 +410,9 @@ async function main() {
       preparationTime: 30,
       isFeatured: true,
       tags: ["fish", "fresh"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
 
     // Specials & Toppings
@@ -379,6 +424,9 @@ async function main() {
       preparationTime: 20,
       isFeatured: true,
       tags: ["local", "chicken", "popular"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Beef + Rice",
@@ -387,6 +435,9 @@ async function main() {
       category: "SPECIALS" as const,
       preparationTime: 15,
       tags: ["beef", "rice"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Loaded Fries",
@@ -395,6 +446,9 @@ async function main() {
       category: "SPECIALS" as const,
       preparationTime: 12,
       tags: ["fries", "loaded"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Beans + Posho",
@@ -403,6 +457,9 @@ async function main() {
       category: "SPECIALS" as const,
       preparationTime: 10,
       tags: ["local", "value"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Wrap + Fries + Drink",
@@ -411,6 +468,9 @@ async function main() {
       category: "SPECIALS" as const,
       preparationTime: 15,
       tags: ["combo", "deal"],
+      availableFrom: "11:00",
+      availableTo: "22:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Loaded Rolex",
@@ -420,6 +480,9 @@ async function main() {
       preparationTime: 10,
       isFeatured: true,
       tags: ["local", "rolex", "loaded"],
+      availableFrom: "06:00",
+      availableTo: "11:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat"],
     },
 
      // Bakery & Breakfast
@@ -588,6 +651,9 @@ async function main() {
       category: "PLATTERS" as const,
       preparationTime: 30,
       tags: ["platter", "sharing"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Medium Platter",
@@ -597,6 +663,9 @@ async function main() {
       preparationTime: 40,
       isFeatured: true,
       tags: ["platter", "sharing", "premium"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
     {
       name: "Large Platter",
@@ -605,6 +674,9 @@ async function main() {
       category: "PLATTERS" as const,
       preparationTime: 60,
       tags: ["platter", "sharing", "event"],
+      availableFrom: "11:00",
+      availableTo: "21:00",
+      availableDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     },
 
      // Drinks & Beverages

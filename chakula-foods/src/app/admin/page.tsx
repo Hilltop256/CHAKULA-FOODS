@@ -258,7 +258,6 @@ const handleImageUpload = async (
   } finally {
     setUploadingImage(false);
   }
-};
   };
 
   // ── CSV Import ─────────────────────────────────────────────────────────────
@@ -768,7 +767,7 @@ const handleImageUpload = async (
                             <input type="text" placeholder="Name (e.g. Large)" value={variant.name} onChange={(e) => { const v = [...productForm.variants]; v[idx].name = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="flex-1 p-2 border border-gray-300 rounded text-sm" />
                             <input type="number" placeholder="Price" value={variant.price} onChange={(e) => { const v = [...productForm.variants]; v[idx].price = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="w-20 p-2 border border-gray-300 rounded text-sm" />
                             <input type="number" placeholder="Stock" value={variant.stock} onChange={(e) => { const v = [...productForm.variants]; v[idx].stock = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="w-20 p-2 border border-gray-300 rounded text-sm" />
-                            <button type="button" onClick={() => { const v = productForm.variants.filter((_: any, i: number) => i !== idx); setProductForm({ ...productForm, variants: v }); }} className="p-2 hover:bg-red-50 rounded text-red-500"><Trash2 className="w-4 h-4" /></button>
+                            <button type="button" onClick={() => { const v = productForm.variants.filter((_, i: number) => i !== idx); setProductForm({ ...productForm, variants: v }); }} className="p-2 hover:bg-red-50 rounded text-red-500"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>

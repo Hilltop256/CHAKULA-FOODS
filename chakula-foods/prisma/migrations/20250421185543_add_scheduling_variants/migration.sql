@@ -15,8 +15,6 @@ CREATE TABLE IF NOT EXISTS "ProductVariant" (
   "price" DOUBLE PRECISION,
   "stock" INTEGER,
   "isActive" BOOLEAN NOT NULL DEFAULT true,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP(3) NOT NULL,
 
   CONSTRAINT "ProductVariant_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "ProductVariant_productId_name_key" UNIQUE ("productId", "name"),

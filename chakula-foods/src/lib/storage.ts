@@ -60,7 +60,7 @@ export async function uploadImage(file: File, category: string = "media"): Promi
     throw new Error(`Storage upload failed: ${uploadResponse.statusText}`);
   }
 
-  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filePath}`;
+  const publicUrl = `${env.SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filePath}`;
 
   return {
     url: publicUrl,

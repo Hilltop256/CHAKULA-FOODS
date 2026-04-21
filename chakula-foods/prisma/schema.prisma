@@ -334,7 +334,7 @@ model ProductVariant {
   id        String @id @default(cuid())
   productId String
   name      String // e.g., "Small", "Medium", "Large"
-  price     Float  // Overrides base price if set, otherwise uses product price + priceModifier
+  price     Float? // Overrides base price if set
   stock     Int?
   isActive  Boolean @default(true)
 

@@ -234,12 +234,13 @@ export async function PUT(req: NextRequest) {
 
     delete productUpdates.variants;
 
-    if (productUpdates.price !== undefined) productUpdates.price = parseFloat(productUpdates.price);
-    if (productUpdates.stock !== undefined) productUpdates.stock = parseInt(productUpdates.stock);
-    if (productUpdates.preparationTime !== undefined)
-      productUpdates.preparationTime = parseInt(productUpdates.preparationTime);
-    if (productUpdates.calories !== undefined)
-      productUpdates.calories = parseInt(productUpdates.calories);
+    if (productUpdates.price !== undefined) productUpdates.price = parseFloat(String(productUpdates.price));
+    if (productUpdates.stock !== undefined && productUpdates.stock !== null)
+      productUpdates.stock = parseInt(String(productUpdates.stock));
+    if (productUpdates.preparationTime !== undefined && productUpdates.preparationTime !== null)
+      productUpdates.preparationTime = parseInt(String(productUpdates.preparationTime));
+    if (productUpdates.calories !== undefined && productUpdates.calories !== null)
+      productUpdates.calories = parseInt(String(productUpdates.calories));
     if (availableFrom !== undefined) productUpdates.availableFrom = availableFrom || null;
     if (availableTo !== undefined) productUpdates.availableTo = availableTo || null;
     if (availableDays !== undefined) productUpdates.availableDays = Array.isArray(availableDays) ? availableDays : [];
@@ -259,9 +260,9 @@ export async function PUT(req: NextRequest) {
         await prisma.productVariant.create({
           data: {
             productId: id,
-            name: variant.name,
-            price: variant.price ? parseFloat(variant.price) : null,
-            stock: variant.stock ? parseInt(variant.stock) : null,
+            name: String(variant.name),
+            price: variant.price ? parseFloat(String(variant.price)) : null,
+            stock: variant.stock ? parseInt(String(variant.stock)) : null,
           },
         });
       }
