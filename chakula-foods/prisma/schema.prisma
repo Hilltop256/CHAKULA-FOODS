@@ -137,6 +137,9 @@ model Product {
   allergens       String[]
   tags            String[]
   calories        Int?
+  availableFrom   String?         // Opening time (HH:mm, e.g. "07:00")
+  availableTo     String?         // Closing time (HH:mm, e.g. "22:00")
+  availableDays   String[]        // Days of week ["mon","tue","wed","thu","fri","sat","sun"]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -146,6 +149,7 @@ model Product {
   subscriptionItems SubscriptionItem[]
   offers            Offer[]
   packageItems      PackageItem[]
+  variants          ProductVariant[]
 }
 
 model Order {
@@ -324,4 +328,18 @@ model PackageItem {
   product Product @relation(fields: [productId], references: [id])
 
   @@unique([packageId, productId])
+}
+
+model ProductVariant {
+  id        String @id @default(cuid())
+  productId String
+  name      String // e.g., "Small", "Medium", "Large"
+  price     Float  // Overrides base price if set, otherwise uses product price + priceModifier
+  stock     Int?
+  isActive  Boolean @default(true)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@index([productId])
 }

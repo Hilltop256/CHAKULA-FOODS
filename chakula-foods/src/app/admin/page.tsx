@@ -19,9 +19,12 @@ import {
   Pencil,
   Trash2,
   Upload,
+  Download,
   Image as ImageIcon,
   Eye,
   EyeOff,
+  Clock,
+  Layers,
 } from "lucide-react";
 
 // ── Interfaces ──────────────────────────────────────────────────────────────
@@ -48,6 +51,10 @@ interface Product {
   image: string | null;
   preparationTime: number | null;
   unit: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  availableDays: string[];
+  variants: { id: string; name: string; price: number | null; stock: number | null }[];
 }
 
 interface Offer {
@@ -113,16 +120,6 @@ const statusColors: Record<string, string> = {
 
 type Tab = "orders" | "menu" | "offers" | "packages";
 
-// ── Image Upload Helper ─────────────────────────────────────────────────────
-async function uploadImage(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
-  if (!res.ok) throw new Error("Upload failed");
-  const data = await res.json();
-  return data.url;
-}
-
 // ── Component ───────────────────────────────────────────────────────────────
 function AdminContent() {
   const router = useRouter();
@@ -139,13 +136,17 @@ function AdminContent() {
   const [stats, setStats] = useState<Stats>({ totalOrders: 0, totalRevenue: 0, activeSubscriptions: 0, totalCustomers: 0 });
   const [loading, setLoading] = useState(true);
 
-  // Product form
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({
-    name: "", description: "", price: "", category: "FAST_FOOD",
-    preparationTime: "", isFeatured: false, unit: "", image: "",
-  });
+   // Product form
+   const [showProductForm, setShowProductForm] = useState(false);
+   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+   const [productForm, setProductForm] = useState({
+     name: "", description: "", price: "", category: "FAST_FOOD",
+     preparationTime: "", isFeatured: false, unit: "", image: "",
+     // Scheduling
+     availableFrom: "", availableTo: "", availableDays: [] as string[],
+     // Variants
+     variants: [] as { name: string; price: string; stock: string }[],
+   });
   const [savingProduct, setSavingProduct] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -212,18 +213,87 @@ function AdminContent() {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
   };
 
-  // ── Image Upload ──────────────────────────────────────────────────────────
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void) => {
+// ── Image Upload ──────────────────────────────────────────────────────────
+const handleImageUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>,
+  setter: (url: string) => void,
+  category: string = "media",
+  existingImageUrl?: string
+) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  setUploadingImage(true);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("category", category);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Upload failed");
+
+    const data = await res.json();
+
+    // If replacing existing image, attempt to delete old one
+    if (existingImageUrl) {
+      try {
+        // Extract path from URL if it's a Supabase URL
+        if (existingImageUrl.includes("/storage/v1/object/public/")) {
+          const path = existingImageUrl.split("/media/")[1];
+          if (path) {
+            await fetch(`/api/upload?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to delete old image:", err);
+      }
+    }
+
+    setter(data.url);
+  } catch {
+    alert("Image upload failed");
+  } finally {
+    setUploadingImage(false);
+  }
+};
+  };
+
+  // ── CSV Import ─────────────────────────────────────────────────────────────
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingImage(true);
+
+    if (!confirm("Import products from CSV? Existing products with same name will be updated.")) return;
+
     try {
-      const url = await uploadImage(file);
-      setter(url);
-    } catch {
-      alert("Image upload failed");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/products/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Import failed");
+      }
+
+      const result = await res.json();
+      alert(`Import complete: ${result.results.created} created, ${result.results.updated} updated`);
+
+      // Reload products
+      const productsRes = await fetch("/api/products?includeUnavailable=true");
+      if (productsRes.ok) {
+        setProducts(await productsRes.json());
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Import failed");
     } finally {
-      setUploadingImage(false);
+      e.target.value = ""; // Reset file input
     }
   };
 
@@ -239,6 +309,14 @@ function AdminContent() {
       isFeatured: product.isFeatured,
       unit: product.unit ?? "",
       image: product.image ?? "",
+      availableFrom: product.availableFrom ?? "",
+      availableTo: product.availableTo ?? "",
+      availableDays: product.availableDays || [],
+      variants: (product.variants || []).map((v) => ({
+        name: v.name,
+        price: v.price !== null ? String(v.price) : "",
+        stock: v.stock !== null ? String(v.stock) : "",
+      })),
     });
     setShowProductForm(true);
   };
@@ -246,6 +324,17 @@ function AdminContent() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingProduct(true);
+
+    // Validate variants have price if provided
+    for (let i = 0; i < productForm.variants.length; i++) {
+      const v = productForm.variants[i];
+      if (!v.price || isNaN(Number(v.price))) {
+        alert(`Variant "${v.name || i+1}" must have a valid price`);
+        setSavingProduct(false);
+        return;
+      }
+    }
+
     try {
       if (editingProduct) {
         const res = await fetch("/api/products", {
@@ -264,9 +353,9 @@ function AdminContent() {
         const newProduct = await res.json();
         setProducts((prev) => [newProduct, ...prev]);
       }
-      setShowProductForm(false);
-      setEditingProduct(null);
-      setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "" });
+       setShowProductForm(false);
+       setEditingProduct(null);
+       setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "", availableFrom: "", availableTo: "", availableDays: [], variants: [] });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to save product");
     } finally {
@@ -539,19 +628,44 @@ function AdminContent() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          MENU TAB
-          ══════════════════════════════════════════════════════════════════════ */}
+       {/* ══════════════════════════════════════════════════════════════════════
+           MENU TAB
+           ══════════════════════════════════════════════════════════════════════ */}
       {tab === "menu" && (
         <div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-4 gap-2">
             <p className="text-gray-500 text-sm">{products.length} products</p>
-            <button
-              onClick={() => { setEditingProduct(null); setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "" }); setShowProductForm(true); }}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-orange-700 transition flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" /> Add Product
-            </button>
+            <div className="flex gap-2">
+              {/* Export Button */}
+              <a
+                href="/api/products/export"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition flex items-center gap-1.5"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </a>
+
+              {/* Import Button */}
+              <label className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition flex items-center gap-1.5 cursor-pointer">
+                <Upload className="w-4 h-4" />
+                Import CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+              </label>
+
+                <button
+                  onClick={() => { setEditingProduct(null); setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "", availableFrom: "", availableTo: "", availableDays: [], variants: [] }); setShowProductForm(true); }}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-orange-700 transition flex items-center gap-1.5"
+                >
+                <Plus className="w-4 h-4" /> Add Product
+              </button>
+            </div>
           </div>
 
           {/* Product Form Modal */}
@@ -605,11 +719,62 @@ function AdminContent() {
                       <label className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 transition text-sm text-gray-500">
                         <Upload className="w-4 h-4" />
                         {uploadingImage ? "Uploading..." : "Upload Image"}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setProductForm({ ...productForm, image: url }))} className="hidden" />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setProductForm({ ...productForm, image: url }), "products", productForm.image)} className="hidden" />
                       </label>
                     </div>
                     <input type="url" value={productForm.image} onChange={(e) => setProductForm({ ...productForm, image: e.target.value })} className="w-full p-2 mt-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-xs" placeholder="Or paste image URL..." />
+                   </div>
+
+                  {/* Scheduling */}
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+                      <Clock className="w-4 h-4" /> Availability Schedule (optional)
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1">From (HH:mm)</label>
+                        <input type="time" value={productForm.availableFrom} onChange={(e) => setProductForm({ ...productForm, availableFrom: e.target.value })} className="w-full p-2 border border-gray-300 rounded text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">To (HH:mm)</label>
+                        <input type="time" value={productForm.availableTo} onChange={(e) => setProductForm({ ...productForm, availableTo: e.target.value })} className="w-full p-2 border border-gray-300 rounded text-sm" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Available Days</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((day) => (
+                          <label key={day} className="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" checked={productForm.availableDays.includes(day)} onChange={(e) => { const days = e.target.checked ? [...productForm.availableDays, day] : productForm.availableDays.filter((d: string) => d !== day); setProductForm({ ...productForm, availableDays: days }); }} className="w-3.5 h-3.5 accent-orange-600" />
+                            <span className="text-xs capitalize">{day}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Variants */}
+                  <div className="border-t border-gray-200 pt-4 mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                        <Layers className="w-4 h-4" /> Variants / Sizes (optional)
+                      </h4>
+                      <button type="button" onClick={() => setProductForm({ ...productForm, variants: [...productForm.variants, { name: "", price: productForm.price || "", stock: "" }] })} className="text-xs bg-white border border-gray-300 px-2 py-1 rounded hover:bg-gray-50">+ Add Variant</button>
+                    </div>
+                    {productForm.variants.length > 0 && (
+                      <div className="space-y-2">
+                        {productForm.variants.map((variant, idx) => (
+                          <div key={idx} className="flex gap-2 items-center">
+                            <input type="text" placeholder="Name (e.g. Large)" value={variant.name} onChange={(e) => { const v = [...productForm.variants]; v[idx].name = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="flex-1 p-2 border border-gray-300 rounded text-sm" />
+                            <input type="number" placeholder="Price" value={variant.price} onChange={(e) => { const v = [...productForm.variants]; v[idx].price = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="w-20 p-2 border border-gray-300 rounded text-sm" />
+                            <input type="number" placeholder="Stock" value={variant.stock} onChange={(e) => { const v = [...productForm.variants]; v[idx].stock = e.target.value; setProductForm({ ...productForm, variants: v }); }} className="w-20 p-2 border border-gray-300 rounded text-sm" />
+                            <button type="button" onClick={() => { const v = productForm.variants.filter((_: any, i: number) => i !== idx); setProductForm({ ...productForm, variants: v }); }} className="p-2 hover:bg-red-50 rounded text-red-500"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={productForm.isFeatured} onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })} className="w-4 h-4 accent-orange-600" />
                     <span className="text-sm">Mark as Featured</span>
@@ -781,7 +946,7 @@ function AdminContent() {
                       <label className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 transition text-sm text-gray-500">
                         <Upload className="w-4 h-4" />
                         {uploadingImage ? "Uploading..." : "Upload Image"}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setOfferForm({ ...offerForm, image: url }))} className="hidden" />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setOfferForm({ ...offerForm, image: url }), "offers", offerForm.image)} className="hidden" />
                       </label>
                     </div>
                   </div>
@@ -883,7 +1048,7 @@ function AdminContent() {
                       <label className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 transition text-sm text-gray-500">
                         <Upload className="w-4 h-4" />
                         {uploadingImage ? "Uploading..." : "Upload Image"}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setPackageForm({ ...packageForm, image: url }))} className="hidden" />
+                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setPackageForm({ ...packageForm, image: url }), "packages", packageForm.image)} className="hidden" />
                       </label>
                     </div>
                   </div>

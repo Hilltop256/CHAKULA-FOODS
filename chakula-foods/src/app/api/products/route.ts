@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
 
     const products = await prisma.product.findMany({
       where,
-      include: { categoryRef: true },
+      include: { categoryRef: true, variants: true },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
     });
 
@@ -126,6 +126,10 @@ export async function POST(req: NextRequest) {
       tags,
       calories,
       allergens,
+      availableFrom,
+      availableTo,
+      availableDays,
+      variants,
     } = body;
 
     if (!name || !price || !category) {
@@ -135,6 +139,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Create product
     const product = await prisma.product.create({
       data: {
         name,
@@ -149,10 +154,32 @@ export async function POST(req: NextRequest) {
         tags: tags ?? [],
         allergens: allergens ?? [],
         calories: calories ? parseInt(calories) : null,
+        availableFrom: availableFrom || null,
+        availableTo: availableTo || null,
+        availableDays: availableDays || [],
       },
     });
 
-    return NextResponse.json(product, { status: 201 });
+    // Create variants if provided
+    if (variants && Array.isArray(variants)) {
+      for (const variant of variants) {
+        await prisma.productVariant.create({
+          data: {
+            productId: product.id,
+            name: variant.name,
+            price: variant.price ? parseFloat(variant.price) : null,
+            stock: variant.stock ? parseInt(variant.stock) : null,
+          },
+        });
+      }
+    }
+
+    const fullProduct = await prisma.product.findUnique({
+      where: { id: product.id },
+      include: { variants: true },
+    });
+
+    return NextResponse.json(fullProduct, { status: 201 });
   } catch (error) {
     console.error("Product create error:", error);
     return NextResponse.json(
@@ -182,19 +209,70 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
-    if (updates.price !== undefined) updates.price = parseFloat(updates.price);
-    if (updates.stock !== undefined) updates.stock = parseInt(updates.stock);
-    if (updates.preparationTime !== undefined)
-      updates.preparationTime = parseInt(updates.preparationTime);
-    if (updates.calories !== undefined)
-      updates.calories = parseInt(updates.calories);
+    // If image is being updated (including clearing to empty), try to delete old image from storage
+    if (updates.image !== undefined) {
+      try {
+        const currentProduct = await prisma.product.findUnique({ where: { id } });
+        if (currentProduct?.image) {
+          const oldUrl = currentProduct.image;
+          if (oldUrl.includes("/storage/v1/object/public/")) {
+            const path = oldUrl.split("/media/")[1];
+            if (path) {
+              const { deleteImage } = await import("@/lib/storage");
+              await deleteImage(path).catch((err) => console.warn("Failed to delete old image:", err));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch old product for image cleanup:", err);
+      }
+    }
+
+    // Extract scheduling and variants
+    const { availableFrom, availableTo, availableDays, variants } = updates;
+    const productUpdates: Record<string, unknown> = { ...updates };
+
+    delete productUpdates.variants;
+
+    if (productUpdates.price !== undefined) productUpdates.price = parseFloat(productUpdates.price);
+    if (productUpdates.stock !== undefined) productUpdates.stock = parseInt(productUpdates.stock);
+    if (productUpdates.preparationTime !== undefined)
+      productUpdates.preparationTime = parseInt(productUpdates.preparationTime);
+    if (productUpdates.calories !== undefined)
+      productUpdates.calories = parseInt(productUpdates.calories);
+    if (availableFrom !== undefined) productUpdates.availableFrom = availableFrom || null;
+    if (availableTo !== undefined) productUpdates.availableTo = availableTo || null;
+    if (availableDays !== undefined) productUpdates.availableDays = Array.isArray(availableDays) ? availableDays : [];
 
     const product = await prisma.product.update({
       where: { id },
-      data: updates,
+      data: productUpdates,
     });
 
-    return NextResponse.json(product);
+    // Handle variants if provided
+    if (variants && Array.isArray(variants)) {
+      // Delete existing variants
+      await prisma.productVariant.deleteMany({ where: { productId: id } });
+
+      // Create new variants
+      for (const variant of variants) {
+        await prisma.productVariant.create({
+          data: {
+            productId: id,
+            name: variant.name,
+            price: variant.price ? parseFloat(variant.price) : null,
+            stock: variant.stock ? parseInt(variant.stock) : null,
+          },
+        });
+      }
+    }
+
+    const fullProduct = await prisma.product.findUnique({
+      where: { id },
+      include: { variants: true },
+    });
+
+    return NextResponse.json(fullProduct);
   } catch (error) {
     console.error("Product update error:", error);
     return NextResponse.json(
@@ -224,10 +302,29 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
+    // Get product to delete image from storage
+    const product = await prisma.product.findUnique({ where: { id } });
+
+    // Soft delete product
     await prisma.product.update({
       where: { id },
       data: { isAvailable: false },
     });
+
+    // Delete image from storage if exists
+    if (product?.image) {
+      try {
+        if (product.image.includes("/storage/v1/object/public/")) {
+          const path = product.image.split("/media/")[1];
+          if (path) {
+            const { deleteImage } = await import("@/lib/storage");
+            await deleteImage(path).catch((err) => console.warn("Failed to delete product image:", err));
+          }
+        }
+      } catch (err) {
+        console.warn("Image deletion error:", err);
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

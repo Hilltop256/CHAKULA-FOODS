@@ -44,19 +44,32 @@ function AccountContent() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("type", "avatar");
-      
+      formData.append("category", "avatars");
+
+      // If existing avatar, try to delete it
+      if (user?.avatar) {
+        try {
+          const url = new URL(user.avatar);
+          const path = url.pathname.split("/media/")[1];
+          if (path) {
+            await fetch(`/api/upload?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+          }
+        } catch (err) {
+          console.warn("Failed to delete old avatar:", err);
+        }
+      }
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
         credentials: "include",
       });
-      
+
       if (res.ok) {
         await refresh();
       } else {

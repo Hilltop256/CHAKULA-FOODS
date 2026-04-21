@@ -28,6 +28,9 @@ interface Product {
   isAvailable: boolean;
   preparationTime: number | null;
   unit: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  availableDays: string[];
 }
 
 const categoryMap: Record<string, string> = {
@@ -91,15 +94,40 @@ function MenuContent() {
       });
   }, []);
 
-  const filteredProducts = products.filter((product) => {
-    const mappedCategory = categoryMap[product.category] || "wraps";
-    const matchesCategory = mappedCategory === activeCategory;
-    const matchesSearch =
-      search === "" ||
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(search.toLowerCase()));
-    return matchesCategory && matchesSearch && product.isAvailable;
-  });
+  // Check if product is currently within its scheduled availability
+  const isProductAvailableNow = (product: Product): boolean => {
+    // If no schedule defined, always available (business hours)
+    if (!product.availableDays?.length && !product.availableFrom && !product.availableTo) {
+      return true;
+    }
+
+    const now = new Date();
+    const currentDay = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase().slice(0, 3); // "mon", "tue", ...
+    const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    // Check day
+    if (product.availableDays?.length) {
+      const dayMatches = product.availableDays.some((d) => d.toLowerCase() === currentDay);
+      if (!dayMatches) return false;
+    }
+
+    // Check time if both from and to are set
+    if (product.availableFrom && product.availableTo) {
+      return currentTime >= product.availableFrom && currentTime <= product.availableTo;
+    }
+
+    return true;
+  };
+
+   const filteredProducts = products.filter((product) => {
+     const mappedCategory = categoryMap[product.category] || "wraps";
+     const matchesCategory = mappedCategory === activeCategory;
+     const matchesSearch =
+       search === "" ||
+       product.name.toLowerCase().includes(search.toLowerCase()) ||
+       (product.description && product.description.toLowerCase().includes(search.toLowerCase()));
+     return matchesCategory && matchesSearch && product.isAvailable && isProductAvailableNow(product);
+   });
 
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] ?? 1;
