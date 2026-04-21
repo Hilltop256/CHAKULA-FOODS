@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getAdminOrTestUser } from "@/lib/test-mode";
 
 const demoPackages = [
   { id: "1", name: "Family Feast", description: "Perfect for 4-5 people", price: 85000, isActive: true, items: [{ id: "1", quantity: 2, product: { id: "13", name: "Half Chicken", price: 25000, image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop" } }, { id: "2", quantity: 1, product: { id: "9", name: "Matooke (bunch)", price: 10000, image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&h=300&fit=crop" } }] },
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -90,7 +90,7 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -142,7 +142,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

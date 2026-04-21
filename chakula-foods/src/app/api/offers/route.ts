@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getAdminOrTestUser } from "@/lib/test-mode";
 
 const demoOffers = [
   { id: "1", name: "Summer Promo", description: "Get 20% off all juices this summer", type: "PERCENTAGE", value: 20, code: "SUMMER20", isActive: true, usedCount: 45 },
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -78,7 +78,7 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -115,7 +115,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

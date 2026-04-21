@@ -222,6 +222,20 @@ const handleImageUpload = async (
 ) => {
   const file = e.target.files?.[0];
   if (!file) return;
+
+  // Client-side validation
+  if (file.size > 5 * 1024 * 1024) {
+    alert(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum 5MB.`);
+    e.target.value = "";
+    return;
+  }
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  if (!allowed.includes(file.type)) {
+    alert(`Invalid file type: ${file.type}. Use JPEG, PNG, WebP, or GIF.`);
+    e.target.value = "";
+    return;
+  }
+
   setUploadingImage(true);
   try {
     const formData = new FormData();
@@ -231,20 +245,28 @@ const handleImageUpload = async (
     const res = await fetch("/api/upload", {
       method: "POST",
       body: formData,
+      credentials: "include",
     });
 
-    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
 
-    const data = await res.json();
+    if (!res.ok) {
+      console.error("Upload failed:", res.status, data);
+      throw new Error(data.error || `Upload failed (HTTP ${res.status})`);
+    }
 
-    // If replacing existing image, attempt to delete old one
+    console.info("Upload successful:", { storage: data.storage, size: file.size });
+
+    // If replacing existing image, attempt to delete old one (best-effort)
     if (existingImageUrl) {
       try {
-        // Extract path from URL if it's a Supabase URL
         if (existingImageUrl.includes("/storage/v1/object/public/")) {
           const path = existingImageUrl.split("/media/")[1];
           if (path) {
-            await fetch(`/api/upload?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+            await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
+              method: "DELETE",
+              credentials: "include",
+            });
           }
         }
       } catch (err) {
@@ -253,10 +275,13 @@ const handleImageUpload = async (
     }
 
     setter(data.url);
-  } catch {
-    alert("Image upload failed");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Image upload error:", err);
+    alert(`Image upload failed: ${message}`);
   } finally {
     setUploadingImage(false);
+    e.target.value = "";
   }
   };
 
