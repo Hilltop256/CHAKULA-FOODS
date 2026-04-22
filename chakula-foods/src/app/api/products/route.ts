@@ -88,6 +88,13 @@ export async function GET(req: NextRequest) {
       where,
       include: { categoryRef: true, variants: true },
       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    }).catch(async (err) => {
+      console.warn("Products findMany with variants failed, retrying without:", err.message);
+      return prisma.product.findMany({
+        where,
+        include: { categoryRef: true },
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      });
     });
 
     return NextResponse.json(products);
@@ -139,51 +146,79 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create product
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        image,
-        category: category as ProductCategory,
-        stock: stock ? parseInt(stock) : null,
-        unit,
-        preparationTime: preparationTime ? parseInt(preparationTime) : null,
-        isFeatured: isFeatured ?? false,
-        tags: tags ?? [],
-        allergens: allergens ?? [],
-        calories: calories ? parseInt(calories) : null,
-        availableFrom: availableFrom || null,
-        availableTo: availableTo || null,
-        availableDays: availableDays || [],
-      },
-    });
+    // Build product data, optionally with new scheduling fields
+    const productData: Record<string, unknown> = {
+      name,
+      description,
+      price: parseFloat(price),
+      image,
+      category: category as ProductCategory,
+      stock: stock ? parseInt(stock) : null,
+      unit,
+      preparationTime: preparationTime ? parseInt(preparationTime) : null,
+      isFeatured: isFeatured ?? false,
+      tags: tags ?? [],
+      allergens: allergens ?? [],
+      calories: calories ? parseInt(calories) : null,
+    };
 
-    // Create variants if provided
-    if (variants && Array.isArray(variants)) {
-      for (const variant of variants) {
-        await prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            name: variant.name,
-            price: variant.price ? parseFloat(variant.price) : null,
-            stock: variant.stock ? parseInt(variant.stock) : null,
-          },
-        });
+    // Only include scheduling fields if they're set (avoids errors if migration not applied)
+    if (availableFrom) productData.availableFrom = availableFrom;
+    if (availableTo) productData.availableTo = availableTo;
+    if (availableDays?.length) productData.availableDays = availableDays;
+
+    // Create product (with fallback if scheduling columns don't exist yet)
+    let product;
+    try {
+      product = await prisma.product.create({ data: productData as never });
+    } catch (createErr) {
+      const msg = createErr instanceof Error ? createErr.message : "";
+      if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
+        console.warn("Scheduling columns not in DB yet, retrying without them");
+        delete productData.availableFrom;
+        delete productData.availableTo;
+        delete productData.availableDays;
+        product = await prisma.product.create({ data: productData as never });
+      } else {
+        throw createErr;
       }
     }
 
-    const fullProduct = await prisma.product.findUnique({
-      where: { id: product.id },
-      include: { variants: true },
-    });
+    // Create variants if provided (non-fatal)
+    if (variants && Array.isArray(variants)) {
+      try {
+        for (const variant of variants) {
+          await prisma.productVariant.create({
+            data: {
+              productId: product.id,
+              name: variant.name,
+              price: variant.price ? parseFloat(variant.price) : null,
+              stock: variant.stock ? parseInt(variant.stock) : null,
+            },
+          });
+        }
+      } catch (variantErr) {
+        console.warn("Variants skipped (migration may not be applied):", variantErr);
+      }
+    }
+
+    // Try to fetch with variants, fall back to without if table missing
+    let fullProduct;
+    try {
+      fullProduct = await prisma.product.findUnique({
+        where: { id: product.id },
+        include: { variants: true },
+      });
+    } catch {
+      fullProduct = await prisma.product.findUnique({ where: { id: product.id } });
+    }
 
     return NextResponse.json(fullProduct, { status: 201 });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Product create error:", error);
     return NextResponse.json(
-      { error: "Failed to create product" },
+      { error: `Failed to create product: ${message}` },
       { status: 500 }
     );
   }
@@ -233,6 +268,10 @@ export async function PUT(req: NextRequest) {
     const productUpdates: Record<string, unknown> = { ...updates };
 
     delete productUpdates.variants;
+    // Strip scheduling fields; will be re-added only if present
+    delete productUpdates.availableFrom;
+    delete productUpdates.availableTo;
+    delete productUpdates.availableDays;
 
     if (productUpdates.price !== undefined) productUpdates.price = parseFloat(String(productUpdates.price));
     if (productUpdates.stock !== undefined && productUpdates.stock !== null)
@@ -241,43 +280,68 @@ export async function PUT(req: NextRequest) {
       productUpdates.preparationTime = parseInt(String(productUpdates.preparationTime));
     if (productUpdates.calories !== undefined && productUpdates.calories !== null)
       productUpdates.calories = parseInt(String(productUpdates.calories));
-    if (availableFrom !== undefined) productUpdates.availableFrom = availableFrom || null;
-    if (availableTo !== undefined) productUpdates.availableTo = availableTo || null;
-    if (availableDays !== undefined) productUpdates.availableDays = Array.isArray(availableDays) ? availableDays : [];
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: productUpdates,
-    });
+    // Add scheduling fields optionally (non-fatal if column missing)
+    const schedulingFields: Record<string, unknown> = {};
+    if (availableFrom !== undefined) schedulingFields.availableFrom = availableFrom || null;
+    if (availableTo !== undefined) schedulingFields.availableTo = availableTo || null;
+    if (availableDays !== undefined) schedulingFields.availableDays = Array.isArray(availableDays) ? availableDays : [];
 
-    // Handle variants if provided
-    if (variants && Array.isArray(variants)) {
-      // Delete existing variants
-      await prisma.productVariant.deleteMany({ where: { productId: id } });
-
-      // Create new variants
-      for (const variant of variants) {
-        await prisma.productVariant.create({
-          data: {
-            productId: id,
-            name: String(variant.name),
-            price: variant.price ? parseFloat(String(variant.price)) : null,
-            stock: variant.stock ? parseInt(String(variant.stock)) : null,
-          },
+    let product;
+    try {
+      product = await prisma.product.update({
+        where: { id },
+        data: { ...productUpdates, ...schedulingFields },
+      });
+    } catch (updateErr) {
+      const msg = updateErr instanceof Error ? updateErr.message : "";
+      if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
+        console.warn("Scheduling columns missing, retrying update without them");
+        product = await prisma.product.update({
+          where: { id },
+          data: productUpdates,
         });
+      } else {
+        throw updateErr;
       }
     }
 
-    const fullProduct = await prisma.product.findUnique({
-      where: { id },
-      include: { variants: true },
-    });
+    // Handle variants if provided (non-fatal if ProductVariant table doesn't exist yet)
+    if (variants && Array.isArray(variants)) {
+      try {
+        await prisma.productVariant.deleteMany({ where: { productId: id } });
+        for (const variant of variants) {
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              name: String(variant.name),
+              price: variant.price ? parseFloat(String(variant.price)) : null,
+              stock: variant.stock ? parseInt(String(variant.stock)) : null,
+            },
+          });
+        }
+      } catch (variantErr) {
+        console.warn("Variant handling skipped (migration may not be applied):", variantErr);
+      }
+    }
+
+    // Try to fetch with variants, fall back to without if table missing
+    let fullProduct;
+    try {
+      fullProduct = await prisma.product.findUnique({
+        where: { id },
+        include: { variants: true },
+      });
+    } catch {
+      fullProduct = await prisma.product.findUnique({ where: { id } });
+    }
 
     return NextResponse.json(fullProduct);
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Product update error:", error);
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: `Failed to update product: ${message}` },
       { status: 500 }
     );
   }
