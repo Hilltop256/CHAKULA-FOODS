@@ -37,6 +37,15 @@ const demoProducts = [
 
 const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10);
 
+// Debug: Log database status
+const dbUrl = process.env.DATABASE_URL;
+console.log("[Products API] Database check:", {
+  hasDatabase,
+  urlLength: dbUrl?.length,
+  urlPreview: dbUrl ? dbUrl.substring(0, 50) + "..." : "undefined",
+  hasPgbouncer: dbUrl?.includes("pgbouncer"),
+});
+
 function getFilteredProducts(products: typeof demoProducts, category: string | null, featured: string | null, search: string | null, includeUnavailable: string | null) {
   let filtered = [...products];
   if (category) filtered = filtered.filter(p => p.category === category);
@@ -108,7 +117,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error("Products GET error:", error);
+    const err = error as Error;
+    console.error("Products GET error:", err.message, err.stack);
     return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
   } finally {
     await prisma.$disconnect();
