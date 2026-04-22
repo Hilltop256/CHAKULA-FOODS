@@ -37,20 +37,22 @@ const categoryMap: Record<string, string> = {
   FAST_FOOD: "restaurant",
   BAKERY: "bakery",
   JUICE_BAR: "drinks",
-  FRESH_MARKET: "restaurant",
-  DRY_MARKET: "restaurant",
+  FRESH_MARKET: "market",
+  DRY_MARKET: "market",
   ROASTS: "restaurant",
   SPECIALS: "restaurant",
   BREAKFAST: "bakery",
   PLATTERS: "restaurant",
   DRINKS: "drinks",
-  WINES_SPIRITS: "drinks",
+  WINES_SPIRITS: "wines",
 };
 
 const categories = [
   { key: "restaurant", label: "Restaurant", emoji: "🍽️", iconBg: "#FFE8EC", subcategories: ["Fast Foods", "Breakfast Treats", "Roasts & Grills", "Party Platters", "Specials & Toppings"] },
   { key: "bakery", label: "Bakery / Confectionary", emoji: "🥐", iconBg: "#FFF0E8", subcategories: ["Bread", "Cakes", "Pastries", "Cookies", "Doughnuts"] },
   { key: "drinks", label: "Drinks & Beverages", emoji: "🧃", iconBg: "#E0FFF3", subcategories: ["Juice Bar", "Smoothies", "Coffee", "Tea", "Mocktails & Cocktails"] },
+  { key: "market", label: "Market Specials", emoji: "🥬", iconBg: "#F0E8FF", subcategories: ["Fresh Produce", "Dry Goods", "Fruits"] },
+  { key: "wines", label: "Wine & Liquor Shop", emoji: "🍷", iconBg: "#E8ECF5", subcategories: ["Wine", "Spirits", "Beer", "Champagne"] },
 ];
 
 interface CategoryInfo {
@@ -73,13 +75,17 @@ function MenuContent() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (groupParam && ["restaurant", "bakery", "drinks"].includes(groupParam)) {
+    if (groupParam && ["restaurant", "bakery", "drinks", "market", "wines"].includes(groupParam)) {
       setActiveCategory(groupParam);
-    } else if (categoryParam === "WINES_SPIRITS" || categoryParam === "BAKERY" || categoryParam === "BREAKFAST") {
+    } else if (categoryParam === "WINES_SPIRITS") {
+      setActiveCategory("wines");
+    } else if (categoryParam === "BAKERY" || categoryParam === "BREAKFAST") {
       setActiveCategory("bakery");
     } else if (categoryParam === "JUICE_BAR" || categoryParam === "DRINKS") {
       setActiveCategory("drinks");
-    } else if (categoryParam === "FRESH_MARKET" || categoryParam === "DRY_MARKET" || categoryParam === "FAST_FOOD" || categoryParam === "ROASTS" || categoryParam === "SPECIALS" || categoryParam === "PLATTERS") {
+    } else if (categoryParam === "FRESH_MARKET" || categoryParam === "DRY_MARKET") {
+      setActiveCategory("market");
+    } else if (categoryParam === "FAST_FOOD" || categoryParam === "ROASTS" || categoryParam === "SPECIALS" || categoryParam === "PLATTERS") {
       setActiveCategory("restaurant");
     }
   }, [groupParam, categoryParam]);

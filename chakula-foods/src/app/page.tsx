@@ -27,14 +27,14 @@ const serviceGroups = [
     name: "Market Special",
     emoji: "🥬",
     color: "bg-green-700",
-    href: "/menu?group=restaurant",
+    href: "/menu?group=market",
     subcategories: ["Fresh Produce", "Dry Goods", "Fruits"],
   },
   {
     name: "Wines & Spirits Shop",
     emoji: "🍷",
     color: "bg-purple-700",
-    href: "/menu?group=drinks",
+    href: "/menu?group=wines",
     subcategories: ["Wine", "Spirits", "Beer", "Champagne"],
   },
 ];
