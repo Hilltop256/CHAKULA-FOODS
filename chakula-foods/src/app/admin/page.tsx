@@ -269,13 +269,6 @@ const handleImageUpload = async (
             credentials: "include",
           });
         }
-          if (path) {
-            await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
-              method: "DELETE",
-              credentials: "include",
-            });
-          }
-        }
       } catch (err) {
         console.warn("Failed to delete old image:", err);
       }
