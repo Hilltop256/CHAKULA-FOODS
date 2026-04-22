@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminOrTestUser } from "@/lib/test-mode";
 import { ProductCategory } from "@prisma/client";
-import { supabaseQuery } from "@/lib/supabase";
+import { supabaseQuery, supabaseUpdate, supabaseInsert } from "@/lib/supabase";
 
 const demoProducts = [
   { id: "1", name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
@@ -268,7 +268,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(fullProduct, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Product create error:", error);
+    console.error("Product create error:", message);
+    
+    // Try Supabase REST API fallback
+    try {
+      const body = await req.json();
+      const { image, variants, availableFrom, availableTo, availableDays, ...productData } = body;
+      
+      const createData: Record<string, unknown> = { 
+        ...productData,
+        category: body.category || "FAST_FOOD",
+        isAvailable: body.isAvailable ?? true,
+        isFeatured: body.isFeatured ?? false,
+      };
+      if (image) createData.image = image;
+      if (createData.price) createData.price = parseFloat(String(createData.price));
+      if (createData.stock) createData.stock = parseInt(String(createData.stock));
+      
+      const result = await supabaseInsert("Product", createData);
+      if (result && result.length > 0) {
+        return NextResponse.json(result[0], { status: 201 });
+      }
+    } catch (supabaseErr) {
+      console.error("Supabase create fallback also failed:", supabaseErr);
+    }
+    
     return NextResponse.json(
       { error: `Failed to create product: ${message}` },
       { status: 500 }
@@ -398,8 +422,24 @@ export async function PUT(req: NextRequest) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Product update error:", message);
     
-    // Check for database connection errors
-    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection")) {
+    // Check if this is a database connection error - try Supabase REST API fallback
+    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
+      try {
+        const body = await req.json();
+        const { id, image, ...restUpdates } = body;
+        
+        const updateData: Record<string, unknown> = { ...restUpdates };
+        if (image !== undefined) updateData.image = image;
+        if (updateData.price) updateData.price = parseFloat(String(updateData.price));
+        if (updateData.stock) updateData.stock = parseInt(String(updateData.stock));
+        
+        const result = await supabaseUpdate("Product", id, updateData);
+        if (result && result.length > 0) {
+          return NextResponse.json(result[0]);
+        }
+      } catch (supabaseErr) {
+        console.error("Supabase update fallback also failed:", supabaseErr);
+      }
       return NextResponse.json(
         { error: "Database connection error. Please try again or contact support." },
         { status: 503 }

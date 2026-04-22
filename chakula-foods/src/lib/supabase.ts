@@ -5,6 +5,7 @@ const headers = {
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
+  "Prefer": "return=representation",
 };
 
 export async function supabaseQuery<T>(
@@ -16,6 +17,41 @@ export async function supabaseQuery<T>(
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Supabase REST error: ${res.status} ${await res.text()}`);
+  }
+  return res.json();
+}
+
+export async function supabaseUpdate(
+  table: string,
+  id: string,
+  data: Record<string, unknown>
+): Promise<Record<string, unknown>[]> {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Supabase update error: ${res.status} ${await res.text()}`);
+  }
+  return res.json();
+}
+
+export async function supabaseInsert(
+  table: string,
+  data: Record<string, unknown>
+): Promise<Record<string, unknown>[]> {
+  const url = `${SUPABASE_URL}/rest/v1/${table}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Supabase insert error: ${res.status} ${await res.text()}`);
   }
   return res.json();
 }
