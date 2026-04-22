@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminOrTestUser } from "@/lib/test-mode";
 import { ProductCategory } from "@prisma/client";
+import { supabaseQuery } from "@/lib/supabase";
 
 const demoProducts = [
   { id: "1", name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
@@ -70,9 +71,9 @@ export async function GET(req: NextRequest) {
     return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
   }
 
+  // Try Prisma first, then fallback to Supabase REST API
   const { prisma } = await import("@/lib/prisma");
   
-  // Try database, fallback to demo on error
   try {
     await prisma.$connect();
     
@@ -109,9 +110,24 @@ export async function GET(req: NextRequest) {
       });
     });
 
-    // If no products from database, fallback to demo
+    // If no products from database, fallback to Supabase REST API
     if (!products || products.length === 0) {
-      console.warn("No products from database, falling back to demo");
+      console.warn("No products from Prisma, trying Supabase REST API");
+      try {
+        const params: Record<string, string> = {};
+        if (includeUnavailable !== "true") params.isAvailable = "true";
+        if (category) params.category = category;
+        if (featured === "true") params.isFeatured = "true";
+        if (search) params.name = `ilike.*${search}*`;
+        params.order = "isFeatured.desc,createdAt.desc";
+        
+        const products = await supabaseQuery<Record<string, unknown>>("Product", params);
+        if (products.length > 0) {
+          return NextResponse.json(products);
+        }
+      } catch (supabaseErr) {
+        console.error("Supabase REST API also failed:", supabaseErr);
+      }
       return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
     }
 
@@ -119,9 +135,26 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     const err = error as Error;
     console.error("Products GET error:", err.message, err.stack);
-    return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+    
+    // Try Supabase REST API as fallback
+    try {
+      const params: Record<string, string> = {};
+      if (includeUnavailable !== "true") params.isAvailable = "true";
+      if (category) params.category = category;
+      if (featured === "true") params.isFeatured = "true";
+      if (search) params.name = `ilike.*${search}*`;
+      params.order = "isFeatured.desc,createdAt.desc";
+      
+      const products = await supabaseQuery<Record<string, unknown>>("Product", params);
+      return NextResponse.json(products);
+    } catch (supabaseErr) {
+      console.error("Supabase REST API fallback also failed:", supabaseErr);
+      return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+    }
   } finally {
-    await prisma.$disconnect();
+    try {
+      await prisma.$disconnect();
+    } catch {}
   }
 }
 
