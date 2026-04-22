@@ -47,6 +47,20 @@ const categoryMap: Record<string, string> = {
   WINES_SPIRITS: "wines",
 };
 
+const subcategoryMap: Record<string, string> = {
+  FAST_FOOD: "Fast Foods",
+  BAKERY: "Bread",
+  JUICE_BAR: "Juice Bar",
+  FRESH_MARKET: "Fresh Produce",
+  DRY_MARKET: "Dry Goods",
+  ROASTS: "Roasts & Grills",
+  SPECIALS: "Specials & Toppings",
+  BREAKFAST: "Breakfast Treats",
+  PLATTERS: "Party Platters",
+  DRINKS: "Drinks",
+  WINES_SPIRITS: "Wine",
+};
+
 const categories = [
   { key: "restaurant", label: "Restaurant", emoji: "🍽️", iconBg: "#FFE8EC", subcategories: ["Fast Foods", "Breakfast Treats", "Roasts & Grills", "Party Platters", "Specials & Toppings"] },
   { key: "bakery", label: "Bakery / Confectionary", emoji: "🥐", iconBg: "#FFF0E8", subcategories: ["Bread", "Cakes", "Pastries", "Cookies", "Doughnuts"] },
@@ -129,15 +143,15 @@ function MenuContent() {
     return true;
   };
 
-   const filteredProducts = products.filter((product) => {
-     const mappedCategory = categoryMap[product.category] || "wraps";
-     const matchesCategory = mappedCategory === activeCategory;
-     const matchesSearch =
-       search === "" ||
-       product.name.toLowerCase().includes(search.toLowerCase()) ||
-       (product.description && product.description.toLowerCase().includes(search.toLowerCase()));
-     return matchesCategory && matchesSearch && product.isAvailable && isProductAvailableNow(product);
-   });
+  const filteredProducts = products.filter((product) => {
+    const mappedCategory = categoryMap[product.category] || "restaurant";
+    const matchesCategory = mappedCategory === activeCategory;
+    const matchesSearch =
+      search === "" ||
+      product.name.toLowerCase().includes(search.toLowerCase()) ||
+      (product.description && product.description.toLowerCase().includes(search.toLowerCase()));
+    return matchesCategory && matchesSearch && product.isAvailable && isProductAvailableNow(product);
+  });
 
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] ?? 1;
@@ -147,15 +161,30 @@ function MenuContent() {
       price: product.price,
       image: product.image ?? undefined,
       quantity: qty,
-    });
-    setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
+});
+setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
+  };
+
+  const categoryInfo = categories.find((c) => c.key === activeCategory);
+
+  const getProductSubcategory = (product: Product): string => {
+    return subcategoryMap[product.category] || categoryInfo?.subcategories?.[0] || "Other";
   };
 
   const getQty = (productId: string) => quantities[productId] ?? 1;
   const setQty = (productId: string, qty: number) =>
     setQuantities((prev) => ({ ...prev, [productId]: qty }));
 
-  const categoryInfo = categories.find((c) => c.key === activeCategory);
+  const groupedProducts = filteredProducts.reduce((acc, product) => {
+    const subcategory = getProductSubcategory(product);
+    if (!acc[subcategory]) {
+      acc[subcategory] = [];
+    }
+    acc[subcategory].push(product);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
+  const sortedSubcategories = categoryInfo?.subcategories?.filter(sub => groupedProducts[sub]) || [];
 
   return (
     <div style={{ background: COLORS.light, minHeight: "100vh" }}>
@@ -360,14 +389,30 @@ function MenuContent() {
             )}
           </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: 24,
-            }}
-          >
-            {filteredProducts.map((product) => (
+          <div>
+            {sortedSubcategories.map((subcategory) => (
+              <div key={subcategory} style={{ marginBottom: 40 }}>
+                <h3
+                  style={{
+                    fontSize: "1.4rem",
+                    fontWeight: 700,
+                    color: COLORS.dark,
+                    marginBottom: 20,
+                    paddingBottom: 10,
+                    borderBottom: `2px solid ${COLORS.accent}`,
+                    display: "inline-block",
+                  }}
+                >
+                  {subcategory}
+                </h3>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: 24,
+                  }}
+                >
+                  {groupedProducts[subcategory].map((product) => (
               <div
                 key={product.id}
                 style={{
@@ -533,6 +578,9 @@ function MenuContent() {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            ))}
                 </div>
               </div>
             ))}
