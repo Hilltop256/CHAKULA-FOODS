@@ -35,7 +35,9 @@ const demoProducts = [
   { id: "30", name: "Vodka", description: "Premium vodka", price: 20000, category: "WINES_SPIRITS", isAvailable: true, unit: "shot", image: "https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&h=300&fit=crop" },
 ];
 
-const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10);
+const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10 && !process.env.DATABASE_URL.includes("pgbouncer"));
+
+console.log("[Products API] Database check:", { hasDatabase, urlLength: process.env.DATABASE_URL?.length });
 
 function getFilteredProducts(products: typeof demoProducts, category: string | null, featured: string | null, search: string | null, includeUnavailable: string | null) {
   let filtered = [...products];
@@ -94,6 +96,9 @@ export async function GET(req: NextRequest) {
         where,
         include: { categoryRef: true },
         orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      }).catch(async (err2) => {
+        console.error("Products findMany failed completely:", err2.message);
+        return [];
       });
     });
 
@@ -264,8 +269,13 @@ export async function PUT(req: NextRequest) {
     }
 
     // Extract scheduling and variants
-    const { availableFrom, availableTo, availableDays, variants } = updates;
+    const { availableFrom, availableTo, availableDays, variants, image } = updates;
     const productUpdates: Record<string, unknown> = { ...updates };
+
+    // Preserve existing image if not being updated
+    if (image === undefined && updates.image === undefined) {
+      delete productUpdates.image;
+    }
 
     delete productUpdates.variants;
     // Strip scheduling fields; will be re-added only if present
