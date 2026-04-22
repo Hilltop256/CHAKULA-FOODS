@@ -35,9 +35,7 @@ const demoProducts = [
   { id: "30", name: "Vodka", description: "Premium vodka", price: 20000, category: "WINES_SPIRITS", isAvailable: true, unit: "shot", image: "https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&h=300&fit=crop" },
 ];
 
-const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10 && !process.env.DATABASE_URL.includes("pgbouncer"));
-
-console.log("[Products API] Database check:", { hasDatabase, urlLength: process.env.DATABASE_URL?.length });
+const hasDatabase = !!(process.env.DATABASE_URL && process.env.DATABASE_URL.length > 10);
 
 function getFilteredProducts(products: typeof demoProducts, category: string | null, featured: string | null, search: string | null, includeUnavailable: string | null) {
   let filtered = [...products];
@@ -101,6 +99,12 @@ export async function GET(req: NextRequest) {
         return [];
       });
     });
+
+    // If no products from database, fallback to demo
+    if (!products || products.length === 0) {
+      console.warn("No products from database, falling back to demo");
+      return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+    }
 
     return NextResponse.json(products);
   } catch (error) {
