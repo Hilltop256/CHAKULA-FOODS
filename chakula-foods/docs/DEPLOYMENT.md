@@ -32,13 +32,24 @@ Required for persistent image storage (Vercel → Project Settings → Environme
 
 | Variable | Value | Notes |
 |---|---|---|
-| `DATABASE_URL` | Your Postgres URL | Already set, required |
+| `DATABASE_URL` | Supabase **pooler** URL (port 6543) | **CRITICAL:** Must be the pooler, not direct |
+| `DIRECT_URL` | Supabase **direct** URL (port 5432) | Used only for migrations |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project>.supabase.co` | From Supabase dashboard |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOi...` | **Secret** — Settings → API → service_role |
 | `SUPABASE_STORAGE_BUCKET` | `media` | Name of your bucket |
 | `ADMIN_TEST_MODE` | `true` | Keep admin UI open without login. Set to `false` in production when ready |
 
-Without Supabase vars, uploads still work but use base64 (stored in memory, lost on server restart).
+**⚠️ Database connection — critical:**
+Vercel serverless functions **cannot** connect directly to Supabase port 5432. You must use the connection pooler.
+
+Get the pooler URL from **Supabase Dashboard → Settings → Database → Connection string → Transaction mode**. It looks like:
+```
+postgres://postgres.xxxxxxxx:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+```
+
+If you see `Can't reach database server at db.xxx.supabase.co:5432` in logs, your `DATABASE_URL` is pointing at the direct connection instead of the pooler. Fix: update `DATABASE_URL` to use the pooler (port 6543) and put the direct URL in `DIRECT_URL`.
+
+Without Supabase storage vars, uploads still work but use base64 (stored in memory, lost on server restart).
 
 ### 3. Create the Supabase Storage bucket (one-time)
 
