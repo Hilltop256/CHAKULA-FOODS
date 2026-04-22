@@ -312,18 +312,44 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { prisma } = await import("@/lib/prisma");
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, image, ...restUpdates } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
+    // If image is being updated, use Supabase directly to avoid Prisma connection issues
+    if (image !== undefined) {
+      console.log("Using Supabase REST API for product update");
+      const updateData: Record<string, unknown> = { ...restUpdates };
+      updateData.image = image;
+      if (updateData.price) updateData.price = parseFloat(String(updateData.price));
+      if (updateData.stock) updateData.stock = parseInt(String(updateData.stock));
+      if (updateData.preparationTime) updateData.preparationTime = parseInt(String(updateData.preparationTime));
+      
+      try {
+        const result = await supabaseUpdate("Product", id, updateData);
+        if (result && result.length > 0) {
+          return NextResponse.json(result[0]);
+        }
+      } catch (supabaseErr) {
+        console.error("Supabase update failed:", supabaseErr);
+        return NextResponse.json({ error: `Failed to update: ${supabaseErr}` }, { status: 500 });
+      }
+    }
+
+    // Continue with Prisma for non-image updates
+    const { prisma } = await import("@/lib/prisma");
+    const { id: productId, ...updates } = body;
+
+    // For non-image updates, use Prisma
+    const { prisma } = await import("@/lib/prisma");
+
     // If image is being updated (including clearing to empty), try to delete old image from storage
     if (updates.image !== undefined) {
       try {
-        const currentProduct = await prisma.product.findUnique({ where: { id } });
+        const currentProduct = await prisma.product.findUnique({ where: { id: productId } });
         if (currentProduct?.image) {
           const oldUrl = currentProduct.image;
           // Extract path from Supabase URL: .../object/public/BUCKET/path
@@ -371,7 +397,7 @@ export async function PUT(req: NextRequest) {
     let product;
     try {
       product = await prisma.product.update({
-        where: { id },
+        where: { id: productId },
         data: { ...productUpdates, ...schedulingFields },
       });
     } catch (updateErr) {
@@ -379,7 +405,7 @@ export async function PUT(req: NextRequest) {
       if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
         console.warn("Scheduling columns missing, retrying update without them");
         product = await prisma.product.update({
-          where: { id },
+          where: { id: productId },
           data: productUpdates,
         });
       } else {
@@ -390,7 +416,7 @@ export async function PUT(req: NextRequest) {
     // Handle variants if provided (non-fatal if ProductVariant table doesn't exist yet)
     if (variants && Array.isArray(variants)) {
       try {
-        await prisma.productVariant.deleteMany({ where: { productId: id } });
+        await prisma.productVariant.deleteMany({ where: { productId } });
         for (const variant of variants) {
           await prisma.productVariant.create({
             data: {
@@ -410,11 +436,11 @@ export async function PUT(req: NextRequest) {
     let fullProduct;
     try {
       fullProduct = await prisma.product.findUnique({
-        where: { id },
+        where: { id: productId },
         include: { variants: true },
       });
     } catch {
-      fullProduct = await prisma.product.findUnique({ where: { id } });
+      fullProduct = await prisma.product.findUnique({ where: { id: productId } });
     }
 
     return NextResponse.json(fullProduct);
