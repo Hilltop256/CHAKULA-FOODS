@@ -27,6 +27,8 @@ export async function supabaseUpdate(
   data: Record<string, unknown>
 ): Promise<Record<string, unknown>[]> {
   const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`;
+  console.log("Supabase update URL:", url);
+  console.log("Supabase update data:", data);
   const res = await fetch(url, {
     method: "PATCH",
     headers,
@@ -34,9 +36,12 @@ export async function supabaseUpdate(
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new Error(`Supabase update error: ${res.status} ${await res.text()}`);
+    const errorText = await res.text();
+    throw new Error(`Supabase update error: ${res.status} - ${errorText}`);
   }
-  return res.json();
+  const result = await res.json();
+  console.log("Supabase update response:", result);
+  return result;
 }
 
 export async function supabaseInsert(

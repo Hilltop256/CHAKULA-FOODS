@@ -321,7 +321,7 @@ export async function PUT(req: NextRequest) {
 
     // If image is being updated, use Supabase directly to avoid Prisma connection issues
     if (image !== undefined) {
-      console.log("Using Supabase REST API for product update");
+      console.log("Using Supabase REST API for product update", { id, image: image?.substring(0, 50) });
       const updateData: Record<string, unknown> = { ...restUpdates };
       updateData.image = image;
       if (updateData.price) updateData.price = parseFloat(String(updateData.price));
@@ -330,12 +330,16 @@ export async function PUT(req: NextRequest) {
       
       try {
         const result = await supabaseUpdate("Product", id, updateData);
+        console.log("Supabase update result:", result);
         if (result && result.length > 0) {
           return NextResponse.json(result[0]);
         }
+        // If no result, might mean product wasn't found
+        return NextResponse.json({ error: "Product not found" }, { status: 404 });
       } catch (supabaseErr) {
-        console.error("Supabase update failed:", supabaseErr);
-        return NextResponse.json({ error: `Failed to update: ${supabaseErr}` }, { status: 500 });
+        const errMsg = supabaseErr instanceof Error ? supabaseErr.message : String(supabaseErr);
+        console.error("Supabase update failed:", errMsg);
+        return NextResponse.json({ error: `Failed to update: ${errMsg}` }, { status: 500 });
       }
     }
 
