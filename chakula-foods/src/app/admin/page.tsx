@@ -260,8 +260,15 @@ const handleImageUpload = async (
     // If replacing existing image, attempt to delete old one (best-effort)
     if (existingImageUrl) {
       try {
-        if (existingImageUrl.includes("/storage/v1/object/public/")) {
-          const path = existingImageUrl.split("/media/")[1];
+        // Extract path from Supabase URL: .../object/public/media/path
+        const match = existingImageUrl.match(/object\/public\/media\/(.+)$/);
+        if (match && match[1]) {
+          const path = match[1];
+          await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+        }
           if (path) {
             await fetch(`/api/upload?path=${encodeURIComponent(path)}`, {
               method: "DELETE",

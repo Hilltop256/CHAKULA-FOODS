@@ -250,12 +250,12 @@ export async function PUT(req: NextRequest) {
         const currentProduct = await prisma.product.findUnique({ where: { id } });
         if (currentProduct?.image) {
           const oldUrl = currentProduct.image;
-          if (oldUrl.includes("/storage/v1/object/public/")) {
-            const path = oldUrl.split("/media/")[1];
-            if (path) {
-              const { deleteImage } = await import("@/lib/storage");
-              await deleteImage(path).catch((err) => console.warn("Failed to delete old image:", err));
-            }
+          // Extract path from Supabase URL: .../object/public/BUCKET/path
+          const match = oldUrl.match(/object\/public\/media\/(.+)$/);
+          if (match && match[1]) {
+            const path = match[1];
+            const { deleteImage } = await import("@/lib/storage");
+            await deleteImage(path).catch((err) => console.warn("Failed to delete old image:", err));
           }
         }
       } catch (err) {
