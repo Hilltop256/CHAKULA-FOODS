@@ -365,7 +365,8 @@ const handleImageUpload = async (
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingProduct.id, ...productForm }),
         });
-        if (!res.ok) throw new Error("Failed to update");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to update");
         const updated = await res.json();
         setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       } else {
@@ -373,7 +374,8 @@ const handleImageUpload = async (
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(productForm),
         });
-        if (!res.ok) throw new Error("Failed to create");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to create");
         const newProduct = await res.json();
         setProducts((prev) => [newProduct, ...prev]);
       }

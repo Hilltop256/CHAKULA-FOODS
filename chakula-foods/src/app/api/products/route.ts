@@ -363,7 +363,16 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(fullProduct);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Product update error:", error);
+    console.error("Product update error:", message);
+    
+    // Check for database connection errors
+    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection")) {
+      return NextResponse.json(
+        { error: "Database connection error. Please try again or contact support." },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       { error: `Failed to update product: ${message}` },
       { status: 500 }
