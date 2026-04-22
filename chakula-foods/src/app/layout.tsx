@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: "Chakula Foods - Uganda's Best Fast Food & Fresh Market",
   description:
     "Fresh fast food, bakery, juice bar, and fresh market. Order online or subscribe for daily meals in Uganda.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
