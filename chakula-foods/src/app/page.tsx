@@ -23,20 +23,6 @@ const serviceGroups = [
     href: "/menu?group=drinks",
     subcategories: ["Juice Bar", "Smoothies", "Coffee", "Tea", "Mocktails & Cocktails"],
   },
-  {
-    name: "Market Special",
-    emoji: "🥬",
-    color: "bg-green-700",
-    href: "/menu?group=market",
-    subcategories: ["Fresh Produce", "Dry Goods", "Fruits"],
-  },
-  {
-    name: "Wines & Spirits Bar",
-    emoji: "🍷",
-    color: "bg-purple-700",
-    href: "/menu?category=WINES_SPIRITS",
-    subcategories: ["Wine", "Spirits", "Beer", "Champagne"],
-  },
 ];
 
 export default function Home() {

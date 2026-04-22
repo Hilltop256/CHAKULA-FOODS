@@ -9,8 +9,6 @@ import { useAuth } from "@/store/auth";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
-  { href: "/menu?group=market", label: "Market Specials" },
-  { href: "/menu?category=WINES_SPIRITS", label: "Wines & Spirit Delivery" },
   { href: "/subscriptions", label: "Subscriptions" },
   { href: "/admin", label: "Admin" },
 ];
