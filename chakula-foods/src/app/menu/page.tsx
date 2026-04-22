@@ -34,30 +34,34 @@ interface Product {
 }
 
 const categoryMap: Record<string, string> = {
-  FAST_FOOD: "wraps",
+  FAST_FOOD: "restaurant",
   BAKERY: "bakery",
   JUICE_BAR: "drinks",
   FRESH_MARKET: "market",
   DRY_MARKET: "market",
-  ROASTS: "roasts",
-  SPECIALS: "specials",
+  ROASTS: "restaurant",
+  SPECIALS: "restaurant",
   BREAKFAST: "bakery",
-  PLATTERS: "platters",
+  PLATTERS: "restaurant",
   DRINKS: "drinks",
-  WINES_SPIRITS: "drinks",
+  WINES_SPIRITS: "wines",
 };
 
 const categories = [
-  { key: "wraps", label: "Shawarma / Wraps / Rolex / Burgers", emoji: "🌯", iconBg: "#FFE8EC" },
-  { key: "bowls", label: "Bowl Meals", emoji: "🥣", iconBg: "#FFF0E8" },
-  { key: "pizza", label: "Pizza", emoji: "🍕", iconBg: "#FFE8EC" },
-  { key: "roasts", label: "Roasts & Grills", emoji: "🔥", iconBg: "#FFF3DC" },
-  { key: "specials", label: "Specials & Toppings", emoji: "⭐", iconBg: "#F0E8FF" },
-  { key: "market", label: "Fresh & Dry Market", emoji: "🥬", iconBg: "#E0FFF3" },
-  { key: "bakery", label: "Bakery & Breakfast", emoji: "🥐", iconBg: "#E0FFF3" },
-  { key: "platters", label: "Party & Group Platters", emoji: "🎉", iconBg: "#FFF0E8" },
-  { key: "drinks", label: "Drinks & Wines", emoji: "🥤", iconBg: "#E8ECF5" },
+  { key: "restaurant", label: "Restaurant", emoji: "🍽️", iconBg: "#FFE8EC", subcategories: ["Fast Foods", "Breakfast Treats", "Roasts & Grills", "Party Platters", "Specials & Toppings"] },
+  { key: "bakery", label: "Bakery / Confectionary", emoji: "🥐", iconBg: "#FFF0E8", subcategories: ["Bread", "Cakes", "Pastries", "Cookies", "Doughnuts"] },
+  { key: "drinks", label: "Drinks & Beverages", emoji: "🧃", iconBg: "#E0FFF3", subcategories: ["Juice Bar", "Smoothies", "Coffee", "Tea", "Mocktails & Cocktails"] },
+  { key: "market", label: "Market Special", emoji: "🥬", iconBg: "#F0E8FF", subcategories: ["Fresh Produce", "Dry Goods", "Fruits"] },
+  { key: "wines", label: "Wines & Spirits Bar", emoji: "🍷", iconBg: "#E8ECF5", subcategories: ["Wine", "Spirits", "Beer", "Champagne"] },
 ];
+
+interface CategoryInfo {
+  key: string;
+  label: string;
+  emoji: string;
+  iconBg: string;
+  subcategories: string[];
+}
 
 function MenuContent() {
   const searchParams = useSearchParams();
@@ -66,7 +70,7 @@ function MenuContent() {
   const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState(groupParam || "wraps");
+  const [activeCategory, setActiveCategory] = useState(groupParam || "restaurant");
   const [search, setSearch] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -74,6 +78,10 @@ function MenuContent() {
     if (groupParam) {
       setActiveCategory(groupParam);
     } else if (categoryParam === "WINES_SPIRITS") {
+      setActiveCategory("wines");
+    } else if (categoryParam === "BAKERY") {
+      setActiveCategory("bakery");
+    } else if (categoryParam === "JUICE_BAR" || categoryParam === "DRINKS") {
       setActiveCategory("drinks");
     } else if (categoryParam === "FRESH_MARKET" || categoryParam === "DRY_MARKET") {
       setActiveCategory("market");
@@ -211,38 +219,37 @@ function MenuContent() {
 
       <div
         style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          background: "white",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.1)",
-          overflowX: "auto",
-          whiteSpace: "nowrap",
-          padding: "0 20px",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          padding: "16px 20px",
+          justifyContent: "center",
         }}
       >
-        <div style={{ display: "inline-flex", gap: 0 }}>
           {categories.map((cat) => (
             <button
               key={cat.key}
               onClick={() => setActiveCategory(cat.key)}
               style={{
-                display: "inline-block",
-                padding: "16px 22px",
-                fontSize: 13,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "12px 18px",
+                fontSize: 14,
                 fontWeight: 600,
-                color: activeCategory === cat.key ? COLORS.accent : COLORS.muted,
-                textDecoration: "none",
-                borderBottom: activeCategory === cat.key ? `3px solid ${COLORS.accent}` : "3px solid transparent",
-                background: "none",
+                color: activeCategory === cat.key ? "white" : COLORS.dark,
+                background: activeCategory === cat.key ? COLORS.accent : "white",
+                border: activeCategory === cat.key ? "none" : "1px solid #eee",
+                borderRadius: 10,
                 cursor: "pointer",
                 transition: "all 0.2s",
+                boxShadow: activeCategory === cat.key ? "0 4px 12px rgba(233,69,96,0.3)" : "none",
               }}
             >
-              {cat.emoji} {cat.label}
+              <span style={{ fontSize: 18 }}>{cat.emoji}</span>
+              {cat.label}
             </button>
           ))}
-        </div>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px 0" }}>
@@ -302,6 +309,22 @@ function MenuContent() {
             >
               {categoryInfo?.label}
             </h2>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+              {categoryInfo?.subcategories?.map((sub: string) => (
+                <span
+                  key={sub}
+                  style={{
+                    fontSize: 12,
+                    color: COLORS.muted,
+                    background: "#f5f5f5",
+                    padding: "4px 10px",
+                    borderRadius: 6,
+                  }}
+                >
+                  {sub}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
