@@ -339,17 +339,13 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    // Continue with Prisma for non-image updates
-    const { prisma } = await import("@/lib/prisma");
-    const { id: productId, ...updates } = body;
-
-    // For non-image updates, use Prisma
+    // Continue with Prisma for non-image updates only
     const { prisma } = await import("@/lib/prisma");
 
     // If image is being updated (including clearing to empty), try to delete old image from storage
     if (updates.image !== undefined) {
       try {
-        const currentProduct = await prisma.product.findUnique({ where: { id: productId } });
+        const currentProduct = await prisma.product.findUnique({ where: { id } });
         if (currentProduct?.image) {
           const oldUrl = currentProduct.image;
           // Extract path from Supabase URL: .../object/public/BUCKET/path
@@ -397,7 +393,7 @@ export async function PUT(req: NextRequest) {
     let product;
     try {
       product = await prisma.product.update({
-        where: { id: productId },
+        where: { id },
         data: { ...productUpdates, ...schedulingFields },
       });
     } catch (updateErr) {
@@ -405,7 +401,7 @@ export async function PUT(req: NextRequest) {
       if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
         console.warn("Scheduling columns missing, retrying update without them");
         product = await prisma.product.update({
-          where: { id: productId },
+          where: { id },
           data: productUpdates,
         });
       } else {
@@ -416,7 +412,7 @@ export async function PUT(req: NextRequest) {
     // Handle variants if provided (non-fatal if ProductVariant table doesn't exist yet)
     if (variants && Array.isArray(variants)) {
       try {
-        await prisma.productVariant.deleteMany({ where: { productId } });
+        await prisma.productVariant.deleteMany({ where: { productId: id } });
         for (const variant of variants) {
           await prisma.productVariant.create({
             data: {
@@ -436,11 +432,11 @@ export async function PUT(req: NextRequest) {
     let fullProduct;
     try {
       fullProduct = await prisma.product.findUnique({
-        where: { id: productId },
+        where: { id },
         include: { variants: true },
       });
     } catch {
-      fullProduct = await prisma.product.findUnique({ where: { id: productId } });
+      fullProduct = await prisma.product.findUnique({ where: { id } });
     }
 
     return NextResponse.json(fullProduct);
