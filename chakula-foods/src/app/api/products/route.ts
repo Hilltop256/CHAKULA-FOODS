@@ -207,7 +207,7 @@ async function POST(req: NextRequest) {
       price: parseFloat(price),
       image,
       category: category as ProductCategory,
-      stock: stock ? parseInt(stock) : null,
+       stock: stock != null && stock !== "" ? parseInt(String(stock)) : null,
       unit,
       preparationTime: preparationTime ? parseInt(preparationTime) : null,
       isFeatured: isFeatured ?? false,
@@ -491,5 +491,3 @@ async function DELETE(req: NextRequest) {
     );
   }
 }
-  }
-  }
