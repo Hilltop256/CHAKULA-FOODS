@@ -26,7 +26,7 @@ export async function supabaseUpdate(
   id: string,
   data: Record<string, unknown>
 ): Promise<Record<string, unknown>[]> {
-  const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`;
+  const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`;
   console.log("Supabase update URL:", url);
   console.log("Supabase update data:", data);
   const res = await fetch(url, {
