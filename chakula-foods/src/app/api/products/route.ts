@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminOrTestUser } from "@/lib/test-mode";
-import { ProductCategory } from "@prisma/client";
+import { ProductCategory, type PrismaClient } from "@prisma/client";
 import { supabaseQuery, supabaseUpdate, supabaseInsert } from "@/lib/supabase";
 
 // Parse request body once per request to avoid "Body has already been read" errors
@@ -68,16 +68,16 @@ async function GET(req: NextRequest) {
   const search = searchParams.get("search");
   const includeUnavailable = searchParams.get("includeUnavailable");
 
-  // Return demo products if database is not available
-  if (!hasDatabase) {
-    return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
-  }
+   // Return demo products if database is not available
+   if (!hasDatabase) {
+     return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+   }
 
-  // Try Prisma first, then fallback to Supabase REST API
-  const { prisma } = await import("@/lib/prisma");
-  
-  try {
-    await prisma.$connect();
+   let db: PrismaClient | undefined = undefined;
+   try {
+     const mod = await import("@/lib/prisma");
+     db = mod.prisma;
+     await db.$connect();
     
     const where: Record<string, unknown> = {};
     
@@ -96,21 +96,21 @@ async function GET(req: NextRequest) {
       ];
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      include: { categoryRef: true, variants: true },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-    }).catch(async (err) => {
-      console.warn("Products findMany with variants failed, retrying without:", err.message);
-      return prisma.product.findMany({
-        where,
-        include: { categoryRef: true },
-        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-      }).catch(async (err2) => {
-        console.error("Products findMany failed completely:", err2.message);
-        return [];
-      });
-    });
+     const products = await db.product.findMany({
+       where,
+       include: { categoryRef: true, variants: true },
+       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+     }).catch(async (err: unknown) => {
+       console.warn("Products findMany with variants failed, retrying without:", err instanceof Error ? err.message : String(err));
+       return db!.product.findMany({
+         where,
+         include: { categoryRef: true },
+         orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+       }).catch(async (err2: unknown) => {
+         console.error("Products findMany failed completely:", err2 instanceof Error ? err2.message : String(err2));
+         return [];
+       });
+     });
 
     // If no products from database, fallback to Supabase REST API
     if (!products || products.length === 0) {
@@ -153,11 +153,11 @@ async function GET(req: NextRequest) {
       console.error("Supabase REST API fallback also failed:", supabaseErr);
       return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
     }
-  } finally {
-    try {
-      await prisma.$disconnect();
-    } catch {}
-  }
+   } finally {
+     try {
+       await db?.$disconnect();
+     } catch {}
+   }
 }
 
 async function POST(req: NextRequest) {
