@@ -68,23 +68,19 @@ async function GET(req: NextRequest) {
   const search = searchParams.get("search");
   const includeUnavailable = searchParams.get("includeUnavailable");
 
-   // Return demo products if database is not available
-   if (!hasDatabase) {
-     return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
-   }
+  // If database is not configured, return demo products immediately
+  if (!hasDatabase) {
+    return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+  }
 
-   let db: PrismaClient | undefined = undefined;
-   try {
-     const mod = await import("@/lib/prisma");
-     db = mod.prisma;
-     await db.$connect();
-    
+  let db: PrismaClient | undefined = undefined;
+  try {
+    const mod = await import("@/lib/prisma");
+    db = mod.prisma;
+    await db.$connect();
+
     const where: Record<string, unknown> = {};
-    
-    if (includeUnavailable !== "true") {
-      where.isAvailable = true;
-    }
-
+    if (includeUnavailable !== "true") where.isAvailable = true;
     if (category && Object.values(ProductCategory).includes(category as ProductCategory)) {
       where.category = category as ProductCategory;
     }
@@ -96,68 +92,42 @@ async function GET(req: NextRequest) {
       ];
     }
 
-     const products = await db.product.findMany({
-       where,
-       include: { categoryRef: true, variants: true },
-       orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-     }).catch(async (err: unknown) => {
-       console.warn("Products findMany with variants failed, retrying without:", err instanceof Error ? err.message : String(err));
-       return db!.product.findMany({
-         where,
-         include: { categoryRef: true },
-         orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
-       }).catch(async (err2: unknown) => {
-         console.error("Products findMany failed completely:", err2 instanceof Error ? err2.message : String(err2));
-         return [];
-       });
-     });
+    const products = await db.product.findMany({
+      where,
+      include: { categoryRef: true, variants: true },
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+    });
 
-    // If no products from database, fallback to Supabase REST API
-    if (!products || products.length === 0) {
-      console.warn("No products from Prisma, trying Supabase REST API");
-      try {
-        const params: Record<string, string> = {};
-        if (includeUnavailable !== "true") params.isAvailable = "true";
-        if (category) params.category = category;
-        if (featured === "true") params.isFeatured = "true";
-        if (search) params.name = `ilike.*${search}*`;
-        params.order = "isFeatured.desc,createdAt.desc";
-        
-        const products = await supabaseQuery<Record<string, unknown>>("Product", params);
-        if (products.length > 0) {
-          return NextResponse.json(products);
-        }
-      } catch (supabaseErr) {
-        console.error("Supabase REST API also failed:", supabaseErr);
-      }
-      return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
-    }
-
-    return NextResponse.json(products);
-  } catch (error) {
-    const err = error as Error;
-    console.error("Products GET error:", err.message, err.stack);
-    
-    // Try Supabase REST API as fallback
-    try {
-      const params: Record<string, string> = {};
-      if (includeUnavailable !== "true") params.isAvailable = "true";
-      if (category) params.category = category;
-      if (featured === "true") params.isFeatured = "true";
-      if (search) params.name = `ilike.*${search}*`;
-      params.order = "isFeatured.desc,createdAt.desc";
-      
-      const products = await supabaseQuery<Record<string, unknown>>("Product", params);
+    if (products && products.length > 0) {
       return NextResponse.json(products);
-    } catch (supabaseErr) {
-      console.error("Supabase REST API fallback also failed:", supabaseErr);
-      return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
     }
-   } finally {
-     try {
-       await db?.$disconnect();
-     } catch {}
-   }
+    // If DB returned empty, fall through to Supabase fallback
+  } catch (err) {
+    console.warn("Database error:", err);
+    // fall through
+  } finally {
+    try { await db?.$disconnect(); } catch {}
+  }
+
+  // Supabase REST API fallback
+  try {
+    const params: Record<string, string> = {};
+    if (includeUnavailable !== "true") params.isAvailable = "true";
+    if (category) params.category = category;
+    if (featured === "true") params.isFeatured = "true";
+    if (search) params.name = `ilike.*${search}*`;
+    params.order = "isFeatured.desc,createdAt.desc";
+
+    const products = await supabaseQuery<Record<string, unknown>>("Product", params);
+    if (products && products.length > 0) {
+      return NextResponse.json(products);
+    }
+  } catch (err) {
+    console.warn("Supabase fallback error:", err);
+  }
+
+  // Final fallback: demo products
+  return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
 }
 
 async function POST(req: NextRequest) {
