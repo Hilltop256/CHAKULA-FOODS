@@ -451,9 +451,8 @@ export async function PUT(req: NextRequest) {
     // Check if this is a database connection error - try Supabase REST API fallback
     if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
       try {
-        const body = await req.json();
+        // Use the already-parsed body to avoid "Body has already been read" error
         const { id, image, ...restUpdates } = body;
-        
         const updateData: Record<string, unknown> = { ...restUpdates };
         if (image !== undefined) updateData.image = image;
         if (updateData.price) updateData.price = parseFloat(String(updateData.price));
