@@ -9,14 +9,11 @@ const globalForPrisma = globalThis as unknown as {
 function getCleanDatabaseUrl(): string {
   const url = process.env.DATABASE_URL || "";
   try {
-    // First URL decode to fix %20 -> space etc
-    let decoded = decodeURIComponent(url);
-    // Then remove query params that Prisma doesn't handle
-    const questionMarkIndex = decoded.indexOf("?");
-    if (questionMarkIndex > 0) {
-      decoded = decoded.substring(0, questionMarkIndex);
-    }
-    return decoded;
+    // First remove query params (they come after ?)
+    const questionMarkIndex = url.indexOf("?");
+    let cleaned = questionMarkIndex > 0 ? url.substring(0, questionMarkIndex) : url;
+    // Then URL decode to fix %20 -> space etc
+    return decodeURIComponent(cleaned);
   } catch {
     return url;
   }

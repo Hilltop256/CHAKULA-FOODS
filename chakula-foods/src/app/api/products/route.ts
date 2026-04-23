@@ -3,15 +3,7 @@ import { getAdminOrTestUser } from "@/lib/test-mode";
 import { ProductCategory } from "@prisma/client";
 import { supabaseQuery, supabaseUpdate, supabaseInsert } from "@/lib/supabase";
 
-// Parse request body once at the module level to avoid "Body has already been read" errors
-let cachedBody: Record<string, unknown> | null = null;
-
-async function getRequestBody(req: NextRequest): Promise<Record<string, unknown>> {
-  if (!cachedBody) {
-    cachedBody = await req.json();
-  }
-  return cachedBody;
-}
+// Parse request body once per request to avoid "Body has already been read" errors
 
 const demoProducts = [
   { id: "1", name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
@@ -282,7 +274,7 @@ export async function POST(req: NextRequest) {
     
     // Try Supabase REST API fallback
   try {
-    const body = await getRequestBody(req);
+    const body = await req.json();
     const { id, image, ...restUpdates } = body;
 
     if (!id) {
