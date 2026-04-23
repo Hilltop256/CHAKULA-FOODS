@@ -3,6 +3,16 @@ import { getAdminOrTestUser } from "@/lib/test-mode";
 import { ProductCategory } from "@prisma/client";
 import { supabaseQuery, supabaseUpdate, supabaseInsert } from "@/lib/supabase";
 
+// Parse request body once at the module level to avoid "Body has already been read" errors
+let cachedBody: Record<string, unknown> | null = null;
+
+async function getRequestBody(req: NextRequest): Promise<Record<string, unknown>> {
+  if (!cachedBody) {
+    cachedBody = await req.json();
+  }
+  return cachedBody;
+}
+
 const demoProducts = [
   { id: "1", name: "Chicken Burger", description: "Crispy chicken fillet with lettuce, tomato and special sauce", price: 15000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
   { id: "2", name: "Beef Burger", description: "Juicy beef patty with cheese, onions and pickles", price: 18000, category: "FAST_FOOD", isFeatured: true, isAvailable: true, preparationTime: 15, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop" },
@@ -271,48 +281,8 @@ export async function POST(req: NextRequest) {
     console.error("Product create error:", message);
     
     // Try Supabase REST API fallback
-    try {
-      const body = await req.json();
-      const { image, variants, availableFrom, availableTo, availableDays, ...productData } = body;
-      
-      const createData: Record<string, unknown> = { 
-        ...productData,
-        category: body.category || "FAST_FOOD",
-        isAvailable: body.isAvailable ?? true,
-        isFeatured: body.isFeatured ?? false,
-      };
-      if (image) createData.image = image;
-      if (createData.price) createData.price = parseFloat(String(createData.price));
-      if (createData.stock) createData.stock = parseInt(String(createData.stock));
-      
-      const result = await supabaseInsert("Product", createData);
-      if (result && result.length > 0) {
-        return NextResponse.json(result[0], { status: 201 });
-      }
-    } catch (supabaseErr) {
-      console.error("Supabase create fallback also failed:", supabaseErr);
-    }
-    
-    return NextResponse.json(
-      { error: `Failed to create product: ${message}` },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl || dbUrl.length < 10) {
-    return NextResponse.json({ error: "Demo mode - edit disabled" }, { status: 400 });
-  }
-
   try {
-    const user = await getAdminOrTestUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await req.json();
+    const body = await getRequestBody(req);
     const { id, image, ...restUpdates } = body;
 
     if (!id) {
@@ -490,7 +460,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { prisma } = await import("@/lib/prisma");
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
@@ -498,7 +467,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
-    // Get product to delete image from storage
     const product = await prisma.product.findUnique({ where: { id } });
 
     // Soft delete product
