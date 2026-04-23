@@ -61,7 +61,7 @@ function getFilteredProducts(products: typeof demoProducts, category: string | n
   return NextResponse.json(filtered);
 }
 
-export async function GET(req: NextRequest) {
+async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get("category");
   const featured = searchParams.get("featured");
@@ -160,7 +160,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function POST(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl || dbUrl.length < 10) {
     return NextResponse.json({ error: "Demo mode - create disabled" }, { status: 400 });
@@ -440,7 +440,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
+async function DELETE(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl || dbUrl.length < 10) {
     return NextResponse.json({ error: "Demo mode - delete disabled" }, { status: 400 });
