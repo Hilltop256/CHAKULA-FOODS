@@ -216,53 +216,34 @@ function AccountContent() {
             </p>
           </div>
         </div>
-          <div className="space-y-2">
-            <Link
-              href="/menu"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              🍔 Browse Menu
-            </Link>
-            <Link
-              href="/subscriptions"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              📅 Manage Subscription
-            </Link>
-            <Link
-              href="/cart"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              🛒 View Cart
-            </Link>
-          </div>
-        </div>
+       </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="font-semibold text-gray-500 text-sm uppercase mb-3">
-            Quick Actions
-          </h2>
-          <div className="space-y-2">
-            <Link
-              href="/menu"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              🍔 Browse Menu
-            </Link>
-            <Link
-              href="/subscriptions"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              📅 Manage Subscription
-            </Link>
-            <Link
-              href="/cart"
-              className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
-            >
-              🛒 View Cart
-            </Link>
-          </div>
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-10">
+        <h2 className="font-semibold text-gray-500 text-sm uppercase mb-3">
+          Quick Actions
+        </h2>
+        <div className="space-y-2">
+          <Link
+            href="/menu"
+            className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+          >
+            🍔 Browse Menu
+          </Link>
+          <Link
+            href="/subscriptions"
+            className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+          >
+            📅 Manage Subscription
+          </Link>
+          <Link
+            href="/cart"
+            className="flex items-center gap-2 text-orange-600 hover:underline text-sm font-medium"
+          >
+            🛒 View Cart
+          </Link>
         </div>
+      </div>
 
       {/* Order history */}
       <h2 className="text-2xl font-bold mb-6">Order History</h2>

@@ -1,20 +1,30 @@
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pypteeknvrquehvmjqqp.supabase.co";
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cHRlZWtudnJxdWVodm1qcXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjUyODIsImV4cCI6MjA4NzU0MTI4Mn0.3_3JfqCVCPpQDRHS06LqJ7jtdIv3wYz6z-9fUST-xr0";
+function getConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY are required");
+  }
+  return { url, key };
+}
 
-const headers = {
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  "Content-Type": "application/json",
-  "Prefer": "return=representation",
-};
+function getHeaders() {
+  const { key } = getConfig();
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json",
+    "Prefer": "return=representation",
+  };
+}
 
 export async function supabaseQuery<T>(
   table: string,
   params: Record<string, string> = {}
 ): Promise<T[]> {
+  const { url } = getConfig();
   const query = new URLSearchParams(params).toString();
-  const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
-  const res = await fetch(url, { headers, cache: "no-store" });
+  const endpoint = `${url}/rest/v1/${table}?${query}`;
+  const res = await fetch(endpoint, { headers: getHeaders(), cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Supabase REST error: ${res.status} ${await res.text()}`);
   }
@@ -26,12 +36,11 @@ export async function supabaseUpdate(
   id: string,
   data: Record<string, unknown>
 ): Promise<Record<string, unknown>[]> {
-  const url = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`;
-  console.log("Supabase update URL:", url);
-  console.log("Supabase update data:", data);
-  const res = await fetch(url, {
+  const { url } = getConfig();
+  const endpoint = `${url}/rest/v1/${table}?id=eq.${id}`;
+  const res = await fetch(endpoint, {
     method: "PATCH",
-    headers,
+    headers: getHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -40,7 +49,6 @@ export async function supabaseUpdate(
     throw new Error(`Supabase update error: ${res.status} - ${errorText}`);
   }
   const result = await res.json();
-  console.log("Supabase update response:", result);
   return result;
 }
 
@@ -48,10 +56,11 @@ export async function supabaseInsert(
   table: string,
   data: Record<string, unknown>
 ): Promise<Record<string, unknown>[]> {
-  const url = `${SUPABASE_URL}/rest/v1/${table}`;
-  const res = await fetch(url, {
+  const { url } = getConfig();
+  const endpoint = `${url}/rest/v1/${table}`;
+  const res = await fetch(endpoint, {
     method: "POST",
-    headers,
+    headers: getHeaders(),
     body: JSON.stringify(data),
     cache: "no-store",
   });
@@ -65,10 +74,11 @@ export async function supabaseCount(
   table: string,
   params: Record<string, string> = {}
 ): Promise<number> {
+  const { url } = getConfig();
   const query = new URLSearchParams({ ...params, select: "id" }).toString();
-  const url = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
-  const res = await fetch(url, {
-    headers: { ...headers, Prefer: "count=exact" },
+  const endpoint = `${url}/rest/v1/${table}?${query}`;
+  const res = await fetch(endpoint, {
+    headers: { ...getHeaders(), Prefer: "count=exact" },
     cache: "no-store",
   });
   const contentRange = res.headers.get("content-range");

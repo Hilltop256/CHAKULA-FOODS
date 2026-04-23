@@ -33,12 +33,12 @@ export async function getSession() {
     include: { user: true },
   });
 
-  if (!session || session.expiresAt < new Date()) {
-    if (session) {
-      await prisma.session.delete({ where: { token } }).catch(() => {});
-    }
-    return null;
-  }
+   if (!session || session.expiresAt < new Date()) {
+     if (session) {
+       await prisma.session.delete({ where: { token } }).catch((err) => console.warn("Failed to delete expired session:", err));
+     }
+     return null;
+   }
 
   return session;
 }
@@ -66,7 +66,7 @@ export async function deleteSession() {
   const cookieStore = await cookies();
   const token = cookieStore.get("chakula_session")?.value;
 
-  if (token) {
-    await prisma.session.deleteMany({ where: { token } }).catch(() => {});
-  }
+   if (token) {
+     await prisma.session.deleteMany({ where: { token } }).catch((err) => console.warn("Failed to delete session on logout:", err));
+   }
 }

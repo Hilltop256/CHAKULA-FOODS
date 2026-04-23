@@ -32,13 +32,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("chakula_cart");
-      if (saved) setItems(JSON.parse(saved));
-    } catch {}
-    setHydrated(true);
-  }, []);
+   useEffect(() => {
+     try {
+       const saved = localStorage.getItem("chakula_cart");
+       if (saved) setItems(JSON.parse(saved));
+     } catch (err) {
+       console.warn("Failed to parse cart from localStorage:", err);
+     }
+     setHydrated(true);
+   }, []);
 
   useEffect(() => {
     if (hydrated) {

@@ -15,7 +15,7 @@ function generateReferralCode(): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, password, referralCode } = body;
+    const { name, email, phone, password } = body;
 
     if (!email || !password || !name || !phone) {
       return NextResponse.json(
@@ -47,15 +47,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let referredById: string | null = null;
-    
     const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        phone, 
+      data: {
+        name,
+        email,
+        phone,
         password: hashedPassword,
       },
     });

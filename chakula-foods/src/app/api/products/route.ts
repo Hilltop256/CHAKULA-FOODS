@@ -272,171 +272,28 @@ async function POST(req: NextRequest) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Product create error:", message);
     
-    // Try Supabase REST API fallback
-  try {
-    const body = await req.json();
-    const { id, image, ...restUpdates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
-    }
-
-    // If image is being updated, use Supabase directly to avoid Prisma connection issues
-    if (image !== undefined) {
-      console.log("Using Supabase REST API for product update", { id, image: image?.substring(0, 50) });
-      const updateData: Record<string, unknown> = { ...restUpdates };
-      updateData.image = image;
-      if (updateData.price) updateData.price = parseFloat(String(updateData.price));
-      if (updateData.stock) updateData.stock = parseInt(String(updateData.stock));
-      if (updateData.preparationTime) updateData.preparationTime = parseInt(String(updateData.preparationTime));
-      
-      try {
-        const result = await supabaseUpdate("Product", id, updateData);
-        console.log("Supabase update result:", result);
-        if (result && result.length > 0) {
-          return NextResponse.json(result[0]);
-        }
-        // If no result, might mean product wasn't found
-        return NextResponse.json({ error: "Product not found" }, { status: 404 });
-      } catch (supabaseErr) {
-        const errMsg = supabaseErr instanceof Error ? supabaseErr.message : String(supabaseErr);
-        console.error("Supabase update failed:", errMsg);
-        return NextResponse.json({ error: `Failed to update: ${errMsg}` }, { status: 500 });
-      }
-    }
-
-    // Continue with Prisma for non-image updates only
-    const { prisma } = await import("@/lib/prisma");
-
-    // If image is being updated (including clearing to empty), try to delete old image from storage
-    if (updates.image !== undefined) {
-      try {
-        const currentProduct = await prisma.product.findUnique({ where: { id } });
-        if (currentProduct?.image) {
-          const oldUrl = currentProduct.image;
-          // Extract path from Supabase URL: .../object/public/BUCKET/path
-          const match = oldUrl.match(/object\/public\/media\/(.+)$/);
-          if (match && match[1]) {
-            const path = match[1];
-            const { deleteImage } = await import("@/lib/storage");
-            await deleteImage(path).catch((err) => console.warn("Failed to delete old image:", err));
-          }
-        }
-      } catch (err) {
-        console.warn("Could not fetch old product for image cleanup:", err);
-      }
-    }
-
-    // Extract scheduling and variants
-    const { availableFrom, availableTo, availableDays, variants, image } = updates;
-    const productUpdates: Record<string, unknown> = { ...updates };
-
-    // Preserve existing image if not being updated
-    if (image === undefined && updates.image === undefined) {
-      delete productUpdates.image;
-    }
-
-    delete productUpdates.variants;
-    // Strip scheduling fields; will be re-added only if present
-    delete productUpdates.availableFrom;
-    delete productUpdates.availableTo;
-    delete productUpdates.availableDays;
-
-    if (productUpdates.price !== undefined) productUpdates.price = parseFloat(String(productUpdates.price));
-    if (productUpdates.stock !== undefined && productUpdates.stock !== null)
-      productUpdates.stock = parseInt(String(productUpdates.stock));
-    if (productUpdates.preparationTime !== undefined && productUpdates.preparationTime !== null)
-      productUpdates.preparationTime = parseInt(String(productUpdates.preparationTime));
-    if (productUpdates.calories !== undefined && productUpdates.calories !== null)
-      productUpdates.calories = parseInt(String(productUpdates.calories));
-
-    // Add scheduling fields optionally (non-fatal if column missing)
-    const schedulingFields: Record<string, unknown> = {};
-    if (availableFrom !== undefined) schedulingFields.availableFrom = availableFrom || null;
-    if (availableTo !== undefined) schedulingFields.availableTo = availableTo || null;
-    if (availableDays !== undefined) schedulingFields.availableDays = Array.isArray(availableDays) ? availableDays : [];
-
-    let product;
+    // Try Supabase REST API fallback to CREATE product
     try {
-      product = await prisma.product.update({
-        where: { id },
-        data: { ...productUpdates, ...schedulingFields },
-      });
-    } catch (updateErr) {
-      const msg = updateErr instanceof Error ? updateErr.message : "";
-      if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
-        console.warn("Scheduling columns missing, retrying update without them");
-        product = await prisma.product.update({
-          where: { id },
-          data: productUpdates,
-        });
-      } else {
-        throw updateErr;
-      }
-    }
+      const body = await req.json();
+      const { id: _id, image, ...restData } = body;
 
-    // Handle variants if provided (non-fatal if ProductVariant table doesn't exist yet)
-    if (variants && Array.isArray(variants)) {
-      try {
-        await prisma.productVariant.deleteMany({ where: { productId: id } });
-        for (const variant of variants) {
-          await prisma.productVariant.create({
-            data: {
-              productId: id,
-              name: String(variant.name),
-              price: variant.price ? parseFloat(String(variant.price)) : null,
-              stock: variant.stock ? parseInt(String(variant.stock)) : null,
-            },
-          });
-        }
-      } catch (variantErr) {
-        console.warn("Variant handling skipped (migration may not be applied):", variantErr);
-      }
-    }
+      // Prepare data for Supabase insert
+      const insertData: Record<string, unknown> = { ...restData };
+      if (image !== undefined) insertData.image = image;
+      if (insertData.price) insertData.price = parseFloat(String(insertData.price));
+      if (insertData.stock) insertData.stock = parseInt(String(insertData.stock));
+      if (insertData.preparationTime) insertData.preparationTime = parseInt(String(insertData.preparationTime));
 
-    // Try to fetch with variants, fall back to without if table missing
-    let fullProduct;
-    try {
-      fullProduct = await prisma.product.findUnique({
-        where: { id },
-        include: { variants: true },
-      });
-    } catch {
-      fullProduct = await prisma.product.findUnique({ where: { id } });
-    }
-
-    return NextResponse.json(fullProduct);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Product update error:", message);
-    
-    // Check if this is a database connection error - try Supabase REST API fallback
-    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
-      try {
-        // Use the already-parsed body to avoid "Body has already been read" error
-        const { id, image, ...restUpdates } = body;
-        const updateData: Record<string, unknown> = { ...restUpdates };
-        if (image !== undefined) updateData.image = image;
-        if (updateData.price) updateData.price = parseFloat(String(updateData.price));
-        if (updateData.stock) updateData.stock = parseInt(String(updateData.stock));
-        
-        const result = await supabaseUpdate("Product", id, updateData);
-        if (result && result.length > 0) {
-          return NextResponse.json(result[0]);
-        }
-      } catch (supabaseErr) {
-        console.error("Supabase update fallback also failed:", supabaseErr);
+      const result = await supabaseInsert("Product", insertData);
+      if (result && result.length > 0) {
+        return NextResponse.json(result[0], { status: 201 });
       }
-      return NextResponse.json(
-        { error: "Database connection error. Please try again or contact support." },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: "Failed to create product via Supabase" }, { status: 500 });
+    } catch (supabaseErr) {
+      const errMsg = supabaseErr instanceof Error ? supabaseErr.message : String(supabaseErr);
+      console.error("Supabase insert fallback failed:", errMsg);
+      return NextResponse.json({ error: `Failed to create product: ${errMsg}` }, { status: 500 });
     }
-    
-    return NextResponse.json(
-      { error: `Failed to update product: ${message}` },
-      { status: 500 }
-    );
   }
 }
 
@@ -452,6 +309,7 @@ async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { prisma } = await import("@/lib/prisma");
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 

@@ -216,7 +216,7 @@ export async function initiateFlutterwavePayment({
       customizations: {
         title: "Chakula Foods",
         description,
-        logo: `${process.env.NEXT_PUBLIC_BASE_URL}/logo.png`,
+        logo: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/logo.png`,
       },
       payment_options: "card",
       meta: { orderId },

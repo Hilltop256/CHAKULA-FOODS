@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
           ? {
               create: items.map((item: { productId: string; quantity: number }) => ({
                 productId: item.productId,
-                quantity: item.quantity || 1,
+                quantity: item.quantity !== undefined && item.quantity !== null ? item.quantity : 1,
               })),
             }
           : undefined,

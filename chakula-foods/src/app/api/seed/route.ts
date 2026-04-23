@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
             name: product.name,
             description: product.description,
             price: product.price,
-            category: product.category as any,
+            category: product.category as ProductCategory,
             preparationTime: product.preparationTime || null,
             isFeatured: product.isFeatured || false,
             isAvailable: true,

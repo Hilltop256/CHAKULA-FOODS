@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminOrTestUser } from "@/lib/test-mode";
-import { ProductCategory } from "@prisma/client";
+import { ProductCategory, Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -99,16 +99,15 @@ export async function POST(req: NextRequest) {
 
         if (existing) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await prisma.product.update({
-            where: { id: existing.id },
-            data: data as any,
-          });
-          results.updated++;
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await prisma.product.create({ data: data as any });
-          results.created++;
-        }
+           await prisma.product.update({
+             where: { id: existing.id },
+             data: data as Prisma.ProductCreateInput,
+           });
+           results.updated++;
+         } else {
+           await prisma.product.create({ data: data as Prisma.ProductCreateInput });
+           results.created++;
+         }
       } catch (err) {
         results.errors.push(`Row ${i + 1}: ${err instanceof Error ? err.message : "Unknown error"}`);
       }
