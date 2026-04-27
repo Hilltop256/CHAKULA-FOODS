@@ -162,3 +162,27 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = await getAdminOrTestUser();
+    if (!user || (user.role !== "ADMIN" && user.role !== "STAFF")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ error: "Order ID required" }, { status: 400 });
+    }
+
+    await prisma.order.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Order delete error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete order" },
+      { status: 500 }
+    );
+  }
+}
