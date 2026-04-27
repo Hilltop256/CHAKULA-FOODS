@@ -55,6 +55,7 @@ export async function GET() {
     }
   } catch (error) {
     console.error("DB error:", error);
+    // If DB fails, return demo products instead of error
   }
   return NextResponse.json(demoProducts);
 }
@@ -90,7 +91,12 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL || "";
-  console.log("PUT - DB_URL length:", dbUrl.length, "starts:", dbUrl.substring(0, 20));
+  const hasDatabase = dbUrl.length > 20 && dbUrl.startsWith("postgresql");
+  
+  // If no DB, return error
+  if (!hasDatabase) {
+    return NextResponse.json({ error: "Database connectivity issue" }, { status: 503 });
+  }
   
   try {
     const body = await req.json();
