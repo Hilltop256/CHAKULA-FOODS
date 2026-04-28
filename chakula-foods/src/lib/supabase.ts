@@ -1,5 +1,11 @@
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pypteeknvrquehvmjqqp.supabase.co";
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cHRlZWtudnJxdWVodm1qcXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NjUyODIsImV4cCI6MjA4NzU0MTI4Mn0.3_3JfqCVCPpQDRHS06LqJ7jtdIv3wYz6z-9fUST-xr0";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY are required"
+  );
+}
 
 const headers = {
   apikey: SUPABASE_ANON_KEY,

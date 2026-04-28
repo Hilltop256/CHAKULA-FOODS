@@ -40,8 +40,10 @@ export async function getAdminOrTestUser() {
       password: "",
       createdAt: new Date(),
       updatedAt: new Date(),
-      resetToken: null,
-      resetTokenExp: null,
+      address: null,
+      latitude: null,
+      longitude: null,
+      emailVerified: null,
     };
   }
 
