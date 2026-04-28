@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminOrTestUser } from "@/lib/test-mode";
 import { ProductCategory } from "@prisma/client";
 import { supabaseQuery, supabaseUpdate, supabaseInsert } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 
 // Parse request body once per request to avoid "Body has already been read" errors
 
