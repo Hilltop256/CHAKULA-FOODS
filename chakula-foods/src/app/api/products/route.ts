@@ -269,15 +269,10 @@ async function POST(req: NextRequest) {
     console.error("Product create error:", message);
 
     if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
-      try {
-        const params: Record<string, string> = {};
-        params.order = "isFeatured.desc,createdAt.desc";
-        const products = await supabaseQuery<Record<string, unknown>>("Product", params);
-        return NextResponse.json(products);
-      } catch (supabaseErr) {
-        console.error("Supabase REST API fallback also failed:", supabaseErr);
-      }
-      return getFilteredProducts(demoProducts, category, featured, search, includeUnavailable);
+      return NextResponse.json(
+        { error: "Database connection error. Please try again or contact support." },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
