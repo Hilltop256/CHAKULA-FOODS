@@ -4,7 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { Plus, Minus, ShoppingCart, Search } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { formatCurrency } from "@/lib/utils";
-import Image from "next/image";
 
 const COLORS = {
   dark: "#1A1A2E",
@@ -445,11 +444,11 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
                   }}
                 >
                   {product.image ? (
-                    <Image
+                    <img
                       src={product.image}
                       alt={product.name}
-                      fill
-                      style={{ objectFit: "cover" }}
+                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                      loading="lazy"
                     />
                   ) : (
                     <span>🍽️</span>
