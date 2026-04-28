@@ -150,7 +150,7 @@ function MenuContent() {
       search === "" ||
       product.name.toLowerCase().includes(search.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(search.toLowerCase()));
-    return matchesCategory && matchesSearch && product.isAvailable && isProductAvailableNow(product);
+    return matchesCategory && matchesSearch && product.isAvailable;
   });
 
   const handleAddToCart = (product: Product) => {
