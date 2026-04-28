@@ -283,6 +283,208 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
+    return NextResponse.json({ error: "Demo mode - update disabled" }, { status: 400 });
+  }
+
+  try {
+    const user = await getAdminOrTestUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, image, availableFrom, availableTo, availableDays, variants, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+    }
+
+    const productData: Record<string, unknown> = { ...updates };
+
+    if (productData.price !== undefined) productData.price = parseFloat(String(productData.price));
+    if (productData.stock !== undefined && productData.stock !== null)
+      productData.stock = parseInt(String(productData.stock));
+    if (productData.preparationTime !== undefined && productData.preparationTime !== null)
+      productData.preparationTime = parseInt(String(productData.preparationTime));
+    if (productData.calories !== undefined && productData.calories !== null)
+      productData.calories = parseInt(String(productData.calories));
+
+    if (availableFrom !== undefined) productData.availableFrom = availableFrom || null;
+    if (availableTo !== undefined) productData.availableTo = availableTo || null;
+    if (availableDays !== undefined) productData.availableDays = Array.isArray(availableDays) ? availableDays : [];
+
+    let product;
+    try {
+      product = await prisma.product.update({
+        where: { id },
+        data: productData,
+      });
+    } catch (updateErr: unknown) {
+      const msg = updateErr instanceof Error ? updateErr.message : "";
+      if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
+        delete productData.availableFrom;
+        delete productData.availableTo;
+        delete productData.availableDays;
+        product = await prisma.product.update({
+          where: { id },
+          data: productData,
+        });
+      } else {
+        throw updateErr;
+      }
+    }
+
+    if (variants && Array.isArray(variants)) {
+      try {
+        await prisma.productVariant.deleteMany({ where: { productId: id } });
+        for (const variant of variants) {
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              name: String(variant.name),
+              price: variant.price ? parseFloat(String(variant.price)) : null,
+              stock: variant.stock ? parseInt(String(variant.stock)) : null,
+            },
+          });
+        }
+      } catch {
+        // Variants non-fatal
+      }
+    }
+
+    let fullProduct;
+    try {
+      fullProduct = await prisma.product.findUnique({
+        where: { id },
+        include: { variants: true },
+      });
+    } catch {
+      fullProduct = await prisma.product.findUnique({ where: { id } });
+    }
+
+    return NextResponse.json(fullProduct);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Product update error:", message);
+
+    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
+      return NextResponse.json(
+        { error: "Database connection error. Please try again or contact support." },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: `Failed to update product: ${message}` },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl || dbUrl.length < 10) {
+    return NextResponse.json({ error: "Demo mode - update disabled" }, { status: 400 });
+  }
+
+  try {
+    const user = await getAdminOrTestUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, image, availableFrom, availableTo, availableDays, variants, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+    }
+
+    const productData: Record<string, unknown> = { ...updates };
+
+    if (productData.price !== undefined) productData.price = parseFloat(String(productData.price));
+    if (productData.stock !== undefined && productData.stock !== null)
+      productData.stock = parseInt(String(productData.stock));
+    if (productData.preparationTime !== undefined && productData.preparationTime !== null)
+      productData.preparationTime = parseInt(String(productData.preparationTime));
+    if (productData.calories !== undefined && productData.calories !== null)
+      productData.calories = parseInt(String(productData.calories));
+
+    if (availableFrom !== undefined) productData.availableFrom = availableFrom || null;
+    if (availableTo !== undefined) productData.availableTo = availableTo || null;
+    if (availableDays !== undefined) productData.availableDays = Array.isArray(availableDays) ? availableDays : [];
+
+    let product;
+    try {
+      product = await prisma.product.update({
+        where: { id },
+        data: productData,
+      });
+    } catch (updateErr: unknown) {
+      const msg = updateErr instanceof Error ? updateErr.message : "";
+      if (msg.includes("availableFrom") || msg.includes("availableTo") || msg.includes("availableDays")) {
+        delete productData.availableFrom;
+        delete productData.availableTo;
+        delete productData.availableDays;
+        product = await prisma.product.update({
+          where: { id },
+          data: productData,
+        });
+      } else {
+        throw updateErr;
+      }
+    }
+
+    if (variants && Array.isArray(variants)) {
+      try {
+        await prisma.productVariant.deleteMany({ where: { productId: id } });
+        for (const variant of variants) {
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              name: String(variant.name),
+              price: variant.price ? parseFloat(String(variant.price)) : null,
+              stock: variant.stock ? parseInt(String(variant.stock)) : null,
+            },
+          });
+        }
+      } catch {
+        // Variants non-fatal
+      }
+    }
+
+    let fullProduct;
+    try {
+      fullProduct = await prisma.product.findUnique({
+        where: { id },
+        include: { variants: true },
+      });
+    } catch {
+      fullProduct = await prisma.product.findUnique({ where: { id } });
+    }
+
+    return NextResponse.json(fullProduct);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Product update error:", message);
+
+    if (message.includes("does not exist") || message.includes("P0001") || message.includes("connection") || message.includes("prisma")) {
+      return NextResponse.json(
+        { error: "Database connection error. Please try again or contact support." },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: `Failed to update product: ${message}` },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl || dbUrl.length < 10) {
