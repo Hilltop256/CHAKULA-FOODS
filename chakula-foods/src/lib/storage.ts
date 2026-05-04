@@ -53,7 +53,7 @@ export async function uploadImage(file: File, category: string = "media", buffer
         Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
         "x-upsert": "true",
       },
-      body: buffer,
+      body: buffer as unknown as BodyInit,
     }
   );
 
