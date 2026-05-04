@@ -18,16 +18,19 @@ function generateUniqueFilename(originalName: string, prefix = ""): string {
 /**
  * Upload image to Supabase Storage
  * @param file - File object from input
+ * @param buffer - Pre-read buffer (avoids double-reading file body)
  * @param category - Folder prefix (products, offers, packages, avatars)
  * @returns Public URL and storage path
  */
-export async function uploadImage(file: File, category: string = "media"): Promise<UploadResult> {
+export async function uploadImage(file: File, category: string = "media", buffer?: Buffer): Promise<UploadResult> {
   if (!env.SUPABASE_SERVICE_ROLE_KEY || !env.SUPABASE_URL) {
     throw new Error("Storage not configured: Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  if (!buffer) {
+    const arrayBuffer = await file.arrayBuffer();
+    buffer = Buffer.from(arrayBuffer);
+  }
 
   if (buffer.length > 5 * 1024 * 1024) {
     throw new Error("File too large. Maximum 5MB.");

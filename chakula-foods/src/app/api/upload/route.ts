@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (hasStorage) {
       try {
         const category = (formData.get("category") as string) || "media";
-        const result = await storageUpload(file, category);
+        const result = await storageUpload(file, category, buffer);
         console.info("Upload: stored in Supabase", { category, path: result.path });
         return NextResponse.json(
           { url: result.url, id: result.id, path: result.path, storage: "supabase" },
