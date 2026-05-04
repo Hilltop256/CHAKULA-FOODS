@@ -248,13 +248,19 @@ const handleImageUpload = async (
       credentials: "include",
     });
 
-    const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-
     if (!res.ok) {
-      console.error("Upload failed:", res.status, data);
-      throw new Error(data.error || `Upload failed (HTTP ${res.status})`);
+      let errorMsg = `Upload failed (HTTP ${res.status})`;
+      try {
+        const data = await res.json();
+        errorMsg = data.error || errorMsg;
+      } catch {
+        // Response body may not be JSON
+      }
+      console.error("Upload failed:", res.status, errorMsg);
+      throw new Error(errorMsg);
     }
 
+    const data = await res.json();
     console.info("Upload successful:", { storage: data.storage, size: file.size });
 
     // If replacing existing image, attempt to delete old one (best-effort)
