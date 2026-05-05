@@ -355,7 +355,6 @@ const handleImageUpload = async (
     e.preventDefault();
     setSavingProduct(true);
 
-    // Validate variants have price if provided
     for (let i = 0; i < productForm.variants.length; i++) {
       const v = productForm.variants[i];
       if (!v.price || isNaN(Number(v.price))) {
@@ -371,8 +370,10 @@ const handleImageUpload = async (
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingProduct.id, ...productForm }),
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to update");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to update");
+        }
         const updated = await res.json();
         setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       } else {
@@ -380,14 +381,16 @@ const handleImageUpload = async (
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(productForm),
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to create");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to create");
+        }
         const newProduct = await res.json();
         setProducts((prev) => [newProduct, ...prev]);
       }
-       setShowProductForm(false);
-       setEditingProduct(null);
-       setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "", availableFrom: "", availableTo: "", availableDays: [], variants: [] });
+      setShowProductForm(false);
+      setEditingProduct(null);
+      setProductForm({ name: "", description: "", price: "", category: "FAST_FOOD", preparationTime: "", isFeatured: false, unit: "", image: "", availableFrom: "", availableTo: "", availableDays: [], variants: [] });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to save product");
     } finally {
@@ -436,7 +439,10 @@ const handleImageUpload = async (
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingOffer.id, ...offerForm }),
         });
-        if (!res.ok) throw new Error("Failed to update");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to update");
+        }
         const updated = await res.json();
         setOffers((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
       } else {
@@ -444,7 +450,10 @@ const handleImageUpload = async (
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(offerForm),
         });
-        if (!res.ok) throw new Error("Failed to create");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to create");
+        }
         const newOffer = await res.json();
         setOffers((prev) => [newOffer, ...prev]);
       }
@@ -494,7 +503,10 @@ const handleImageUpload = async (
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingPackage.id, ...packageForm }),
         });
-        if (!res.ok) throw new Error("Failed to update");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to update");
+        }
         const updated = await res.json();
         setPackages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
       } else {
@@ -502,7 +514,10 @@ const handleImageUpload = async (
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(packageForm),
         });
-        if (!res.ok) throw new Error("Failed to create");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Failed to create");
+        }
         const newPkg = await res.json();
         setPackages((prev) => [newPkg, ...prev]);
       }
