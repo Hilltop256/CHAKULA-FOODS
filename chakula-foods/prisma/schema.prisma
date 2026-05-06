@@ -91,6 +91,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   orders        Order[]
+  staffOrders   Order[]   @relation("StaffOrders")
   subscriptions Subscription[]
   payments      Payment[]
   reviews       Review[]
@@ -155,7 +156,7 @@ model Product {
 model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
-  userId          String
+  userId          String?
   type            OrderType   @default(DINE_IN)
   status          OrderStatus @default(PENDING)
   tableNumber     String?
@@ -168,10 +169,14 @@ model Order {
   discount        Float       @default(0)
   total           Float
   estimatedTime   Int?
+  staffId         String?
+  printedAt       DateTime?
+  servedAt        DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  user    User        @relation(fields: [userId], references: [id])
+  user    User?        @relation(fields: [userId], references: [id])
+  staff   User?        @relation("StaffOrders", fields: [staffId], references: [id])
   items   OrderItem[]
   payment Payment?
 }
@@ -184,6 +189,7 @@ model OrderItem {
   unitPrice  Float
   totalPrice Float
   notes      String?
+  staffNotes String?
   createdAt  DateTime @default(now())
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)

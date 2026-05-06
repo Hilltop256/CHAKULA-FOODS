@@ -243,7 +243,7 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
           Our <span style={{ color: COLORS.accent }}>Menu</span>
         </h1>
         <p style={{ fontSize: "1rem", color: "#aab", fontStyle: "italic", marginBottom: 30 }}>
-          "Everyday food, delivered and experienced differently."
+          &quot;Everyday food, delivered and experienced differently.&quot;
         </p>
       </div>
 
@@ -599,7 +599,7 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
           Chakula Foods
         </h3>
         <p style={{ color: "#aab", fontSize: 13, marginBottom: 6 }}>
-          "Everyday food, delivered and experienced differently."
+          &quot;Everyday food, delivered and experienced differently.&quot;
         </p>
         <p style={{ color: COLORS.gold, fontWeight: 600, fontSize: 13 }}>
           🍽 Kampala, Uganda
