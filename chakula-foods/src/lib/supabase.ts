@@ -7,20 +7,13 @@ function getHeaders(): Record<string, string> {
       "Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required"
     );
   }
-  return {
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    "Content-Type": "application/json",
-    Prefer: "return=representation",
-  };
-}
-  return {
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    "Content-Type": "application/json",
-    Prefer: "return=representation",
-  };
-}
+   return {
+     apikey: SUPABASE_SERVICE_ROLE_KEY,
+     Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+     "Content-Type": "application/json",
+     Prefer: "return=representation",
+   };
+ }
 
 export async function supabaseQuery<T>(
   table: string,
