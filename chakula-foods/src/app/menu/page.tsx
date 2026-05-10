@@ -411,180 +411,208 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
                     gap: 24,
                   }}
                 >
-                  {groupedProducts[subcategory].map((product) => {
+{groupedProducts[subcategory].map((product) => {
   console.log("image url/path:", product.image);
-  return 
-           (
-              <div
-                key={product.id}
+
+  return (
+    <div
+      key={product.id}
+      style={{
+        background: "white",
+        borderRadius: 18,
+        overflow: "hidden",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+        transition: "transform 0.25s, box-shadow 0.25s",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-6px)";
+        e.currentTarget.style.boxShadow = "0 12px 36px rgba(0,0,0,0.14)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
+      }}
+    >
+      <div
+        style={{
+          height: 180,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "4rem",
+          background: `linear-gradient(135deg, ${COLORS.dark}, ${COLORS.card})`,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {product.image ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+            loading="lazy"
+          />
+        ) : (
+          <span>🍽️</span>
+        )}
+
+        {product.isFeatured && (
+          <span
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              background: COLORS.accent,
+              color: "white",
+              padding: "4px 10px",
+              borderRadius: 12,
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            Featured
+          </span>
+        )}
+      </div>
+
+      <div style={{ padding: "18px 20px 20px" }}>
+        <h3
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+            marginBottom: 6,
+            color: COLORS.dark,
+          }}
+        >
+          {product.name}
+        </h3>
+
+        {product.description && (
+          <p
+            style={{
+              fontSize: 13,
+              color: COLORS.muted,
+              lineHeight: 1.55,
+              marginBottom: 14,
+            }}
+          >
+            {product.description}
+          </p>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "1.15rem",
+                fontWeight: 700,
+                color: COLORS.accent,
+              }}
+            >
+              {formatCurrency(product.price)}
+
+              {product.unit && (
+                <span style={{ fontSize: 12, color: COLORS.muted }}>
+                  {" "}
+                  / {product.unit}
+                </span>
+              )}
+            </div>
+
+            {product.preparationTime && (
+              <p style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>
+                ⏱️ {product.preparationTime} mins
+              </p>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                border: "1px solid #eee",
+                borderRadius: 8,
+              }}
+            >
+              <button
+                onClick={() =>
+                  setQty(product.id, Math.max(1, getQty(product.id) - 1))
+                }
                 style={{
-                  background: "white",
-                  borderRadius: 18,
-                  overflow: "hidden",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  transition: "transform 0.25s, box-shadow 0.25s",
+                  padding: 8,
+                  background: "none",
+                  border: "none",
                   cursor: "pointer",
-                  </div>
-  );
-})}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-6px)";
-                  e.currentTarget.style.boxShadow = "0 12px 36px rgba(0,0,0,0.14)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
+                  display: "flex",
                 }}
               >
-                <div
-                  style={{
-                    height: 180,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "4rem",
-                    background: `linear-gradient(135deg, ${COLORS.dark}, ${COLORS.card})`,
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span>🍽️</span>
-                  )}
-                  {product.isFeatured && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 10,
-                        background: COLORS.accent,
-                        color: "white",
-                        padding: "4px 10px",
-                        borderRadius: 12,
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Featured
-                    </span>
-                  )}
-                </div>
+                <Minus style={{ width: 14, height: 14 }} />
+              </button>
 
-                <div style={{ padding: "18px 20px 20px" }}>
-                  <h3
-                    style={{
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      marginBottom: 6,
-                      color: COLORS.dark,
-                    }}
-                  >
-                    {product.name}
-                  </h3>
-                  {product.description && (
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: COLORS.muted,
-                        lineHeight: 1.55,
-                        marginBottom: 14,
-                      }}
-                    >
-                      {product.description}
-                    </p>
-                  )}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "1.15rem",
-                          fontWeight: 700,
-                          color: COLORS.accent,
-                        }}
-                      >
-                        {formatCurrency(product.price)}
-                        {product.unit && <span style={{ fontSize: 12, color: COLORS.muted }}> / {product.unit}</span>}
-                      </div>
-                      {product.preparationTime && (
-                        <p style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>
-                          ⏱️ {product.preparationTime} mins
-                        </p>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          border: "1px solid #eee",
-                          borderRadius: 8,
-                        }}
-                      >
-                        <button
-                          onClick={() => setQty(product.id, Math.max(1, getQty(product.id) - 1))}
-                          style={{
-                            padding: 8,
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            display: "flex",
-                          }}
-                        >
-                          <Minus style={{ width: 14, height: 14 }} />
-                        </button>
-                        <span style={{ width: 28, textAlign: "center", fontSize: 14, fontWeight: 500 }}>
-                          {getQty(product.id)}
-                        </span>
-                        <button
-                          onClick={() => setQty(product.id, getQty(product.id) + 1)}
-                          style={{
-                            padding: 8,
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            display: "flex",
-                          }}
-                        >
-                          <Plus style={{ width: 14, height: 14 }} />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        style={{
-                          background: COLORS.dark,
-                          color: "white",
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 16px",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <ShoppingCart style={{ width: 16, height: 16 }} />
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              <span
+                style={{
+                  width: 28,
+                  textAlign: "center",
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                {getQty(product.id)}
+              </span>
+
+              <button
+                onClick={() => setQty(product.id, getQty(product.id) + 1)}
+                style={{
+                  padding: 8,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                }}
+              >
+                <Plus style={{ width: 14, height: 14 }} />
+              </button>
+            </div>
+
+            <button
+              onClick={() => handleAddToCart(product)}
+              style={{
+                background: COLORS.dark,
+                color: "white",
+                border: "none",
+                borderRadius: 10,
+                padding: "10px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <ShoppingCart style={{ width: 16, height: 16 }} />
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+})}
                 </div>
               </div>
             ))}
