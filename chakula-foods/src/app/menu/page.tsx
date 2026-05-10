@@ -411,7 +411,10 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
                     gap: 24,
                   }}
                 >
-                  {groupedProducts[subcategory].map((product) => (
+                  {groupedProducts[subcategory].map((product) => {
+  console.log("image url/path:", product.image);
+  return 
+           (
               <div
                 key={product.id}
                 style={{
@@ -421,7 +424,9 @@ setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
                   boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                   transition: "transform 0.25s, box-shadow 0.25s",
                   cursor: "pointer",
-                }}
+                  </div>
+  );
+})}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-6px)";
                   e.currentTarget.style.boxShadow = "0 12px 36px rgba(0,0,0,0.14)";
