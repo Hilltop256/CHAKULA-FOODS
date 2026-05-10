@@ -65,8 +65,9 @@ export async function POST(req: NextRequest) {
               data.isFeatured = value.toLowerCase() === "true";
               break;
             case "image":
-              data.image = value || null;
-              break;
+  // This checks if the value is empty OR if it literally says "null"
+  data.image = (value === "" || value.toLowerCase() === "null") ? null : value;
+  break;
             case "allergens":
               data.allergens = value ? value.split(";").map((s) => s.trim()) : [];
               break;
