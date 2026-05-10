@@ -394,6 +394,7 @@ export async function DELETE(req: NextRequest) {
     const user = await getAdminOrTestUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const { prisma } = await import("@/lib/prisma"); // ADD THIS LINE
     }
 
     const { searchParams } = new URL(req.url);
