@@ -8,7 +8,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("db.sagazydeacioswqevoyu.supabase.co")
-  directUrl = env("//postgres:1111111111@db.sagazydeacioswqevoyu.supabase.co:5432/postgres")
+  directUrl = env("//postgres:XxX#VbDlTa$@db.sagazydeacioswqevoyu.supabase.co:5432/postgres")
 }
 
 // Add your data models here
