@@ -1,8 +1,10 @@
+export const dynamic = 'force-static';
+
 import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
 
-export default function NotFound() {
+export default function NotFound()  {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
             <div className="text-center max-w-md">
