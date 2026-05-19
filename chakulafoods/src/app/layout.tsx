@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -18,12 +17,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Chakula Foods — Order Fresh Meals, Juices & More in Naalya',
-  description:
-    'Chakula Foods Naalya — order restaurant meals, custom cakes, fresh juices, wines, and grocery bundles. Fast delivery, scheduled orders, and subscriptions.',
-  icons: {
-    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
-  },
+  title: 'Chakula Foods',
+  description: 'Chakula Foods',
 };
 
 export default function RootLayout({
@@ -32,13 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={plusJakartaSans.variable}>
       <body className={plusJakartaSans.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-        <Toaster position="bottom-right" richColors />
+        {children}
 
-        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fchakulafoo3129back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.18" />
-        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>
+        <Toaster position="bottom-right" richColors />
+      </body>
     </html>
   );
 }
