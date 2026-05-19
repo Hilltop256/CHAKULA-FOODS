@@ -52,7 +52,7 @@
     font-variant-numeric: tabular-nums;
   }
   .hero-gradient {
-    background: linear-gradient(135deg, #1B5E38 0%, #0F3D22 60%, #7B1C1C 100%);
+    background: linear-gradient(135deg, #7B1C1C 0%, #5A1212 60%, #1B5E38 100%);
   }
   .card-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;

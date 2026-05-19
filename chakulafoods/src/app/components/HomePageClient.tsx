@@ -1,36 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import TopNav from '@/components/TopNav';
 import CartDrawer, { CartItem } from '@/components/CartDrawer';
 import { toast } from 'sonner';
-
-const mockUser = {
-  isLoggedIn: true,
-  name: 'Amara Nakato',
-  role: 'customer' as const,
-};
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function HomePageClient({ children }: { children: React.ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 'cart-001',
-      name: 'Chicken Stew & Matooke',
-      price: 18000,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=200&q=80',
-      department: 'Restaurant',
-    },
-    {
-      id: 'cart-002',
-      name: 'Passion Fruit Smoothie',
-      price: 9500,
-      quantity: 2,
-      image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=200&q=80',
-      department: 'Juice Bar',
-    },
-  ]);
+  const { user, profile, signOut } = useAuth();
+  const router = useRouter();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+
+  const isLoggedIn = !!user;
+  const userName = profile?.full_name || user?.email?.split('@')[0] || '';
+  const userRole = (profile?.role as 'customer' | 'admin' | 'delivery') || 'customer';
 
   const handleUpdateQty = (id: string, qty: number) => {
     if (qty === 0) {
@@ -48,8 +33,9 @@ export default function HomePageClient({ children }: { children: React.ReactNode
   };
 
   const handleAddToCart = (item: Omit<CartItem, 'quantity'>) => {
-    if (!mockUser.isLoggedIn) {
+    if (!isLoggedIn) {
       toast.error('Please sign in to add items to cart');
+      router.push('/sign-up-login-screen');
       return;
     }
     setCartItems((prev) => {
@@ -62,15 +48,27 @@ export default function HomePageClient({ children }: { children: React.ReactNode
     toast.success(`${item.name} added to cart!`);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+      router.push('/');
+      router.refresh();
+    } catch {
+      toast.error('Failed to sign out');
+    }
+  };
+
   return (
     <>
       <TopNav
         cartCount={cartItems.reduce((s, i) => s + i.quantity, 0)}
-        isLoggedIn={mockUser.isLoggedIn}
-        userName={mockUser.name}
-        userRole={mockUser.role}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
+        userRole={userRole}
+        onSignOut={handleSignOut}
+        onCartOpen={() => setCartOpen(true)}
       />
-      {/* Pass addToCart via context or prop drilling — backend integration point */}
       {children}
       <CartDrawer
         isOpen={cartOpen}
@@ -78,9 +76,8 @@ export default function HomePageClient({ children }: { children: React.ReactNode
         items={cartItems}
         onUpdateQty={handleUpdateQty}
         onRemove={handleRemove}
-        isLoggedIn={mockUser.isLoggedIn}
+        isLoggedIn={isLoggedIn}
       />
-      {/* Floating cart button for mobile */}
       {cartItems.length > 0 && (
         <button
           onClick={() => setCartOpen(true)}

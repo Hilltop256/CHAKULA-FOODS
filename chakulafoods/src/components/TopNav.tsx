@@ -30,6 +30,8 @@ interface TopNavProps {
   isLoggedIn?: boolean;
   userName?: string;
   userRole?: 'customer' | 'admin' | 'delivery';
+  onSignOut?: () => void;
+  onCartOpen?: () => void;
 }
 
 export default function TopNav({
@@ -37,6 +39,8 @@ export default function TopNav({
   isLoggedIn = false,
   userName = '',
   userRole = 'customer',
+  onSignOut,
+  onCartOpen,
 }: TopNavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,7 +88,10 @@ export default function TopNav({
           {/* Right actions */}
           <div className="flex items-center gap-2">
             {/* Cart */}
-            <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
+            <button
+              className="relative p-2 rounded-lg hover:bg-muted transition-colors"
+              onClick={onCartOpen}
+            >
               <ShoppingCart size={20} className="text-foreground" />
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-accent text-accent-foreground text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center tabular-nums">
@@ -129,7 +136,10 @@ export default function TopNav({
                       My Orders
                     </Link>
                     <hr className="border-border my-1" />
-                    <button className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-muted transition-colors w-full text-left">
+                    <button
+                      onClick={() => { setUserMenuOpen(false); onSignOut?.(); }}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-accent hover:bg-muted transition-colors w-full text-left"
+                    >
                       <LogOut size={14} />
                       Sign Out
                     </button>

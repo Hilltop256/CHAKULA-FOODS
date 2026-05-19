@@ -1,66 +1,154 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Clock, MapPin, Phone } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
-// Backend integration point: replace with GET /api/orders
-const orders = [
-  { id: 'ord-2847', customer: 'Amara Nakato', phone: '+256 772 345 678', dept: 'Restaurant', items: 3, total: 46000, status: 'Preparing', address: 'Naalya Estate, Plot 14', time: '2026-05-18T08:42:00', scheduled: null },
-  { id: 'ord-2846', customer: 'Julius Ssebunya', phone: '+256 700 123 456', dept: 'Confectionary', items: 1, total: 85000, status: 'Confirmed', address: 'Kiwatule Road, Apt 3B', time: '2026-05-18T08:28:00', scheduled: '2026-05-19T10:00:00' },
-  { id: 'ord-2845', customer: 'Grace Achieng', phone: '+256 752 987 654', dept: 'Juice Bar', items: 2, total: 19000, status: 'Out for Delivery', address: 'Kyaliwajjala, Green Park', time: '2026-05-18T08:15:00', scheduled: null },
-  { id: 'ord-2844', customer: 'Robert Kato', phone: '+256 701 234 567', dept: 'Wine & Liquor', items: 2, total: 210000, status: 'Delivered', address: 'Bukoto, Spring Road', time: '2026-05-18T07:55:00', scheduled: null },
-  { id: 'ord-2843', customer: 'Fatuma Namutebi', phone: '+256 788 456 123', dept: 'Market Specials', items: 5, total: 62000, status: 'Cancelled', address: 'Namugongo, Sunrise Rd', time: '2026-05-18T07:30:00', scheduled: null },
-  { id: 'ord-2842', customer: 'David Okello', phone: '+256 776 321 654', dept: 'Restaurant', items: 2, total: 32000, status: 'Delivered', address: 'Naalya, Block C', time: '2026-05-18T07:10:00', scheduled: null },
-  { id: 'ord-2841', customer: 'Esther Namukasa', phone: '+256 703 654 321', dept: 'Confectionary', items: 1, total: 120000, status: 'Confirmed', address: 'Ntinda, Church Road', time: '2026-05-17T20:45:00', scheduled: '2026-05-20T09:00:00' },
-];
+interface Order {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string | null;
+  department: string | null;
+  items_count?: number;
+  total_amount: number;
+  status: string;
+  delivery_address: string | null;
+  created_at: string;
+  scheduled_at: string | null;
+}
 
-const statusOptions = ['All', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'];
+const statusOptions = ['All', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'];
+
+const statusLabel: Record<string, string> = {
+  confirmed: 'Confirmed',
+  preparing: 'Preparing',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+};
 
 const statusBadge = (status: string) => {
   const map: Record<string, string> = {
-    Preparing: 'badge-preparing',
-    Confirmed: 'badge-pending',
-    'Out for Delivery': 'badge-active',
-    Delivered: 'badge-delivered',
-    Cancelled: 'badge-cancelled',
+    preparing: 'badge-preparing',
+    confirmed: 'badge-pending',
+    out_for_delivery: 'badge-active',
+    delivered: 'badge-delivered',
+    cancelled: 'badge-cancelled',
   };
   return map[status] || 'badge-pending';
 };
 
 const nextStatus: Record<string, string> = {
-  Confirmed: 'Preparing',
-  Preparing: 'Out for Delivery',
-  'Out for Delivery': 'Delivered',
+  confirmed: 'preparing',
+  preparing: 'out_for_delivery',
+  out_for_delivery: 'delivered',
 };
 
 export default function AdminOrders() {
-  const [orderList, setOrderList] = useState(orders);
+  const [orderList, setOrderList] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const supabase = createClient();
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, order_number, customer_name, customer_phone, department, total_amount, status, delivery_address, created_at, scheduled_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.log('Orders fetch error:', error.message);
+      } else {
+        setOrderList(data || []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel('admin_orders_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setOrderList((prev) => [payload.new as Order, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setOrderList((prev) =>
+              prev.map((o) => (o.id === payload.new.id ? (payload.new as Order) : o))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setOrderList((prev) => prev.filter((o) => o.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = orderList.filter((o) => {
     const matchSearch =
-      o.customer.toLowerCase().includes(search.toLowerCase()) ||
-      o.id.includes(search);
+      o.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
+      o.order_number?.includes(search);
     const matchStatus = statusFilter === 'All' || o.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const handleAdvanceStatus = (id: string, currentStatus: string) => {
+  const handleAdvanceStatus = async (id: string, currentStatus: string) => {
     const next = nextStatus[currentStatus];
     if (!next) return;
-    // Backend integration point: PATCH /api/orders/:id { status: next }
-    setOrderList((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: next } : o))
-    );
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: next })
+        .eq('id', id);
+      if (error) {
+        toast.error('Failed to update order status');
+      } else {
+        toast.success(`Order moved to ${statusLabel[next]}`);
+      }
+    } catch {
+      toast.error('Failed to update order status');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4 max-w-screen-2xl">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={`skel-${i}`} className="card-base p-3 animate-pulse">
+              <div className="h-8 bg-muted rounded mb-1" />
+              <div className="h-3 bg-muted rounded w-2/3" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 max-w-screen-2xl">
       {/* Status pipeline summary */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {['Confirmed', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'].map((s) => {
+        {['confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled'].map((s) => {
           const count = orderList.filter((o) => o.status === s).length;
           return (
             <button
@@ -71,7 +159,7 @@ export default function AdminOrders() {
               }`}
             >
               <p className="text-2xl font-bold text-foreground tabular-nums">{count}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{s}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{statusLabel[s]}</p>
             </button>
           );
         })}
@@ -100,7 +188,7 @@ export default function AdminOrders() {
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
-              {s}
+              {s === 'All' ? 'All' : statusLabel[s]}
             </button>
           ))}
         </div>
@@ -112,7 +200,7 @@ export default function AdminOrders() {
           <table className="w-full">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
-                {['Order ID', 'Customer', 'Department', 'Items', 'Total', 'Status', 'Scheduled', 'Actions'].map((h) => (
+                {['Order ID', 'Customer', 'Department', 'Total', 'Status', 'Scheduled', 'Actions'].map((h) => (
                   <th key={`oh-${h}`} className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
                     {h}
                   </th>
@@ -127,22 +215,21 @@ export default function AdminOrders() {
                     onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                   >
                     <td className="px-5 py-3 text-sm font-mono font-semibold text-primary">
-                      #{order.id}
+                      #{order.order_number}
                     </td>
-                    <td className="px-5 py-3 text-sm font-medium text-foreground">{order.customer}</td>
-                    <td className="px-5 py-3 text-sm text-muted-foreground">{order.dept}</td>
-                    <td className="px-5 py-3 text-sm text-foreground tabular-nums">{order.items}</td>
+                    <td className="px-5 py-3 text-sm font-medium text-foreground">{order.customer_name}</td>
+                    <td className="px-5 py-3 text-sm text-muted-foreground">{order.department || '—'}</td>
                     <td className="px-5 py-3 text-sm font-bold text-foreground tabular-nums">
-                      UGX {order.total.toLocaleString()}
+                      UGX {order.total_amount?.toLocaleString()}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={statusBadge(order.status)}>{order.status}</span>
+                      <span className={statusBadge(order.status)}>{statusLabel[order.status] || order.status}</span>
                     </td>
                     <td className="px-5 py-3 text-xs text-muted-foreground">
-                      {order.scheduled ? (
+                      {order.scheduled_at ? (
                         <span className="flex items-center gap-1 text-secondary font-medium">
                           <Clock size={11} />
-                          {new Date(order.scheduled).toLocaleDateString('en-GB')}
+                          {new Date(order.scheduled_at).toLocaleDateString('en-GB')}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -154,27 +241,27 @@ export default function AdminOrders() {
                           onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status); }}
                           className="text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-lg transition-colors whitespace-nowrap"
                         >
-                          → {nextStatus[order.status]}
+                          → {statusLabel[nextStatus[order.status]]}
                         </button>
                       )}
                     </td>
                   </tr>
                   {expandedId === order.id && (
                     <tr className="bg-muted/20">
-                      <td colSpan={8} className="px-5 py-4">
+                      <td colSpan={7} className="px-5 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           <div className="flex items-start gap-2">
                             <MapPin size={14} className="text-muted-foreground mt-0.5 shrink-0" />
                             <div>
                               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">Delivery Address</p>
-                              <p className="text-foreground font-medium">{order.address}</p>
+                              <p className="text-foreground font-medium">{order.delivery_address || '—'}</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
                             <Phone size={14} className="text-muted-foreground mt-0.5 shrink-0" />
                             <div>
                               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">Phone</p>
-                              <p className="text-foreground font-medium">{order.phone}</p>
+                              <p className="text-foreground font-medium">{order.customer_phone || '—'}</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
@@ -182,7 +269,7 @@ export default function AdminOrders() {
                             <div>
                               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">Order Placed</p>
                               <p className="text-foreground font-medium">
-                                {new Date(order.time).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
+                                {new Date(order.created_at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
                               </p>
                             </div>
                           </div>
@@ -192,12 +279,23 @@ export default function AdminOrders() {
                   )}
                 </React.Fragment>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                    No orders found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
         <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/20">
           <span className="text-sm text-muted-foreground">
             {filtered.length} order{filtered.length !== 1 ? 's' : ''} shown
+          </span>
+          <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse inline-block" />
+            Live updates
           </span>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import {
   Eye,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 type LoginForm = {
   email: string;
@@ -44,6 +46,8 @@ export default function AuthScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const { signIn, signUp } = useAuth();
+  const router = useRouter();
 
   const loginForm = useForm<LoginForm>({
     defaultValues: { email: '', password: '', remember: false },
@@ -73,38 +77,46 @@ export default function AuthScreen() {
     toast.success(`Demo credentials for ${cred.role} loaded`);
   };
 
-  const onLogin = (data: LoginForm) => {
+  const onLogin = async (data: LoginForm) => {
     setIsLoading(true);
-    // Backend integration point: POST /api/auth/login with data.email, data.password
-    setTimeout(() => {
-      setIsLoading(false);
-      if (
-        data.email === 'admin@chakulafoods.ug' ||
-        data.email === 'amara.nakato@chakulafoods.ug' ||
-        data.email === 'rider.okello@chakulafoods.ug'
-      ) {
-        toast.success('Welcome back to Chakula Foods!');
-        window.location.href = '/';
+    try {
+      await signIn(data.email, data.password);
+      toast.success('Welcome back to Chakula Foods!');
+      router.push('/');
+      router.refresh();
+    } catch (error: any) {
+      const msg = error?.message || 'Invalid credentials';
+      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
+        loginForm.setError('email', { message: 'Invalid email or password' });
       } else {
-        loginForm.setError('email', {
-          message: 'Invalid credentials — use the demo accounts below to sign in',
-        });
+        toast.error(msg);
       }
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const onRegister = (data: RegisterForm) => {
+  const onRegister = async (data: RegisterForm) => {
     if (data.password !== data.confirmPassword) {
       registerForm.setError('confirmPassword', { message: 'Passwords do not match' });
       return;
     }
     setIsLoading(true);
-    // Backend integration point: POST /api/auth/register with data (role defaults to 'customer')
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signUp(data.email, data.password, { fullName: data.fullName });
       toast.success('Account created! Welcome to Chakula Foods.');
-      setTab('login');
-    }, 1200);
+      router.push('/');
+      router.refresh();
+    } catch (error: any) {
+      const msg = error?.message || 'Registration failed';
+      if (msg.toLowerCase().includes('already')) {
+        registerForm.setError('email', { message: 'An account with this email already exists' });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -379,7 +391,7 @@ export default function AuthScreen() {
                   className="w-4 h-4 rounded border-border accent-primary mt-0.5"
                 />
                 <span className="text-xs text-muted-foreground">
-                  I confirm I am 18 years or older (required for access to Wine & Liquor section)
+                  I confirm I am 18 years or older (required for access to Wine &amp; Liquor section)
                 </span>
               </label>
 
