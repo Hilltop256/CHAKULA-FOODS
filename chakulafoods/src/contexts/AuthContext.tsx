@@ -51,28 +51,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .select('*')
         .eq('id', userId)
         .single();
+
       if (!error && data) {
         setProfile(data as UserProfile);
-      } else {
-        // Profile may not exist yet — try to create it from auth metadata
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          const fullName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || '';
-          const phone = authUser.user_metadata?.phone || '';
-          const { data: newProfile } = await supabase
-            .from('user_profiles')
-            .upsert({
+        return;
+      }
+
+      // Profile doesn't exist yet — create it from auth metadata
+      const userResponse = await supabase.auth.getUser();
+      const authUser = userResponse?.data?.user;
+
+      if (authUser) {
+        const fullName =
+          authUser.user_metadata?.full_name ||
+          authUser.email?.split('@')[0] ||
+          '';
+        const phone = authUser.user_metadata?.phone || null;
+
+        const upsertResponse = await supabase
+          .from('user_profiles')
+          .upsert(
+            {
               id: userId,
               email: authUser.email || '',
               full_name: fullName,
               role: 'customer',
-              phone: phone || null,
-            }, { onConflict: 'id' })
-            .select()
-            .single();
-          if (newProfile) {
-            setProfile(newProfile as UserProfile);
-          }
+              phone: phone,
+            },
+            { onConflict: 'id' }
+          )
+          .select()
+          .single();
+
+        if (upsertResponse?.data) {
+          setProfile(upsertResponse.data as UserProfile);
         }
       }
     } catch {
@@ -122,13 +134,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       },
     });
     if (error) throw error;
-    // If user is immediately available (email confirmation disabled), update phone in profile
-    if (data.user && metadata?.phone) {
-      await supabase
-        .from('user_profiles')
-        .update({ phone: metadata.phone })
-        .eq('id', data.user.id);
+
+    // If user is immediately available (email confirmation disabled), upsert profile
+    if (data?.user) {
+      try {
+        await supabase
+          .from('user_profiles')
+          .upsert(
+            {
+              id: data.user.id,
+              email: data.user.email || email,
+              full_name: metadata?.fullName || '',
+              role: 'customer',
+              phone: metadata?.phone || null,
+            },
+            { onConflict: 'id' }
+          );
+      } catch {
+        // profile upsert failed silently — fetchProfile will handle it
+      }
     }
+
     return data;
   };
 
@@ -138,7 +164,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
     });
     if (error) throw error;
-    if (data.user) {
+    if (data?.user) {
       await fetchProfile(data.user.id);
     }
     return data;
@@ -153,12 +179,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getCurrentUser = async () => {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
-    return user;
+    return data?.user;
   };
 
   const isEmailVerified = () => {
