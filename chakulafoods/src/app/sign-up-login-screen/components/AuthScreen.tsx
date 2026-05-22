@@ -11,6 +11,8 @@ import {
   Lock,
   User,
   Phone,
+  Copy,
+  Check,
   ArrowLeft,
   ShieldCheck,
 } from 'lucide-react';
@@ -34,11 +36,18 @@ type RegisterForm = {
   ageConfirm: boolean;
 };
 
+const demoCredentials = [
+  { role: 'Customer', email: 'amara.nakato@chakulafoods.ug', password: 'Chakula@2026' },
+  { role: 'Admin', email: 'admin@chakulafoods.ug', password: 'Admin@Chakula26' },
+  { role: 'Delivery Rider', email: 'rider.okello@chakulafoods.ug', password: 'Rider@2026' },
+];
+
 export default function AuthScreen() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
   const router = useRouter();
 
@@ -58,6 +67,18 @@ export default function AuthScreen() {
     },
   });
 
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(key);
+    setTimeout(() => setCopiedField(null), 1500);
+  };
+
+  const handleUseDemoCredential = (cred: typeof demoCredentials[0]) => {
+    loginForm.setValue('email', cred.email);
+    loginForm.setValue('password', cred.password);
+    setTab('login');
+    toast.success(`Demo credentials for ${cred.role} loaded`);
+  };
 
   const onLogin = async (data: LoginForm) => {
     setIsLoading(true);
@@ -65,7 +86,6 @@ export default function AuthScreen() {
       await signIn(data.email, data.password);
       toast.success('Welcome back to Chakula Foods!');
       router.push('/');
-      router.refresh();
     } catch (error: any) {
       const msg = error?.message || 'Invalid credentials';
       if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
@@ -88,7 +108,6 @@ export default function AuthScreen() {
       await signUp(data.email, data.password, { fullName: data.fullName, phone: data.phone });
       toast.success('Account created! Welcome to Chakula Foods.');
       router.push('/');
-      router.refresh();
     } catch (error: any) {
       const msg = error?.message || 'Registration failed';
       if (msg.toLowerCase().includes('already')) {
@@ -377,6 +396,15 @@ export default function AuthScreen() {
                 )}
               </div>
 
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+                <ShieldCheck size={16} className="text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-primary">Default role: Customer</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    New accounts are created as Customer. Admin or Rider access can be granted by an existing Admin.
+                  </p>
+                </div>
+              </div>
 
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
@@ -422,8 +450,46 @@ export default function AuthScreen() {
             </form>
           )}
 
-          {/* Demo credentials removed*/}
+          {/* Demo credentials */}
+          <div className="mt-6 border border-border rounded-xl overflow-hidden">
+            <div className="bg-muted px-4 py-2.5 border-b border-border">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Demo Accounts
+              </p>
+            </div>
+            <div className="divide-y divide-border">
+              {demoCredentials.map((cred) => (
+                <div key={`demo-${cred.role}`} className="px-4 py-3 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground">{cred.role}</p>
+                    <p className="text-xs text-muted-foreground truncate">{cred.email}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(cred.email, `email-${cred.role}`)}
+                      className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground"
+                      title="Copy email"
+                    >
+                      {copiedField === `email-${cred.role}` ? (
+                        <Check size={12} className="text-primary" />
+                      ) : (
+                        <Copy size={12} />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUseDemoCredential(cred)}
+                      className="text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-lg transition-colors"
+                    >
+                      Use
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
       </div>
     </div>
   );
