@@ -10,7 +10,6 @@ import {
   Mail,
   Lock,
   User,
-  Phone,
   Copy,
   Check,
   ArrowLeft,
@@ -29,7 +28,6 @@ type LoginForm = {
 type RegisterForm = {
   fullName: string;
   email: string;
-  phone: string;
   password: string;
   confirmPassword: string;
   agreeTerms: boolean;
@@ -59,7 +57,6 @@ export default function AuthScreen() {
     defaultValues: {
       fullName: '',
       email: '',
-      phone: '',
       password: '',
       confirmPassword: '',
       agreeTerms: false,
@@ -86,6 +83,7 @@ export default function AuthScreen() {
       await signIn(data.email, data.password);
       toast.success('Welcome back to Chakula Foods!');
       router.push('/');
+      router.refresh();
     } catch (error: any) {
       const msg = error?.message || 'Invalid credentials';
       if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
@@ -105,9 +103,10 @@ export default function AuthScreen() {
     }
     setIsLoading(true);
     try {
-      await signUp(data.email, data.password, { fullName: data.fullName, phone: data.phone });
+      await signUp(data.email, data.password, { fullName: data.fullName });
       toast.success('Account created! Welcome to Chakula Foods.');
-      window.location.href = '/';
+      router.push('/');
+      router.refresh();
     } catch (error: any) {
       const msg = error?.message || 'Registration failed';
       if (msg.toLowerCase().includes('already')) {
@@ -316,27 +315,6 @@ export default function AuthScreen() {
                 </div>
                 {registerForm.formState.errors.email && (
                   <p className="text-xs text-accent mt-1">{registerForm.formState.errors.email.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="tel"
-                    {...registerForm.register('phone', {
-                      required: 'Phone number is required',
-                      pattern: { value: /^[+\d\s\-()]{7,20}$/, message: 'Enter a valid phone number' },
-                    })}
-                    placeholder="+256 700 000 000"
-                    className="input-field pl-9"
-                  />
-                </div>
-                {registerForm.formState.errors.phone && (
-                  <p className="text-xs text-accent mt-1">{registerForm.formState.errors.phone.message}</p>
                 )}
               </div>
 
