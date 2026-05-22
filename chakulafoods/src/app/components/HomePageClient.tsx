@@ -14,7 +14,7 @@ export default function HomePageClient({ children }: { children: React.ReactNode
   const [cartOpen, setCartOpen] = useState(false);
 
   const isLoggedIn = !!user;
-  const userName = profile?.full_name || user?.email?.split('@')[0] || '';
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
   const userRole = (profile?.role as 'customer' | 'admin' | 'delivery') || 'customer';
 
   const handleUpdateQty = (id: string, qty: number) => {
