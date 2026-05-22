@@ -36,12 +36,6 @@ type RegisterForm = {
   ageConfirm: boolean;
 };
 
-const demoCredentials = [
-  { role: 'Customer', email: 'amara.nakato@chakulafoods.ug', password: 'Chakula@2026' },
-  { role: 'Admin', email: 'admin@chakulafoods.ug', password: 'Admin@Chakula26' },
-  { role: 'Delivery Rider', email: 'rider.okello@chakulafoods.ug', password: 'Rider@2026' },
-];
-
 export default function AuthScreen() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -453,46 +447,6 @@ export default function AuthScreen() {
           )}
 
           {/* Demo credentials */}
-          <div className="mt-6 border border-border rounded-xl overflow-hidden">
-            <div className="bg-muted px-4 py-2.5 border-b border-border">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Demo Accounts
-              </p>
-            </div>
-            <div className="divide-y divide-border">
-              {demoCredentials.map((cred) => (
-                <div key={`demo-${cred.role}`} className="px-4 py-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-foreground">{cred.role}</p>
-                    <p className="text-xs text-muted-foreground truncate">{cred.email}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(cred.email, `email-${cred.role}`)}
-                      className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground"
-                      title="Copy email"
-                    >
-                      {copiedField === `email-${cred.role}` ? (
-                        <Check size={12} className="text-primary" />
-                      ) : (
-                        <Copy size={12} />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleUseDemoCredential(cred)}
-                      className="text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-lg transition-colors"
-                    >
-                      Use
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+   
   );
 }
