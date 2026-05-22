@@ -11,8 +11,6 @@ import {
   Lock,
   User,
   Phone,
-  Copy,
-  Check,
   ArrowLeft,
   ShieldCheck,
 } from 'lucide-react';
@@ -41,7 +39,6 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
   const router = useRouter();
 
@@ -61,18 +58,6 @@ export default function AuthScreen() {
     },
   });
 
-  const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(key);
-    setTimeout(() => setCopiedField(null), 1500);
-  };
-
-  const handleUseDemoCredential = (cred: typeof demoCredentials[0]) => {
-    loginForm.setValue('email', cred.email);
-    loginForm.setValue('password', cred.password);
-    setTab('login');
-    toast.success(`Demo credentials for ${cred.role} loaded`);
-  };
 
   const onLogin = async (data: LoginForm) => {
     setIsLoading(true);
@@ -446,7 +431,9 @@ export default function AuthScreen() {
             </form>
           )}
 
-          {/* Demo credentials */}
-   
+          {/* Demo credentials removed*/}
+          </div>
+      </div>
+    </div>
   );
 }
