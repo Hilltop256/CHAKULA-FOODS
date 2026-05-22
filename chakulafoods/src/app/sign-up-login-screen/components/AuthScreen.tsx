@@ -107,7 +107,7 @@ export default function AuthScreen() {
     try {
       await signUp(data.email, data.password, { fullName: data.fullName, phone: data.phone });
       toast.success('Account created! Welcome to Chakula Foods.');
-      router.push('/');
+      window.location.href = '/';
     } catch (error: any) {
       const msg = error?.message || 'Registration failed';
       if (msg.toLowerCase().includes('already')) {
