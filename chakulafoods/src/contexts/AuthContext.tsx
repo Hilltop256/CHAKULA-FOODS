@@ -51,41 +51,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .select('*')
         .eq('id', userId)
         .single();
-
       if (!error && data) {
         setProfile(data as UserProfile);
-        return;
-      }
-
-      // Profile doesn't exist yet — create it from auth metadata
-      const userResponse = await supabase.auth.getUser();
-      const authUser = userResponse?.data?.user;
-
-      if (authUser) {
-        const fullName =
-          authUser.user_metadata?.full_name ||
-          authUser.email?.split('@')[0] ||
-          '';
-        const phone = authUser.user_metadata?.phone || null;
-
-        const upsertResponse = await supabase
-          .from('user_profiles')
-          .upsert(
-            {
-              id: userId,
-              email: authUser.email || '',
-              full_name: fullName,
-              role: 'customer',
-              phone: phone,
-            },
-            { onConflict: 'id' }
-          )
-          .select()
-          .single();
-
-        if (upsertResponse?.data) {
-          setProfile(upsertResponse.data as UserProfile);
-        }
       }
     } catch {
       // profile fetch failed silently
@@ -128,33 +95,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           full_name: metadata?.fullName || '',
           avatar_url: metadata?.avatarUrl || '',
           role: 'customer',
-          phone: metadata?.phone || '',
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/auth/callback`,
       },
     });
     if (error) throw error;
-
-    // If user is immediately available (email confirmation disabled), upsert profile
-    if (data?.user) {
-      try {
-        await supabase
-          .from('user_profiles')
-          .upsert(
-            {
-              id: data.user.id,
-              email: data.user.email || email,
-              full_name: metadata?.fullName || '',
-              role: 'customer',
-              phone: metadata?.phone || null,
-            },
-            { onConflict: 'id' }
-          );
-      } catch {
-        // profile upsert failed silently — fetchProfile will handle it
-      }
-    }
-
     return data;
   };
 
@@ -164,24 +109,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
     });
     if (error) throw error;
-    if (data?.user) {
+    if (data.user) {
       await fetchProfile(data.user.id);
     }
     return data;
   };
 
   const signOut = async () => {
-    setUser(null);
-    setSession(null);
-    setProfile(null);
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    setProfile(null);
   };
 
   const getCurrentUser = async () => {
-    const { data, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error) throw error;
-    return data?.user;
+    return user;
   };
 
   const isEmailVerified = () => {
