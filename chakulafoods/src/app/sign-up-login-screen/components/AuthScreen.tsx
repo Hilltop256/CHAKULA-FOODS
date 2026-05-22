@@ -377,15 +377,6 @@ export default function AuthScreen() {
                 )}
               </div>
 
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
-                <ShieldCheck size={16} className="text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs font-semibold text-primary">Default role: Customer</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    New accounts are created as Customer. Admin or Rider access can be granted by an existing Admin.
-                  </p>
-                </div>
-              </div>
 
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
