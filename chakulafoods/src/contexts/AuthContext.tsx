@@ -53,6 +53,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
       if (!error && data) {
         setProfile(data as UserProfile);
+      } else {
+        // Profile may not exist yet — try to create it from auth metadata
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const fullName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || '';
+          const phone = authUser.user_metadata?.phone || '';
+          const { data: newProfile } = await supabase
+            .from('user_profiles')
+            .upsert({
+              id: userId,
+              email: authUser.email || '',
+              full_name: fullName,
+              role: 'customer',
+              phone: phone || null,
+            }, { onConflict: 'id' })
+            .select()
+            .single();
+          if (newProfile) {
+            setProfile(newProfile as UserProfile);
+          }
+        }
       }
     } catch {
       // profile fetch failed silently
@@ -95,11 +116,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           full_name: metadata?.fullName || '',
           avatar_url: metadata?.avatarUrl || '',
           role: 'customer',
+          phone: metadata?.phone || '',
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/auth/callback`,
       },
     });
     if (error) throw error;
+    // If user is immediately available (email confirmation disabled), update phone in profile
+    if (data.user && metadata?.phone) {
+      await supabase
+        .from('user_profiles')
+        .update({ phone: metadata.phone })
+        .eq('id', data.user.id);
+    }
     return data;
   };
 
@@ -116,9 +145,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    setUser(null);
+    setSession(null);
+    setProfile(null);
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    setProfile(null);
   };
 
   const getCurrentUser = async () => {
