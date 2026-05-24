@@ -126,9 +126,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setProfile(null);
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore API errors — clear local state regardless
+    } finally {
+      // Clear all Supabase tokens from localStorage
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith('sb_') || k.includes('supabase'))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch {
+        // localStorage may not be available
+      }
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+    }
   };
 
   const getCurrentUser = async () => {

@@ -19,6 +19,7 @@ import {
 import AppLogo from '@/components/ui/AppLogo';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 type LoginForm = {
   email: string;
@@ -85,9 +86,14 @@ export default function AuthScreen() {
     try {
       const result = await signIn(data.email, data.password);
       toast.success('Welcome back to Chakula Foods!');
-      // Redirect admin users to the admin panel
-      const userProfile = await getUserProfile();
-      if (userProfile?.role === 'admin') {
+      // Fetch profile directly using the signed-in user's ID
+      const supabase = createClient();
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', result.user.id)
+        .single();
+      if (profileData?.role === 'admin') {
         router.push('/admin-panel');
       } else {
         router.push('/');

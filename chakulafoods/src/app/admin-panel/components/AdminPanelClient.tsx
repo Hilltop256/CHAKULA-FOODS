@@ -93,7 +93,8 @@ export default function AdminPanelClient() {
         <div className="px-2 py-3 border-t border-white/10">
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all duration-150"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150"
+            style={{ background: 'linear-gradient(135deg, #7B1C1C 0%, #5A1212 100%)' }}
           >
             <LogOut size={18} className="shrink-0" />
             {!sidebarCollapsed && <span>Back to Store</span>}
