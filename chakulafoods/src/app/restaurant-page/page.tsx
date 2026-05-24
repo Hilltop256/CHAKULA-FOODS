@@ -1,12 +1,6 @@
 import React from 'react';
-import TopNav from '@/components/TopNav';
-import RestaurantPageClient from '@/app/restaurant-page/components/RestaurantPageClient';
+import RestaurantPageWrapper from '@/app/restaurant-page/components/RestaurantPageWrapper';
 
 export default function RestaurantPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <TopNav isLoggedIn={true} userName="Amara Nakato" userRole="customer" cartCount={2} />
-      <RestaurantPageClient />
-    </div>
-  );
+  return <RestaurantPageWrapper />;
 }

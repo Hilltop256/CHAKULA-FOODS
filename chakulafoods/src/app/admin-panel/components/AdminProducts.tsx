@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Search, Filter, Trash2, X, ChevronUp, ChevronDown, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
+import ImageUploadField from './ImageUploadField';
 
 interface Product {
   id: string;
@@ -16,6 +17,7 @@ interface Product {
   available: boolean;
   orders_count: number;
   image_url: string;
+  description?: string;
 }
 
 type ProductForm = {
@@ -24,6 +26,7 @@ type ProductForm = {
   category: string;
   price: number;
   description: string;
+  image_url: string;
   available: boolean;
 };
 
@@ -35,12 +38,16 @@ export default function AdminProducts() {
   const [sortField, setSortField] = useState<'name' | 'price' | 'orders_count'>('orders_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addImageUrl, setAddImageUrl] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
   const supabase = createClient();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProductForm>();
+  const addForm = useForm<ProductForm>();
+  const editForm = useForm<ProductForm>();
 
   const departments = ['all', 'Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
 
@@ -48,7 +55,7 @@ export default function AdminProducts() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, department, category, price, available, orders_count, image_url')
+        .select('id, name, department, category, price, available, orders_count, image_url, description')
         .order('orders_count', { ascending: false });
 
       if (error) {
@@ -148,7 +155,7 @@ export default function AdminProducts() {
           price: Number(data.price),
           available: data.available,
           description: data.description,
-          image_url: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100&q=70',
+          image_url: data.image_url || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100&q=70',
           orders_count: 0,
           featured: false,
         })
@@ -160,11 +167,73 @@ export default function AdminProducts() {
       } else {
         setProducts((prev) => [newProduct as Product, ...prev]);
         setShowAddModal(false);
-        reset();
+        addForm.reset();
+        setAddImageUrl('');
         toast.success(`${data.name} added to ${data.department}`);
       }
     } catch {
       toast.error('Failed to add product');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    editForm.setValue('name', product.name);
+    editForm.setValue('department', product.department);
+    editForm.setValue('category', product.category);
+    editForm.setValue('price', product.price);
+    editForm.setValue('description', product.description || '');
+    editForm.setValue('image_url', product.image_url || '');
+    editForm.setValue('available', product.available);
+    setEditImageUrl(product.image_url || '');
+  };
+
+  const onEditProduct = async (data: ProductForm) => {
+    if (!editingProduct) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name: data.name,
+          department: data.department,
+          category: data.category,
+          price: Number(data.price),
+          available: data.available,
+          description: data.description || null,
+          image_url: data.image_url || editingProduct.image_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingProduct.id);
+
+      if (error) {
+        toast.error('Failed to update product');
+      } else {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === editingProduct.id
+              ? {
+                  ...p,
+                  name: data.name,
+                  department: data.department,
+                  category: data.category,
+                  price: Number(data.price),
+                  available: data.available,
+                  description: data.description,
+                  image_url: data.image_url || p.image_url,
+                }
+              : p
+          )
+        );
+        setEditingProduct(null);
+        editForm.reset();
+        setEditImageUrl('');
+        toast.success(`${data.name} updated successfully`);
+      }
+    } catch {
+      toast.error('Failed to update product');
     } finally {
       setIsSubmitting(false);
     }
@@ -340,12 +409,22 @@ export default function AdminProducts() {
                     </button>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setDeletingId(product.id)}
-                      className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-accent opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEditModal(product)}
+                        className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
+                        title="Edit product"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingId(product.id)}
+                        className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-accent"
+                        title="Delete product"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -385,64 +464,69 @@ export default function AdminProducts() {
           <div className="card-base shadow-2xl p-6 max-w-md w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-foreground">Add New Product</h3>
-              <button onClick={() => { setShowAddModal(false); reset(); }} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+              <button onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); }} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSubmit(onAddProduct)} className="space-y-4">
+            <form onSubmit={addForm.handleSubmit(onAddProduct)} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Product Name</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Product Name *</label>
                 <input
                   type="text"
-                  {...register('name', { required: 'Name is required' })}
+                  {...addForm.register('name', { required: 'Name is required' })}
                   placeholder="e.g. Chicken Stew & Matooke"
                   className="input-field w-full"
                 />
-                {errors.name && <p className="text-xs text-accent mt-1">{errors.name.message}</p>}
+                {addForm.formState.errors.name && <p className="text-xs text-accent mt-1">{addForm.formState.errors.name.message}</p>}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">Department</label>
-                  <select {...register('department', { required: 'Required' })} className="input-field w-full">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Department *</label>
+                  <select {...addForm.register('department', { required: 'Required' })} className="input-field w-full">
                     <option value="">Select...</option>
                     {departments.filter((d) => d !== 'all').map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
-                  {errors.department && <p className="text-xs text-accent mt-1">{errors.department.message}</p>}
+                  {addForm.formState.errors.department && <p className="text-xs text-accent mt-1">{addForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category</label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
                   <input
                     type="text"
-                    {...register('category', { required: 'Required' })}
+                    {...addForm.register('category', { required: 'Required' })}
                     placeholder="e.g. Meals"
                     className="input-field w-full"
                   />
-                  {errors.category && <p className="text-xs text-accent mt-1">{errors.category.message}</p>}
+                  {addForm.formState.errors.category && <p className="text-xs text-accent mt-1">{addForm.formState.errors.category.message}</p>}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Price (UGX)</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Price (UGX) *</label>
                 <input
                   type="number"
-                  {...register('price', { required: 'Price is required', min: { value: 0, message: 'Must be positive' } })}
+                  {...addForm.register('price', { required: 'Price is required', min: { value: 0, message: 'Must be positive' } })}
                   placeholder="18000"
                   className="input-field w-full"
                 />
-                {errors.price && <p className="text-xs text-accent mt-1">{errors.price.message}</p>}
+                {addForm.formState.errors.price && <p className="text-xs text-accent mt-1">{addForm.formState.errors.price.message}</p>}
               </div>
+              <ImageUploadField
+                label="Product Image"
+                value={addImageUrl}
+                onChange={(url) => { setAddImageUrl(url); addForm.setValue('image_url', url); }}
+              />
               <div>
                 <label className="block text-sm font-semibold text-foreground mb-1.5">Description</label>
                 <textarea
-                  {...register('description')}
+                  {...addForm.register('description')}
                   placeholder="Brief product description..."
                   rows={2}
                   className="input-field w-full resize-none"
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" {...register('available')} defaultChecked className="accent-primary" />
+                <input type="checkbox" {...addForm.register('available')} defaultChecked className="accent-primary" />
                 <span className="text-sm text-foreground">Available for ordering</span>
               </label>
               <div className="flex gap-3 pt-2">
@@ -457,7 +541,102 @@ export default function AdminProducts() {
                     'Add Product'
                   )}
                 </button>
-                <button type="button" onClick={() => { setShowAddModal(false); reset(); }} className="flex-1 btn-outline">
+                <button type="button" onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); }} className="flex-1 btn-outline">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in">
+          <div className="card-base shadow-2xl p-6 max-w-md w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-foreground">Edit Product</h3>
+              <button
+                onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); }}
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={editForm.handleSubmit(onEditProduct)} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Product Name *</label>
+                <input
+                  type="text"
+                  {...editForm.register('name', { required: 'Name is required' })}
+                  className="input-field w-full"
+                />
+                {editForm.formState.errors.name && <p className="text-xs text-accent mt-1">{editForm.formState.errors.name.message}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Department *</label>
+                  <select {...editForm.register('department', { required: 'Required' })} className="input-field w-full">
+                    <option value="">Select...</option>
+                    {departments.filter((d) => d !== 'all').map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  {editForm.formState.errors.department && <p className="text-xs text-accent mt-1">{editForm.formState.errors.department.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
+                  <input
+                    type="text"
+                    {...editForm.register('category', { required: 'Required' })}
+                    className="input-field w-full"
+                  />
+                  {editForm.formState.errors.category && <p className="text-xs text-accent mt-1">{editForm.formState.errors.category.message}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Price (UGX) *</label>
+                <input
+                  type="number"
+                  {...editForm.register('price', { required: 'Price is required', min: { value: 0, message: 'Must be positive' } })}
+                  className="input-field w-full"
+                />
+                {editForm.formState.errors.price && <p className="text-xs text-accent mt-1">{editForm.formState.errors.price.message}</p>}
+              </div>
+              <ImageUploadField
+                label="Product Image"
+                value={editImageUrl}
+                onChange={(url) => { setEditImageUrl(url); editForm.setValue('image_url', url); }}
+              />
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Description</label>
+                <textarea
+                  {...editForm.register('description')}
+                  rows={2}
+                  className="input-field w-full resize-none"
+                />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" {...editForm.register('available')} className="accent-primary" />
+                <span className="text-sm text-foreground">Available for ordering</span>
+              </label>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); }}
+                  className="flex-1 btn-outline"
+                >
                   Cancel
                 </button>
               </div>

@@ -19,9 +19,8 @@ const navTabs = [
   { label: 'Home', href: '/' },
   { label: 'Restaurant', href: '/restaurant-page' },
   { label: 'Confectionary', href: '/confectionary-page' },
-  { label: 'Juice Bar', href: '#juice-bar' },
+  { label: 'Juice Bar', href: '/juice-bar-page' },
   { label: 'Wine & Liquor', href: '/wine-liquor-page' },
-  { label: 'Market Specials', href: '#market' },
   { label: 'Subscriptions', href: '#subscriptions' },
 ];
 

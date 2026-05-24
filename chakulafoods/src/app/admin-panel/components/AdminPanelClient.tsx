@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingBag, Users, Store, ChevronLeft, ChevronRight, LogOut, Bell, Search,  } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Store, ChevronLeft, ChevronRight, LogOut, Bell, Search, Tag } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import AdminOverview from './AdminOverview';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
 import AdminUsers from './AdminUsers';
+import AdminMarketSpecials from './AdminMarketSpecials';
 import Icon from '@/components/ui/AppIcon';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 const navItems = [
@@ -17,11 +19,15 @@ const navItems = [
   { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: 7 },
   { id: 'users', label: 'Users', icon: Users, badge: 0 },
   { id: 'departments', label: 'Departments', icon: Store, badge: 0 },
+  { id: 'market-specials', label: 'Market Specials', icon: Tag, badge: 0 },
 ];
 
 export default function AdminPanelClient() {
   const [activeSection, setActiveSection] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { user, profile } = useAuth();
+
+  const adminName = profile?.full_name || user?.email?.split('@')?.[0] || 'Admin';
 
   const renderContent = () => {
     switch (activeSection) {
@@ -29,6 +35,7 @@ export default function AdminPanelClient() {
       case 'products': return <AdminProducts />;
       case 'orders': return <AdminOrders />;
       case 'users': return <AdminUsers />;
+      case 'market-specials': return <AdminMarketSpecials />;
       default: return <AdminOverview />;
     }
   };
@@ -118,7 +125,7 @@ export default function AdminPanelClient() {
               {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </button>
             <h1 className="font-bold text-lg text-foreground capitalize">
-              {activeSection === 'overview' ? 'Dashboard Overview' : activeSection}
+              {activeSection === 'overview' ? 'Dashboard Overview' : activeSection === 'market-specials' ? 'Market Specials' : activeSection}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -139,7 +146,7 @@ export default function AdminPanelClient() {
                 <Users size={14} className="text-primary" />
               </div>
               <div className="hidden sm:block">
-                <p className="text-xs font-semibold text-foreground leading-none">Tendo Mugisha</p>
+                <p className="text-xs font-semibold text-foreground leading-none">{adminName}</p>
                 <p className="text-xs text-muted-foreground">Admin</p>
               </div>
             </div>

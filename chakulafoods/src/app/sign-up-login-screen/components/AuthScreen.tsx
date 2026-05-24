@@ -48,7 +48,7 @@ export default function AuthScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const { signIn, signUp } = useAuth();
+    const { signIn, signUp, getUserProfile } = useAuth();
   const router = useRouter();
 
   const loginForm = useForm<LoginForm>({
@@ -83,9 +83,15 @@ export default function AuthScreen() {
   const onLogin = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      await signIn(data.email, data.password);
+      const result = await signIn(data.email, data.password);
       toast.success('Welcome back to Chakula Foods!');
-      router.push('/');
+      // Redirect admin users to the admin panel
+      const userProfile = await getUserProfile();
+      if (userProfile?.role === 'admin') {
+        router.push('/admin-panel');
+      } else {
+        router.push('/');
+      }
       router.refresh();
     } catch (error: any) {
       const msg = error?.message || 'Invalid credentials';
