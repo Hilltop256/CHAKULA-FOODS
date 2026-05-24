@@ -94,12 +94,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: {
           full_name: metadata?.fullName || '',
           avatar_url: metadata?.avatarUrl || '',
+          phone: metadata?.phone || '',
           role: 'customer',
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/auth/callback`,
       },
     });
     if (error) throw error;
+
+    // Update phone in user_profiles if user was created immediately
+    if (data.user && metadata?.phone) {
+      await supabase
+        .from('user_profiles')
+        .update({ phone: metadata.phone })
+        .eq('id', data.user.id);
+    }
+
     return data;
   };
 
