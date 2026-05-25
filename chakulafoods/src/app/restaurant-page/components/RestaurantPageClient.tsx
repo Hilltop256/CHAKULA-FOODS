@@ -8,28 +8,348 @@ import ScheduleMealModal from './ScheduleMealModal';
 
 const subCategories = [
 { id: 'sub-all', label: 'All' },
-{ id: 'sub-meals', label: 'Meals' },
-{ id: 'sub-combos', label: 'Combo Offers' },
-{ id: 'sub-breakfast', label: 'Breakfast' },
-{ id: 'sub-lunch', label: 'Lunch' },
-{ id: 'sub-dinner', label: 'Dinner' },
-{ id: 'sub-plans', label: 'Meal Plans' }];
+{ id: 'sub-shawarma', label: 'Shawarma / Wraps / Rolex / Burgers' },
+{ id: 'sub-bowls', label: 'Bowl Meals' },
+{ id: 'sub-pizza', label: 'Pizza' },
+{ id: 'sub-roasts', label: 'Roasts & Grills' },
+{ id: 'sub-specials', label: 'Specials & Toppings' },
+{ id: 'sub-bakery', label: 'Bakery & Breakfast' },
+{ id: 'sub-platters', label: 'Party & Group Platters' },
+{ id: 'sub-drinks', label: 'Drinks' }];
 
 
-// Backend integration point: replace with GET /api/products?department=restaurant
+
 const restaurantItems = [
-{ id: 'rest-001', name: 'Chicken Stew & Matooke', category: 'Meals', price: 18000, rating: 4.9, prepTime: '25 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1cfc51ef2-1765187011661.png", tag: 'Best Seller', available: true, description: 'Tender chicken slow-cooked in rich tomato sauce served with steamed matooke' },
-{ id: 'rest-002', name: 'Rolex (Chapati & Egg Roll)', category: 'Meals', price: 6500, rating: 4.8, prepTime: '10 min', image: "https://images.unsplash.com/photo-1691112683306-f971c67cd69e", tag: 'Local Fav', available: true, description: 'Freshly made chapati rolled with seasoned eggs, tomatoes and onions' },
-{ id: 'rest-003', name: 'Beef & Pork Combo Meal', category: 'Combo Offers', price: 28000, originalPrice: 34000, rating: 4.6, prepTime: '30 min', image: "https://images.unsplash.com/photo-1664761044412-777bb099a6d0", tag: 'Combo Deal', available: true, description: 'Grilled beef ribs + pork chops with chips, coleslaw and a soft drink' },
-{ id: 'rest-004', name: 'Family Feast Combo (4 pax)', category: 'Combo Offers', price: 85000, originalPrice: 108000, rating: 4.7, prepTime: '45 min', image: "https://images.unsplash.com/photo-1644000132544-4947e3edb246", tag: 'Save 21%', available: true, description: 'Feeds 4 — includes 2 stews, rice, matooke, chapati and 4 drinks' },
-{ id: 'rest-005', name: 'Ugandan Breakfast Plate', category: 'Breakfast', price: 14000, rating: 4.8, prepTime: '20 min', image: "https://images.unsplash.com/photo-1733024451049-b9f36d6eb4be", tag: 'Morning Pick', available: true, description: 'Eggs, fried plantain, beans, chapati and a cup of black tea' },
-{ id: 'rest-006', name: 'Katogo (Offal & Matooke)', category: 'Breakfast', price: 12000, rating: 4.5, prepTime: '15 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1cfc51ef2-1765187011661.png", tag: 'Traditional', available: true, description: 'Traditional Ugandan morning stew with offal and green matooke' },
-{ id: 'rest-007', name: 'Grilled Tilapia & Rice', category: 'Lunch', price: 22000, rating: 4.7, prepTime: '35 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1ec37d2b6-1772798873768.png", tag: 'Fresh', available: true, description: 'Whole tilapia grilled with herbs, served with steamed rice and salad' },
-{ id: 'rest-008', name: 'Matoke & Groundnut Sauce', category: 'Lunch', price: 11000, rating: 4.6, prepTime: '20 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1c950f9b3-1772057293469.png", tag: 'Veg-Friendly', available: true, description: 'Steamed green bananas in rich groundnut sauce, a Ugandan classic' },
-{ id: 'rest-009', name: 'Nyama Choma (Goat)', category: 'Dinner', price: 35000, rating: 4.8, prepTime: '40 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_19fc0c453-1765407892152.png", tag: 'Evening Special', available: true, description: 'Slow-roasted goat meat with kachumbari salad and ugali' },
-{ id: 'rest-010', name: 'Pork Muchomo Platter', category: 'Dinner', price: 28000, rating: 4.7, prepTime: '35 min', image: "https://img.rocket.new/generatedImages/rocket_gen_img_118f02f93-1779095229402.png", tag: 'Weekend Fav', available: true, description: 'Skewered pork muchomo with roasted cassava and pepper sauce' },
-{ id: 'rest-011', name: 'Weekly Meal Plan — 5 Days', category: 'Meal Plans', price: 175000, rating: 4.9, prepTime: 'Scheduled', image: "https://images.unsplash.com/photo-1672019898122-22ebf1b44bc6", tag: 'Best Value', available: true, description: 'Breakfast + lunch + dinner for 5 days, customized to your preferences' },
-{ id: 'rest-012', name: 'Office Lunch Plan (10 days)', category: 'Meal Plans', price: 280000, rating: 4.8, prepTime: 'Scheduled', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1af975407-1772057274160.png", tag: 'Office Pack', available: true, description: '10 working-day lunch deliveries to your office, minimum 5 people' }];
+// Shawarma / Wraps / Rolex / Burgers
+{
+  id: 'rest-001',
+  name: 'Shawarma',
+  category: 'Shawarma / Wraps / Rolex / Burgers',
+  price: 8000,
+  originalPrice: 12000,
+  rating: 4.9,
+  prepTime: '15 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1a8c2c257-1767724313282.png",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Marinated meat, garlic sauce, pickles & fresh veggies wrapped in soft flatbread. Choose chicken, beef, pork or veggie. UGX 8,000 – 12,000'
+},
+{
+  id: 'rest-002',
+  name: 'Wrap',
+  category: 'Shawarma / Wraps / Rolex / Burgers',
+  price: 8000,
+  originalPrice: 12000,
+  rating: 4.7,
+  prepTime: '10 min',
+  image: "https://images.unsplash.com/photo-1653983194833-7a10838b12f4",
+  tag: 'Hot',
+  available: true,
+  description: 'Grilled protein, crisp veggies and our signature Chakula sauce, all rolled up in a warm soft tortilla. Chicken, beef, pork or veggie. UGX 8,000 – 12,000'
+},
+{
+  id: 'rest-003',
+  name: 'Rolex',
+  category: 'Shawarma / Wraps / Rolex / Burgers',
+  price: 8000,
+  originalPrice: 12000,
+  rating: 4.8,
+  prepTime: '10 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1f42edde2-1765187010416.png",
+  tag: 'Local Fav',
+  available: true,
+  description: "Uganda's iconic street food — egg omelette with cabbage, tomato and your choice of meat, rolled in a fresh chapati. UGX 8,000 – 12,000"
+},
+{
+  id: 'rest-004',
+  name: 'Burger',
+  category: 'Shawarma / Wraps / Rolex / Burgers',
+  price: 8000,
+  originalPrice: 12000,
+  rating: 4.7,
+  prepTime: '15 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_186f782b8-1772502396126.png",
+  tag: 'Stacked',
+  available: true,
+  description: 'Juicy patty, fresh lettuce, tomato, pickles and Chakula special sauce in a toasted brioche bun. Served hot. Chicken, beef, pork or veggie. UGX 8,000 – 12,000'
+},
+// Bowl Meals
+{
+  id: 'rest-005',
+  name: 'Bowl Meal',
+  category: 'Bowl Meals',
+  price: 20000,
+  originalPrice: 30000,
+  rating: 4.9,
+  prepTime: '20 min',
+  image: "https://images.unsplash.com/photo-1717239679756-9059e0d18e81",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Pick your base and your meat — we build it fresh for you. Bases: Rice, Noodles, Veggies, Wedges, Plantain, Mixed. Protein: Chicken, Beef, Pork, Veggie. UGX 20,000 – 30,000'
+},
+{
+  id: 'rest-006',
+  name: 'Mixed Bowl',
+  category: 'Bowl Meals',
+  price: 25000,
+  originalPrice: 30000,
+  rating: 4.8,
+  prepTime: '20 min',
+  image: "https://images.unsplash.com/photo-1717239678710-b4808c7d65b2",
+  tag: 'Mixed Bowl',
+  available: true,
+  description: "Can't decide? Get a mix of bases and proteins — all in one generous bowl. Bases: Rice, Noodles, Veggies, Wedges, Plantain, Mixed. UGX 25,000 – 30,000"
+},
+{
+  id: 'rest-007',
+  name: 'Veggie Bowl',
+  category: 'Bowl Meals',
+  price: 20000,
+  rating: 4.6,
+  prepTime: '15 min',
+  image: "https://images.unsplash.com/photo-1629740745409-7e1c41418529",
+  tag: 'Veggie Bowl',
+  available: true,
+  description: 'A fresh, light bowl packed with garden goodness — no meat, full flavour. Bases: Rice, Noodles, Wedges, Plantain, Mixed. Toppings: Salad, Cucumber, Tomato, Dressing. UGX 20,000'
+},
+// Pizza
+{
+  id: 'rest-008',
+  name: 'Chicken Pizza',
+  category: 'Pizza',
+  price: 25000,
+  originalPrice: 30000,
+  rating: 4.8,
+  prepTime: '25 min',
+  image: "https://images.unsplash.com/photo-1734099387978-463d8fd09678",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Stone-baked pizza topped with grilled chicken, mozzarella, bell peppers and our signature tomato sauce. Available in regular & large. UGX 25,000 – 30,000'
+},
+{
+  id: 'rest-009',
+  name: 'Beef & Pepperoni Pizza',
+  category: 'Pizza',
+  price: 28000,
+  originalPrice: 35000,
+  rating: 4.7,
+  prepTime: '25 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1879a5394-1773160898008.png",
+  tag: 'Hot',
+  available: true,
+  description: 'Loaded with seasoned beef mince, pepperoni slices, red onion and melted mozzarella on a crispy base. UGX 28,000 – 35,000'
+},
+{
+  id: 'rest-010',
+  name: 'Veggie Pizza',
+  category: 'Pizza',
+  price: 22000,
+  originalPrice: 28000,
+  rating: 4.5,
+  prepTime: '20 min',
+  image: "https://images.unsplash.com/photo-1705276920817-da1a9b029b7b",
+  tag: 'Local Fav',
+  available: true,
+  description: 'Garden-fresh mushrooms, olives, capsicum, sweet corn and cherry tomatoes on a golden crust with rich tomato base. UGX 22,000 – 28,000'
+},
+// Roasts & Grills
+{
+  id: 'rest-011',
+  name: 'Grilled Chicken',
+  category: 'Roasts & Grills',
+  price: 22000,
+  originalPrice: 28000,
+  rating: 4.9,
+  prepTime: '30 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_190debd47-1774334085238.png",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Whole or half chicken marinated in Chakula spice blend, slow-grilled to perfection. Served with kachumbari and choice of side. UGX 22,000 – 28,000'
+},
+{
+  id: 'rest-012',
+  name: 'Roasted Pork Ribs',
+  category: 'Roasts & Grills',
+  price: 30000,
+  originalPrice: 38000,
+  rating: 4.8,
+  prepTime: '35 min',
+  image: "https://images.unsplash.com/photo-1595507238835-bff863eb6edb",
+  tag: 'Hot',
+  available: true,
+  description: 'Tender pork ribs slow-roasted with smoky BBQ glaze, served with coleslaw and roasted wedges. UGX 30,000 – 38,000'
+},
+{
+  id: 'rest-013',
+  name: 'Beef Nyama Choma',
+  category: 'Roasts & Grills',
+  price: 25000,
+  originalPrice: 32000,
+  rating: 4.7,
+  prepTime: '30 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_19fc0c453-1765407892152.png",
+  tag: 'Local Fav',
+  available: true,
+  description: 'East African-style roasted beef, seasoned with local herbs and charcoal-grilled. Served with ugali or chapati and kachumbari. UGX 25,000 – 32,000'
+},
+// Specials & Toppings
+{
+  id: 'rest-014',
+  name: 'Chakula Special Platter',
+  category: 'Specials & Toppings',
+  price: 35000,
+  originalPrice: 45000,
+  rating: 4.9,
+  prepTime: '25 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1130bedf0-1779064182077.png",
+  tag: 'Best Seller',
+  available: true,
+  description: "Chef's daily special — a curated combo of our top-selling items. Changes daily. Ask our team what's on today! UGX 35,000 – 45,000"
+},
+{
+  id: 'rest-015',
+  name: 'Extra Toppings',
+  category: 'Specials & Toppings',
+  price: 2000,
+  rating: 4.5,
+  prepTime: '5 min',
+  image: "https://images.unsplash.com/photo-1543858694-1c9299c7e916",
+  tag: 'Add-On',
+  available: true,
+  description: 'Customise your meal with extra toppings: avocado, fried egg, extra cheese, jalapeños, caramelised onions, or extra sauce. UGX 2,000 per topping'
+},
+{
+  id: 'rest-016',
+  name: 'Loaded Fries',
+  category: 'Specials & Toppings',
+  price: 12000,
+  originalPrice: 15000,
+  rating: 4.7,
+  prepTime: '15 min',
+  image: "https://images.unsplash.com/photo-1725155632077-4e881ed8f8ce",
+  tag: 'Hot',
+  available: true,
+  description: 'Crispy golden fries loaded with melted cheese, bacon bits, jalapeños and Chakula special sauce. Perfect as a side or snack. UGX 12,000 – 15,000'
+},
+// Bakery & Breakfast
+{
+  id: 'rest-017',
+  name: 'Full Breakfast Plate',
+  category: 'Bakery & Breakfast',
+  price: 18000,
+  originalPrice: 22000,
+  rating: 4.8,
+  prepTime: '20 min',
+  image: "https://images.unsplash.com/photo-1665663592726-fc468e9a3335",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Scrambled or fried eggs, sausages, baked beans, toast and a fresh juice. The perfect morning start. UGX 18,000 – 22,000'
+},
+{
+  id: 'rest-018',
+  name: 'Mandazi & Chai',
+  category: 'Bakery & Breakfast',
+  price: 5000,
+  rating: 4.6,
+  prepTime: '10 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_12f976a55-1772948451009.png",
+  tag: 'Local Fav',
+  available: true,
+  description: 'Freshly fried Ugandan mandazi served warm with a cup of spiced masala chai. A classic East African breakfast combo. UGX 5,000'
+},
+{
+  id: 'rest-019',
+  name: 'Croissant & Coffee',
+  category: 'Bakery & Breakfast',
+  price: 10000,
+  originalPrice: 13000,
+  rating: 4.7,
+  prepTime: '10 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_19fd4864a-1779691175840.png",
+  tag: 'Hot',
+  available: true,
+  description: 'Buttery flaky croissant — plain, chocolate or ham & cheese — paired with a freshly brewed Arabica coffee. UGX 10,000 – 13,000'
+},
+// Party & Group Platters
+{
+  id: 'rest-020',
+  name: 'Party Shawarma Platter',
+  category: 'Party & Group Platters',
+  price: 80000,
+  originalPrice: 100000,
+  rating: 4.9,
+  prepTime: '45 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1f79c3caa-1773214933563.png",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Feeds 8–10 people. A generous spread of shawarmas, wraps and rolexes with dipping sauces and fresh salad. Perfect for events. UGX 80,000 – 100,000'
+},
+{
+  id: 'rest-021',
+  name: 'BBQ Grill Platter',
+  category: 'Party & Group Platters',
+  price: 120000,
+  originalPrice: 150000,
+  rating: 4.8,
+  prepTime: '60 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_15cc6f48d-1779691176514.png",
+  tag: 'Hot',
+  available: true,
+  description: 'Feeds 10–12 people. Mixed grill of chicken, beef and pork ribs with sides of ugali, kachumbari and roasted plantain. UGX 120,000 – 150,000'
+},
+{
+  id: 'rest-022',
+  name: 'Bowl Meal Group Pack',
+  category: 'Party & Group Platters',
+  price: 90000,
+  originalPrice: 110000,
+  rating: 4.7,
+  prepTime: '40 min',
+  image: "https://images.unsplash.com/photo-1558689509-900d3d3cc727",
+  tag: 'Group Deal',
+  available: true,
+  description: 'Feeds 6–8 people. Choose your bases and proteins — we pack everything fresh. Great for office lunches and family gatherings. UGX 90,000 – 110,000'
+},
+// Drinks
+{
+  id: 'rest-023',
+  name: 'Fresh Fruit Juice',
+  category: 'Drinks',
+  price: 5000,
+  originalPrice: 7000,
+  rating: 4.8,
+  prepTime: '5 min',
+  image: "https://images.unsplash.com/photo-1584586994460-0c8d029148fd",
+  tag: 'Best Seller',
+  available: true,
+  description: 'Freshly blended seasonal fruits — mango, passion, pineapple, watermelon or mixed. No added sugar. UGX 5,000 – 7,000'
+},
+{
+  id: 'rest-024',
+  name: 'Masala Chai',
+  category: 'Drinks',
+  price: 3000,
+  rating: 4.7,
+  prepTime: '5 min',
+  image: "https://img.rocket.new/generatedImages/rocket_gen_img_1ae0005a3-1772279316965.png",
+  tag: 'Local Fav',
+  available: true,
+  description: 'Spiced East African tea brewed with ginger, cardamom and cinnamon. Served hot with milk. UGX 3,000'
+},
+{
+  id: 'rest-025',
+  name: 'Soft Drinks & Water',
+  category: 'Drinks',
+  price: 2000,
+  originalPrice: 3000,
+  rating: 4.5,
+  prepTime: '2 min',
+  image: "https://images.unsplash.com/photo-1651307426653-2b63a236ece5",
+  tag: 'Cold',
+  available: true,
+  description: 'Chilled sodas (Coke, Fanta, Sprite, Stoney), still or sparkling water. UGX 2,000 – 3,000'
+}];
+
 
 
 const lastOrder = {
@@ -83,7 +403,7 @@ export default function RestaurantPageClient() {
           <h1 className="text-3xl font-extrabold text-foreground">Restaurant</h1>
         </div>
         <p className="text-muted-foreground">
-          Authentic Ugandan meals, combos, and scheduled meal plans — cooked fresh daily
+          Shawarma, wraps, burgers, bowl meals & more — made fresh daily at Chakula Foods · Kampala
         </p>
       </div>
 
@@ -160,16 +480,19 @@ export default function RestaurantPageClient() {
             
               <span className={`absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full ${
             item.tag === 'Best Seller' ? 'bg-secondary text-secondary-foreground' :
-            item.tag === 'Combo Deal' || item.tag.startsWith('Save') ? 'bg-accent text-accent-foreground' :
-            'bg-primary/90 text-primary-foreground'}`
+            item.tag === 'Hot' ? 'bg-amber-500 text-white' :
+            item.tag === 'Local Fav' ? 'bg-green-600 text-white' :
+            item.tag === 'Stacked' ? 'bg-purple-600 text-white' :
+            item.tag === 'Mixed Bowl' ? 'bg-amber-500 text-white' :
+            item.tag === 'Veggie Bowl' ? 'bg-green-600 text-white' : 'bg-primary/90 text-primary-foreground'}`
             }>
                 {item.tag}
               </span>
-              {item.category === 'Meal Plans' &&
+              {item.category === 'Bowl Meals' &&
             <div className="absolute bottom-2 right-2">
                   <span className="flex items-center gap-1 bg-card/90 text-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
                     <Calendar size={10} />
-                    Schedulable
+                    Customisable
                   </span>
                 </div>
             }
@@ -217,7 +540,7 @@ export default function RestaurantPageClient() {
                 }
                   {addingId === item.id ? 'Adding...' : 'Add'}
                 </button>
-                {(item.category === 'Meal Plans' || item.category === 'Combo Offers') &&
+                {item.category === 'Bowl Meals' &&
               <button
                 onClick={() => {setScheduleItem(item);setScheduleOpen(true);}}
                 className="p-2 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all duration-150"
