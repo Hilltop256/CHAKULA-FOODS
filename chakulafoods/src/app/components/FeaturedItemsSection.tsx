@@ -104,13 +104,17 @@ export default function FeaturedItemsSection() {
   {categories.map((cat) => {
     if (cat.id === 'cat-restaurant') {
       return (
-        <Link
-          key={cat.id}
-          href="/restaurant-page"
-          className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-        >
-          {cat.label}
-        </Link>
+<Link
+  key={cat.id}
+  href="/restaurant-page"
+  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
+    activeCategory === cat.id
+      ? 'bg-green-600 text-white'
+      : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+  }`}
+>
+  {cat.label}
+</Link>
       );
     }
 
