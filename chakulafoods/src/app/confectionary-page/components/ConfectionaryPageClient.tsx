@@ -29,10 +29,11 @@ const confectionaryItems = [
 { id: 'conf-011', name: 'Luxury Dessert Box (Mixed)', category: 'Dessert Boxes', price: 55000, rating: 4.9, leadTime: '4h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1dfb448d2-1772288683051.png", tag: 'Gift Ready', schedulable: true, description: 'Macarons, chocolate truffles, mini tarts and brownies — perfect gift' },
 { id: 'conf-012', name: 'Weekly Dessert Pack Subscription', category: 'Dessert Boxes', price: 95000, rating: 4.8, leadTime: 'Weekly', image: "https://img.rocket.new/generatedImages/rocket_gen_img_100547903-1772211482970.png", tag: 'Subscribe & Save', schedulable: true, description: 'Fresh dessert box every week — curated selection, 10% off vs individual orders' }];
 
+//  FIXED HOOKS SECTION:
 export default function ConfectionaryPageClient() {
-  const [activeCategory, setActiveCategory] = useState('conf-all');
+  const [activeCategory, setActiveCategory] = useState('conf-all'); // Restored
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [scheduleItem, setScheduleItem] = useState < typeof confectionaryItems?.[0] | null > null;
+  const [scheduleItem, setScheduleItem] = useState<typeof confectionaryItems[0] | null>(null); // Clean single declaration
   const [addingId, setAddingId] = useState<string | null>(null);
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -214,5 +215,4 @@ export default function ConfectionaryPageClient() {
         onClose={() => {setScheduleOpen(false);setScheduleItem(null);}} />
       }
     </div>);
-
 }
