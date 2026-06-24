@@ -101,21 +101,35 @@ export default function FeaturedItemsSection() {
       </div>
 
       {/* Category filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
-              activeCategory === cat.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+<div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
+  {categories.map((cat) => {
+    if (cat.id === 'cat-restaurant') {
+      return (
+        <Link
+          key={cat.id}
+          href="/restaurant-page"
+          className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+        >
+          {cat.label}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        key={cat.id}
+        onClick={() => setActiveCategory(cat.id)}
+        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
+          activeCategory === cat.id
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+        }`}
+      >
+        {cat.label}
+      </button>
+    );
+  })}
+</div>
 
       {/* Loading state */}
       {loading && (
