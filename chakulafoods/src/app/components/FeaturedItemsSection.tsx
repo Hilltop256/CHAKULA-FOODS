@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 
 const categories = [
-  { id: 'cat-all', label: 'All Items' },
   { id: 'cat-restaurant', label: 'Restaurant' },
   { id: 'cat-confectionary', label: 'Confectionary' },
   { id: 'cat-juice', label: 'Juice Bar' },
@@ -30,7 +29,7 @@ interface Product {
 }
 
 export default function FeaturedItemsSection() {
-  const [activeCategory, setActiveCategory] = useState('cat-all');
+  const [activeCategory, setActiveCategory] = useState('cat-restaurant');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<string | null>(null);
