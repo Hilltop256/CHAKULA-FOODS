@@ -4,7 +4,9 @@ import { ArrowRight, Clock, Star, Truck } from 'lucide-react';
 
 export default function HeroBanner() {
   return (
-      <section className="bg-gradient-to-br from-[#800c1e] to-[#C41230] text-white overflow-hidden relative">
+    //  <section className="bg-gradient-to-br from-[#800c1e] to-[#C41230] text-white overflow-hidden relative">
+       <section className="bg-gradient-to-br from-[#C41230] via-[#B0102B] to-[#8F0D24]">
+      
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-8 right-12 text-8xl">🍲</div>
         <div className="absolute bottom-8 right-48 text-6xl">🧁</div>
