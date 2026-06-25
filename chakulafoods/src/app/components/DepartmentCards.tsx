@@ -71,7 +71,7 @@ export default function DepartmentCards() {
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-12">
       <div className="text-center mb-12">
-  <h2 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-3">
+  <h2 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-5">
   Our Departments
 </h2>
 
