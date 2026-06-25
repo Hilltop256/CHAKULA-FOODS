@@ -34,6 +34,9 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  // Add these state variables for filtering
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
   const [sortField, setSortField] = useState<'name' | 'price' | 'orders_count'>('orders_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -59,6 +62,29 @@ export default function AdminProducts() {
     'Market Specials': ['Fresh Produce', 'Dairy & Eggs', 'Meat & Poultry', 'Pantry Staples', 'Snacks', 'Beverages'],
   };
 
+  // Extract unique departments from the loaded products
+const uniqueDepartments = Array.from(new Set(products.map(p => p.department))).filter(Boolean);
+
+// Extract categories based ONLY on the currently selected department
+const availableCategories = filterDepartment
+  ? Array.from(new Set(products.filter(p => p.department === filterDepartment).map(p => p.category))).filter(Boolean)
+  : []; // Keep empty or show all categories if you prefer when no department is selected
+
+// Handler to update department and reset category
+const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  setFilterDepartment(e.target.value);
+  setFilterCategory(''); // Clear category when department changes
+};
+
+// Filter logic for your data table
+const filteredProducts = products.filter(product => {
+  const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
+  const matchesDepartment = filterDepartment ? product.department === filterDepartment : true;
+  const matchesCategory = filterCategory ? product.category === filterCategory : true;
+  
+  return matchesSearch && matchesDepartment && matchesCategory;
+});
+  
   const addDepartment = addForm.watch('department');
   const editDepartment = editForm.watch('department');
 
@@ -298,13 +324,59 @@ export default function AdminProducts() {
               onChange={(e) => setDeptFilter(e.target.value)}
               className="input-field h-9 text-sm w-44"
             >
-              {departments.map((d) => (
+                {departments.map((d) => (
                 <option key={`dept-filter-${d}`} value={d}>
                   {d === 'all' ? 'All Departments' : d}
                 </option>
               ))}
             </select>
           </div>
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+  {/* Existing Search Input */}
+  <div className="relative flex-1 min-w-[200px]">
+    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+    <input
+      type="text"
+      placeholder="Search products..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="w-full pl-9 pr-4 py-2 border rounded-md"
+    />
+  </div>
+
+  {/* Updated Department Dropdown */}
+  <div className="relative">
+    <select
+      value={filterDepartment}
+      onChange={handleDepartmentChange}
+      className="w-full pl-3 pr-8 py-2 border rounded-md appearance-none bg-white"
+    >
+      <option value="">All Departments</option>
+      {uniqueDepartments.map(dept => (
+        <option key={dept} value={dept}>{dept}</option>
+      ))}
+    </select>
+    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+  </div>
+
+  {/* NEW Category Dropdown */}
+  <div className="relative">
+    <select
+      value={filterCategory}
+      onChange={(e) => setFilterCategory(e.target.value)}
+      disabled={!filterDepartment} // Optional: Disables dropdown until a department is picked
+      className={`w-full pl-3 pr-8 py-2 border rounded-md appearance-none ${
+        !filterDepartment ? 'bg-gray-100 text-gray-400' : 'bg-white'
+      }`}
+    >
+      <option value="">All Categories</option>
+      {availableCategories.map(cat => (
+        <option key={cat} value={cat}>{cat}</option>
+      ))}
+    </select>
+    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+  </div>
+</div>
           <span className="text-sm text-muted-foreground">
             {filtered.length} product{filtered.length !== 1 ? 's' : ''}
           </span>
