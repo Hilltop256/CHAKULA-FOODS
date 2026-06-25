@@ -82,26 +82,37 @@ export default function DepartmentCards() {
         {departments?.map((dept) => {
           const Icon = dept?.icon;
           return (
-            <Link
-              key={dept?.id}
-              href={dept?.href}
-              className={`${dept?.colorClass} rounded-3xl p-8 text-white card-hover cursor-pointer block relative overflow-hidden min-h-[220px]`}
-            >
-              <div className="absolute top-3 right-3">
-                <span className="text-xs font-semibold bg-white/20 rounded-full px-2 py-0.5 leading-none">
-                  {dept?.badge}
-                </span>
-              </div>
-              <Icon size={42} className="mb-5 opacity-90" />
-              <h3 className="font-bold text-xl leading-tight mb-2">
-              <p className="text-sm opacity-80 leading-relaxed mb-5">{dept?.description}</p>
-              <div className="flex items-center justify-between">
-                {dept?.itemCount > 0 && (
-                  <span className="text-sm opacity-90">{dept?.itemCount} items</span>
-                )}
-                <ArrowRight size={20} className="opacity-70 ml-auto" />
-              </div>
-            </Link>
+<Link
+  key={dept?.id}
+  href={dept?.href}
+  className={`${dept?.colorClass} rounded-3xl p-8 text-white card-hover cursor-pointer block relative overflow-hidden min-h-[220px]`}
+>
+  <div className="absolute top-3 right-3">
+    <span className="text-xs font-semibold bg-white/20 rounded-full px-2 py-0.5 leading-none">
+      {dept?.badge}
+    </span>
+  </div>
+
+  <Icon size={42} className="mb-5 opacity-90" />
+
+  <h3 className="font-bold text-xl leading-tight mb-2">
+    {dept?.name}
+  </h3>
+
+  <p className="text-sm opacity-80 leading-relaxed mb-5">
+    {dept?.description}
+  </p>
+
+  <div className="flex items-center justify-between">
+    {dept?.itemCount > 0 && (
+      <span className="text-sm opacity-90">
+        {dept?.itemCount} items
+      </span>
+    )}
+
+    <ArrowRight size={20} className="opacity-70 ml-auto" />
+  </div>
+</Link>
           );
         })}
       </div>
