@@ -70,14 +70,16 @@ const departments = [
 export default function DepartmentCards() {
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-12">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Our Departments</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Everything you need, from one kitchen
-          </p>
-        </div>
-      </div>
+      <div className="text-center mb-12">
+  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground mb-3">
+    Our Departments
+  </h2>
+
+  <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+    Fresh meals, premium groceries, beverages and subscriptions —
+    all thoughtfully curated in one place.
+  </p>
+</div>
       <div className="grid grid-cols-2 gap-6 max-w-5xl mx-auto">
         {departments?.map((dept) => {
           const Icon = dept?.icon;
