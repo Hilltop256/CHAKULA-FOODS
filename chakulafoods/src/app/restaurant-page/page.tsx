@@ -24,6 +24,10 @@ async function getRestaurantData() {
     .from('restaurant_items') // Matches your schema table for restaurant dishes
     .select('*')
     .eq('available', true);
+  // ADD THESE TWO TEMPORARY DIAGNOSTIC LOGS:
+  console.log("=== CHAKULA DEBUG ===");
+  console.log("Items from DB:", items);
+  console.log("DB Error Object:", itemsError);
 
   if (itemsError) {
     console.error('Error fetching database restaurant items:', itemsError);
