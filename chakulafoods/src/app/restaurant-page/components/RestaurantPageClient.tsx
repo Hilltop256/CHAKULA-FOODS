@@ -7,7 +7,38 @@ import { toast } from 'sonner';
 import ScheduleMealModal from './ScheduleMealModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
-import { RestaurantItem } from '../page';
+
+export interface RestaurantItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  prepTime: string;
+  image: string;
+  tag?: string;
+  available: boolean;
+  description: string;
+}
+
+export interface LastOrderItem {
+  name: string;
+  qty: number;
+  price: number;
+}
+
+export interface LastOrder {
+  id: string;
+  date: string;
+  items: LastOrderItem[];
+  total: number;
+}
+
+interface RestaurantPageClientProps {
+  items: RestaurantItem[];
+  lastOrder: LastOrder | null;
+}
 
 const subCategories = [
   { id: 'sub-all', label: 'All' },
@@ -21,21 +52,7 @@ const subCategories = [
   { id: 'sub-drinks', label: 'Drinks' }
 ];
 
-const lastOrder = {
-  id: 'ord-2831',
-  date: '15 May 2026',
-  items: [
-    { name: 'Chicken Stew & Matooke', qty: 1, price: 18000 },
-    { name: 'Rolex (Chapati & Egg Roll)', qty: 2, price: 13000 }
-  ],
-  total: 31000
-};
-
-interface RestaurantPageClientProps {
-  items: RestaurantItem[];
-}
-
-export default function RestaurantPageClient({ items }: RestaurantPageClientProps) {
+export default function RestaurantPageClient({ items = [], lastOrder }: RestaurantPageClientProps) {
   const [activeCategory, setActiveCategory] = useState('sub-all');
   const [addingId, setAddingId] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -45,13 +62,11 @@ export default function RestaurantPageClient({ items }: RestaurantPageClientProp
   const { addToCart } = useCart();
   const isLoggedIn = !!user;
 
-  const filtered =
-    activeCategory === 'sub-all'
-      ? items
-      : items.filter(
-          (item) =>
-            item.category === subCategories.find((c) => c.id === activeCategory)?.label
-        );
+  const filtered = activeCategory === 'sub-all'
+    ? items
+    : items.filter(
+        (item) => item.category === subCategories.find((c) => c.id === activeCategory)?.label
+      );
 
   const handleRepeatOrder = () => {
     setRepeatLoading(true);
@@ -86,8 +101,8 @@ export default function RestaurantPageClient({ items }: RestaurantPageClientProp
         </p>
       </div>
 
-      {/* Repeat Order MVP section */}
-      {isLoggedIn && (
+      {/* Repeat Order section (Only shows if logged in AND a historical order exists) */}
+      {isLoggedIn && lastOrder && (
         <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -146,95 +161,101 @@ export default function RestaurantPageClient({ items }: RestaurantPageClientProp
       </div>
 
       {/* Items grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-12">
-        {filtered.map((item) => (
-          <div key={item.id} className="card-base overflow-hidden card-hover flex flex-col group">
-            <div className="relative">
-              <AppImage
-                src={item.image}
-                alt={`${item.name} — Chakula Foods restaurant dish`}
-                width={300}
-                height={200}
-                className="w-full h-40 object-cover"
-              />
-              {item.tag && (
-                <span className={`absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  item.tag === 'Best Seller' ? 'bg-secondary text-secondary-foreground' :
-                  item.tag === 'Hot' ? 'bg-amber-500 text-white' :
-                  item.tag === 'Local Fav' ? 'bg-green-600 text-white' :
-                  item.tag === 'Stacked' ? 'bg-purple-600 text-white' :
-                  item.tag === 'Mixed Bowl' ? 'bg-amber-500 text-white' :
-                  item.tag === 'Veggie Bowl' ? 'bg-green-600 text-white' : 'bg-primary/90 text-primary-foreground'
-                }`}>
-                  {item.tag}
-                </span>
-              )}
-              {item.category === 'Bowl Meals' && (
-                <div className="absolute bottom-2 right-2">
-                  <span className="flex items-center gap-1 bg-card/90 text-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
-                    <Calendar size={10} />
-                    Customisable
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          No items found in this category.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-12">
+          {filtered.map((item) => (
+            <div key={item.id} className="card-base overflow-hidden card-hover flex flex-col group">
+              <div className="relative">
+                <AppImage
+                  src={item.image}
+                  alt={`${item.name} — Chakula Foods restaurant dish`}
+                  width={300}
+                  height={200}
+                  className="w-full h-40 object-cover"
+                />
+                {item.tag && (
+                  <span className={`absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    item.tag === 'Best Seller' ? 'bg-secondary text-secondary-foreground' :
+                    item.tag === 'Hot' ? 'bg-amber-500 text-white' :
+                    item.tag === 'Local Fav' ? 'bg-green-600 text-white' :
+                    item.tag === 'Stacked' ? 'bg-purple-600 text-white' :
+                    item.tag === 'Mixed Bowl' ? 'bg-amber-500 text-white' :
+                    item.tag === 'Veggie Bowl' ? 'bg-green-600 text-white' : 'bg-primary/90 text-primary-foreground'
+                  }`}>
+                    {item.tag}
+                  </span>
+                )}
+                {item.category === 'Bowl Meals' && (
+                  <div className="absolute bottom-2 right-2">
+                    <span className="flex items-center gap-1 bg-card/90 text-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <Calendar size={10} />
+                      Customisable
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-bold text-sm text-foreground leading-tight mb-1 line-clamp-2">
+                  {item.name}
+                </h3>
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                  {item.description}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                  <span className="flex items-center gap-0.5">
+                    <Star size={11} className="text-secondary fill-secondary" />
+                    {item.rating}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <Clock size={11} />
+                    {item.prepTime}
                   </span>
                 </div>
-              )}
-            </div>
-            <div className="p-4 flex flex-col flex-1">
-              <h3 className="font-bold text-sm text-foreground leading-tight mb-1 line-clamp-2">
-                {item.name}
-              </h3>
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
-                {item.description}
-              </p>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                <span className="flex items-center gap-0.5">
-                  <Star size={11} className="text-secondary fill-secondary" />
-                  {item.rating}
-                </span>
-                <span className="flex items-center gap-0.5">
-                  <Clock size={11} />
-                  {item.prepTime}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 mb-3 mt-auto">
-                <span className="font-extrabold text-primary tabular-nums text-sm">
-                  UGX {item.price.toLocaleString()}
-                </span>
-                {item.originalPrice && (
-                  <span className="text-xs text-muted-foreground line-through tabular-nums">
-                    {item.originalPrice.toLocaleString()}
+                <div className="flex items-center gap-1.5 mb-3 mt-auto">
+                  <span className="font-extrabold text-primary tabular-nums text-sm">
+                    UGX {item.price.toLocaleString()}
                   </span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {item.category === 'Bowl Meals' && (
-                  <button
-                    onClick={() => { setScheduleItem(item); setScheduleOpen(true); }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 text-xs font-semibold transition-all duration-150"
-                    title="Schedule this order"
-                  >
-                    <Calendar size={13} className="text-muted-foreground" />
-                    Schedule
-                  </button>
-                )}
-                <button
-                  onClick={() => handleAddToCart(item)}
-                  disabled={addingId === item.id}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-70"
-                >
-                  {addingId === item.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={13} />
-                      Add to Cart
-                    </>
+                  {item.originalPrice && (
+                    <span className="text-xs text-muted-foreground line-through tabular-nums">
+                      {item.originalPrice.toLocaleString()}
+                    </span>
                   )}
-                </button>
+                </div>
+                <div className="flex gap-2">
+                  {item.category === 'Bowl Meals' && (
+                    <button
+                      onClick={() => { setScheduleItem(item); setScheduleOpen(true); }}
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 text-xs font-semibold transition-all duration-150"
+                      title="Schedule this order"
+                    >
+                      <Calendar size={13} className="text-muted-foreground" />
+                      Schedule
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleAddToCart(item)}
+                    disabled={addingId === item.id}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-70"
+                  >
+                    {addingId === item.id ? (
+                      <span className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Plus size={13} />
+                        Add to Cart
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {scheduleOpen && scheduleItem && (
         <ScheduleMealModal
