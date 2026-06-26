@@ -6,8 +6,13 @@ import TopNav from '@/components/TopNav';
 import RestaurantPageClient from './RestaurantPageClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { RestaurantItem } from '../page';
 
-export default function RestaurantPageWrapper() {
+interface RestaurantPageWrapperProps {
+  initialItems: RestaurantItem[];
+}
+
+export default function RestaurantPageWrapper({ initialItems }: RestaurantPageWrapperProps) {
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
 
@@ -34,7 +39,7 @@ export default function RestaurantPageWrapper() {
         userRole={userRole}
         onSignOut={handleSignOut}
       />
-      <RestaurantPageClient />
+      <RestaurantPageClient items={initialItems} />
     </div>
   );
 }
