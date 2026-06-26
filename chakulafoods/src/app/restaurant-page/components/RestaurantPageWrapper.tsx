@@ -3,16 +3,16 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import TopNav from '@/components/TopNav';
-import RestaurantPageClient from './RestaurantPageClient';
+import RestaurantPageClient, { RestaurantItem, LastOrder } from './RestaurantPageClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { RestaurantItem } from '../page';
 
 interface RestaurantPageWrapperProps {
-  initialItems: RestaurantItem[];
+  items: RestaurantItem[];
+  lastOrder: LastOrder | null;
 }
 
-export default function RestaurantPageWrapper({ initialItems }: RestaurantPageWrapperProps) {
+export default function RestaurantPageWrapper({ items, lastOrder }: RestaurantPageWrapperProps) {
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
 
@@ -39,7 +39,7 @@ export default function RestaurantPageWrapper({ initialItems }: RestaurantPageWr
         userRole={userRole}
         onSignOut={handleSignOut}
       />
-      <RestaurantPageClient items={initialItems} />
+      <RestaurantPageClient items={items} lastOrder={lastOrder} />
     </div>
   );
 }
