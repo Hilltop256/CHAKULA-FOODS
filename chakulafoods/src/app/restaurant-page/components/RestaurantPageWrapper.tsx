@@ -7,12 +7,7 @@ import RestaurantPageClient from './RestaurantPageClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-// 1. Define the props we expect to receive from page.tsx
-interface RestaurantPageWrapperProps {
-  products: any[]; // Using any[] here, or you can import RestaurantItem from your client file
-}
-
-export default function RestaurantPageWrapper({ products }: RestaurantPageWrapperProps) {
+export default function RestaurantPageWrapper() {
   const { user, profile, signOut } = useAuth();
   const router = useRouter();
 
@@ -39,8 +34,7 @@ export default function RestaurantPageWrapper({ products }: RestaurantPageWrappe
         userRole={userRole}
         onSignOut={handleSignOut}
       />
-      {/* 2. Pass the products prop down to the Client Component */}
-      <RestaurantPageClient products={products} />
+      <RestaurantPageClient />
     </div>
   );
 }
