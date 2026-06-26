@@ -1,34 +1,39 @@
 import React from 'react';
-import { createClient } from '@/utils/supabase/server'; // Adjust this path based on your Supabase initialization helper
 import RestaurantPageWrapper from '@/app/restaurant-page/components/RestaurantPageWrapper';
+// Import your Supabase server client or database utility here
+// import { createClient } from '@/utils/supabase/server';
 
-// Define the type matching your DB schema
-export interface RestaurantItem {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  originalPrice?: number | null;
-  rating: number;
-  prepTime: string;
-  image: string;
-  tag: string;
-  available: boolean;
-  description: string;
+async function getRestaurantData() {
+  try {
+    // Example Supabase fetching logic:
+    // const supabase = await createClient();
+    // 
+    // Fetch active menu items
+    // const { data: items } = await supabase
+    //   .from('restaurant_items')
+    //   .select('*')
+    //   .eq('available', true);
+    //
+    // Fetch user's last order if authenticated
+    // const { data: lastOrder } = await supabase
+    //   .from('orders')
+    //   .select('id, created_at, order_items(name, quantity, price), total_price')
+    //   .order('created_at', { ascending: false })
+    //   .limit(1)
+    //   .single();
+
+    return {
+      items: [], // Replace with your fetched items array
+      lastOrder: null // Replace with your fetched last order object or null
+    };
+  } catch (error) {
+    console.error('Error loading restaurant data:', error);
+    return { items: [], lastOrder: null };
+  }
 }
 
 export default async function RestaurantPage() {
-  const supabase = createClient();
-  
-  // Fetching live items from the database table
-  const { data: databaseItems, error } = await supabase
-    .from('restaurant_items') // Your database table name
-    .select('*')
-    .eq('available', true);
+  const { items, lastOrder } = await getRestaurantData();
 
-  if (error) {
-    console.error('Error fetching restaurant items:', error);
-  }
-
-  return <RestaurantPageWrapper initialItems={databaseItems || []} />;
+  return <RestaurantPageWrapper items={items} lastOrder={lastOrder} />;
 }
