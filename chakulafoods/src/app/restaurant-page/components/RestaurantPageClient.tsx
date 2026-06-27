@@ -38,14 +38,34 @@ useEffect(() => {
 }, []);
 
 const loadProducts = async () => {
+  console.log('SUPABASE DATA:', data);
+  console.log('ERROR:', error);
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('department', 'Restaurant')
-    .eq('is_active', true);
+    .eq('available', true);
 
-  if (!error && data) {
-    setProducts(data);
+  if (error) {
+    console.error('Supabase error:', error.message);
+    return;
+  }
+
+  if (data) {
+    const mapped = data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      image: p.image_url,
+      price: p.price,
+      rating: Number(p.rating),
+      prepTime: p.prep_time,
+      category: p.category,
+      tag: p.tag,
+      originalPrice: p.original_price
+    }));
+
+    setProducts(mapped);
   }
 };
 
@@ -78,10 +98,14 @@ const loadProducts = async () => {
   const filtered =
   activeCategory === 'sub-all'
     ? products
-    : products.filter(
-        (item) =>
-          item.category ===
-          subCategories.find((c) => c.id === activeCategory)?.label
+    : products.filter((item) =>
+        item.category
+          ?.toLowerCase()
+          .includes(
+            subCategories
+              .find((c) => c.id === activeCategory)
+              ?.label.toLowerCase() || ''
+          )
       );
 
   const handleRepeatOrder = () => {
