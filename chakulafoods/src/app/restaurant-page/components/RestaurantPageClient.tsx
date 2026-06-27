@@ -38,13 +38,14 @@ useEffect(() => {
 }, []);
 
 const loadProducts = async () => {
-  console.log('SUPABASE DATA:', data);
-  console.log('ERROR:', error);
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('department', 'Restaurant')
     .eq('available', true);
+
+  console.log('SUPABASE DATA:', data);
+  console.log('ERROR:', error);
 
   if (error) {
     console.error('Supabase error:', error.message);
