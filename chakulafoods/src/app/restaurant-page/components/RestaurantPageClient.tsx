@@ -9,22 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
 
-const supabase = createClient();
-useEffect(() => {
-  loadProducts();
-}, []);
-
-const loadProducts = async () => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('department', 'Restaurant')
-    .eq('is_active', true);
-
-  if (!error && data) {
-    setProducts(data);
-  }
-};
 
 const subCategories = [
 { id: 'sub-all', label: 'All' },
@@ -48,6 +32,23 @@ const lastOrder = {
 };
 
 export default function RestaurantPageClient() {
+const supabase = createClient();
+useEffect(() => {
+  loadProducts();
+}, []);
+
+const loadProducts = async () => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('department', 'Restaurant')
+    .eq('is_active', true);
+
+  if (!error && data) {
+    setProducts(data);
+  }
+};
+
   const [activeCategory, setActiveCategory] = useState('sub-all');
   const [products, setProducts] = useState<RestaurantProduct[]>([]);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -64,6 +65,7 @@ export default function RestaurantPageClient() {
   tag?: string;
   originalPrice?: number;
 }
+  
 
   const [scheduleItem, setScheduleItem] =
   useState<RestaurantProduct | null>(null);
