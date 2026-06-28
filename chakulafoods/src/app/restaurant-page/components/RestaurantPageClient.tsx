@@ -24,7 +24,7 @@ const subCategories = [
 const categoryMap: Record<string, string[]> = {
   "sub-all": [],
   'sub-shawarma': [
-    'Shawarma',
+    'Shawarma/Wraps/Rolex/Burgers',
     'Wraps',
     'Rolex',
     'Burger',
