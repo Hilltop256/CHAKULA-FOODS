@@ -9,6 +9,67 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
 
+
+const subCategories = [
+{ id: 'sub-all', label: 'All' },
+{ id: 'sub-shawarma', label: 'Shawarma / Wraps / Rolex / Burgers' },
+{ id: 'sub-bowls', label: 'Bowl Meals' },
+{ id: 'sub-pizza', label: 'Pizza' },
+{ id: 'sub-roasts', label: 'Roasts & Grills' },
+{ id: 'sub-specials', label: 'Specials & Toppings' },
+{ id: 'sub-bakery', label: 'Bakery & Breakfast' },
+{ id: 'sub-platters', label: 'Party & Group Platters' },
+{ id: 'sub-drinks', label: 'Drinks' }];
+
+const categoryMap: Record<string, string[]> = {
+  'sub-shawarma': [
+    'Shawarma',
+    'Wraps',
+    'Rolex',
+    'Burger',
+    'Burgers'
+  ],
+
+  'sub-bowls': [
+    'Meals',
+    'Rice Meals',
+    'Bowl Meals'
+  ],
+
+  'sub-pizza': [
+    'Pizza'
+  ],
+
+  'sub-roasts': [
+    'Roasts',
+    'Grills',
+    'BBQ'
+  ],
+
+  'sub-specials': [
+    'Specials',
+    'Toppings'
+  ],
+
+  'sub-bakery': [
+    'Bakery',
+    'Breakfast'
+  ],
+
+  'sub-platters': [
+    'Party Platters',
+    'Group Platters',
+    'Meal Plans'
+  ],
+
+  'sub-drinks': [
+    'Drinks',
+    'Beverages',
+    'Juice',
+    'Soda'
+  ]
+};
+
 const lastOrder = {
   id: 'ord-2831',
   date: '15 May 2026',
@@ -84,18 +145,19 @@ const loadProducts = async () => {
   const { addToCart } = useCart();
   const isLoggedIn = !!user;
 
-  const filtered =
-  activeCategory === 'sub-all'
-    ? products
-    : products.filter((item) =>
-        item.category
-          ?.toLowerCase()
-          .includes(
-            subCategories
-              .find((c) => c.id === activeCategory)
-              ?.label.toLowerCase() || ''
-          )
-      );
+const filteredProducts = React.useMemo(() => {
+  if (activeCategory === 'sub-all') {
+    return products;
+  }
+
+  const allowedCategories = categoryMap[activeCategory] || [];
+
+  return products.filter(product =>
+    allowedCategories.some(category =>
+      product.category?.trim().toLowerCase() === category.toLowerCase()
+    )
+  );
+}, [products, activeCategory]);
 
   const handleRepeatOrder = () => {
     setRepeatLoading(true);
