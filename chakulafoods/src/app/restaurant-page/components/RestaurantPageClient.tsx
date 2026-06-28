@@ -33,8 +33,7 @@ const categoryMap: Record<string, string[]> = {
 
   'sub-bowls': [
     'Meals',
-    'Rice Meals',
-    'Bowl Meals'
+    'BowlMeals'
   ],
 
   'sub-pizza': [
@@ -42,25 +41,28 @@ const categoryMap: Record<string, string[]> = {
   ],
 
   'sub-roasts': [
-    'Roasts',
-    'Grills',
+    'Roasts & Grills',
+    'Roasts&Grills',
     'BBQ'
   ],
 
   'sub-specials': [
-    'Specials',
-    'Toppings'
+    'Specials & Toppings',
+    'Specials&Toppings'
   ],
 
   'sub-bakery': [
     'Bakery',
-    'Breakfast'
+    'Breakfast',
+    'Bakery & Breakfast',
+    'Bakery&Breakfast'
   ],
 
   'sub-platters': [
     'Party Platters',
     'Group Platters',
-    'Meal Plans'
+    'Meal Plans',
+    'Party & Group Platters'    
   ],
 
   'sub-drinks': [
