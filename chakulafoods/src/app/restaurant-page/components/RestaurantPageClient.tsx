@@ -33,7 +33,7 @@ const categoryMap: Record<string, string[]> = {
 
   'sub-bowls': [
     'Meals',
-    'BowlMeals'
+    'Bowl Meals'
   ],
 
   'sub-pizza': [
