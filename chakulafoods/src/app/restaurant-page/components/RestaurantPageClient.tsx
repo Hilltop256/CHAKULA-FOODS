@@ -22,6 +22,7 @@ const subCategories = [
 { id: 'sub-drinks', label: 'Drinks' }];
 
 const categoryMap: Record<string, string[]> = {
+  "sub-all": [],
   'sub-shawarma': [
     'Shawarma',
     'Wraps',
@@ -150,7 +151,8 @@ const filteredProducts = React.useMemo(() => {
     return products;
   }
 
-  const allowedCategories = categoryMap[activeCategory] || [];
+const allowedCategories =
+  categoryMap[activeCategory as keyof typeof categoryMap] ?? [];
 
   return products.filter(product =>
     allowedCategories.some(category =>
@@ -250,7 +252,7 @@ const filteredProducts = React.useMemo(() => {
 
       {/* Items grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-12">
-        {filtered.map((item) =>
+        {filteredProducts.map((item) =>
         <div key={item.id} className="card-base overflow-hidden card-hover flex flex-col group">
             <div className="relative">
               <AppImage
