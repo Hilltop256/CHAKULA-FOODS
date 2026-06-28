@@ -9,18 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
 
-
-const subCategories = [
-{ id: 'sub-all', label: 'All' },
-{ id: 'sub-shawarma', label: 'Shawarma / Wraps / Rolex / Burgers' },
-{ id: 'sub-bowls', label: 'Bowl Meals' },
-{ id: 'sub-pizza', label: 'Pizza' },
-{ id: 'sub-roasts', label: 'Roasts & Grills' },
-{ id: 'sub-specials', label: 'Specials & Toppings' },
-{ id: 'sub-bakery', label: 'Bakery & Breakfast' },
-{ id: 'sub-platters', label: 'Party & Group Platters' },
-{ id: 'sub-drinks', label: 'Drinks' }];
-
 const lastOrder = {
   id: 'ord-2831',
   date: '15 May 2026',
