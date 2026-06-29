@@ -22,30 +22,6 @@ interface RestaurantProduct {
   originalPrice?: number;
 }
 
-const subCategories = [
-  { id: 'sub-all', label: 'All' },
-  { id: 'sub-shawarma', label: 'Shawarma / Wraps / Rolex / Burgers' },
-  { id: 'sub-bowls', label: 'Bowl Meals' },
-  { id: 'sub-pizza', label: 'Pizza' },
-  { id: 'sub-roasts', label: 'Roasts & Grills' },
-  { id: 'sub-specials', label: 'Specials & Toppings' },
-  { id: 'sub-bakery', label: 'Bakery & Breakfast' },
-  { id: 'sub-platters', label: 'Party & Group Platters' },
-  { id: 'sub-drinks', label: 'Drinks' }
-];
-
-const categoryMap: Record<string, string[]> = {
-  'sub-all': [],
-  'sub-shawarma': ['Shawarma/Wraps/Rolex/Burgers', 'Wraps', 'Rolex', 'Burger', 'Burgers'],
-  'sub-bowls': ['Meals', 'Bowl Meals'],
-  'sub-pizza': ['Pizza'],
-  'sub-roasts': ['Roasts & Grills', 'Roasts&Grills', 'BBQ'],
-  'sub-specials': ['Specials & Toppings', 'Specials&Toppings'],
-  'sub-bakery': ['Bakery', 'Breakfast', 'Bakery & Breakfast', 'Bakery&Breakfast'],
-  'sub-platters': ['Party Platters', 'Group Platters', 'Meal Plans', 'Party & Group Platters'],
-  'sub-drinks': ['Drinks', 'Beverages', 'Juice', 'Soda']
-};
-
 const lastOrder = {
   id: 'ord-2831',
   date: '15 May 2026',
@@ -60,7 +36,7 @@ export default function RestaurantPageClient() {
   const [products, setProducts] = useState<RestaurantProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState('sub-all');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [addingId, setAddingId] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -93,7 +69,7 @@ export default function RestaurantPageClient() {
             price: p.price,
             rating: Number(p.rating || 0),
             prepTime: p.prep_time || '15-25 mins',
-            category: p.category || '',
+            category: p.category || 'Uncategorized',
             tag: p.tag,
             originalPrice: p.original_price
           }));
@@ -111,16 +87,15 @@ export default function RestaurantPageClient() {
     loadProducts();
   }, [supabase]);
 
-  // Combined real-time search & subcategory filter matching Juice Bar specification
+  // Dynamically extract distinct categories from the fetched database data
+  const categories = useMemo(() => {
+    return ['All', ...Array.from(new Set(products.map((p) => p.category).filter(Boolean)))];
+  }, [products]);
+
+  // Combined real-time search & fully dynamic subcategory filter 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const allowedCategories = categoryMap[activeCategory] ?? [];
-      const matchesCategory =
-        activeCategory === 'sub-all' ||
-        allowedCategories.some(
-          (cat) => product.category?.trim().toLowerCase() === cat.toLowerCase()
-        );
-
+      const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
       const matchesSearch =
         !searchQuery ||
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -150,7 +125,6 @@ export default function RestaurantPageClient() {
     setTimeout(() => setAddingId(null), 600);
   };
 
-  // Loading State Skeleton
   if (loading) {
     return (
       <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-8">
@@ -177,7 +151,6 @@ export default function RestaurantPageClient() {
     );
   }
 
-  // Error State Interface
   if (error) {
     return (
       <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-8">
@@ -257,7 +230,7 @@ export default function RestaurantPageClient() {
         </div>
       )}
 
-      {/* Search & Category Filter Controls */}
+      {/* Search & Dynamic Category Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -270,17 +243,17 @@ export default function RestaurantPageClient() {
           />
         </div>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {subCategories.map((cat) => (
+          {categories.map((cat) => (
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              key={`cat-${cat}`}
+              onClick={() => setActiveCategory(cat)}
               className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-150 ${
-                activeCategory === cat.id
+                activeCategory === cat
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
               }`}
             >
-              {cat.label}
+              {cat}
             </button>
           ))}
         </div>
@@ -325,7 +298,7 @@ export default function RestaurantPageClient() {
                   {item.tag}
                 </span>
               )}
-              {item.category === 'Bowl Meals' && (
+              {(item.category === 'Bowl Meals' || item.category === 'Meals') && (
                 <div className="absolute bottom-2 right-2">
                   <span className="flex items-center gap-1 bg-card/90 text-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
                     <Calendar size={10} />
@@ -362,7 +335,7 @@ export default function RestaurantPageClient() {
                 )}
               </div>
               <div className="flex gap-2">
-                {item.category === 'Bowl Meals' && (
+                {(item.category === 'Bowl Meals' || item.category === 'Meals') && (
                   <button
                     onClick={() => {
                       setScheduleItem(item);
