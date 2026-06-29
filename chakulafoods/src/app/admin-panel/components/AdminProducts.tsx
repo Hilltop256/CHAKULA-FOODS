@@ -53,7 +53,7 @@ export default function AdminProducts() {
   const departments = ['all', 'Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
 
   const DEPARTMENT_CATEGORIES: Record<string, string[]> = {
-    'Restaurant': ['Meals', 'Shawarma/Wraps/Rolex/Burgers', 'Bowl Meals', 'Pizza', 'Roasts & Grills', 'Specials & Toppings', 'Bakery & Breakfast', 'Party & Group Platters', 'Drinks'],
+    'Restaurant': ['Breakfast', 'Meals', 'Shawarma/Wraps/Rolex/Burgers', 'Bowl Meals', 'Pizza', 'Roasts & Grills', 'Specials & Toppings', 'Bakery', 'Party & Group Platters', 'Drinks'],
     'Confectionary': ['Cakes', 'Pastries', 'Birthday Packages', 'Chocolates & Sweets', 'Cookies', 'Bread & Buns', 'Desserts'],
     'Juice Bar': ['Fresh Juices', 'Smoothies', 'Milkshakes', 'Blended Drinks', 'Cold Pressed'],
     'Wine & Liquor': ['Red Wine', 'White Wine', 'Rosé Wine', 'Spirits', 'Beer & Cider', 'Champagne & Sparkling'],
