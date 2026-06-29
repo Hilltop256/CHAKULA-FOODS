@@ -1,54 +1,99 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Calendar, Star, Clock, Gift, Repeat, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Clock, Search, Plus } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
-
+import { createClient } from '@/lib/supabase/client';
 import ScheduleConfectionaryModal from './ScheduleConfectionaryModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 
-const subCategories = [
-{ id: 'conf-all', label: 'All' },
-{ id: 'conf-cakes', label: 'Cakes' },
-{ id: 'conf-birthday', label: 'Birthday Packages' },
-{ id: 'conf-pastries', label: 'Pastries' },
-{ id: 'conf-dessert', label: 'Dessert Boxes' }];
-
-const confectionaryItems = [
-{ id: 'conf-001', name: 'Classic Vanilla Birthday Cake (1kg)', category: 'Cakes', price: 65000, rating: 4.9, leadTime: '24h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_16105badc-1772206992144.png", tag: 'Bestseller', schedulable: true, description: 'Light vanilla sponge with buttercream frosting, custom message included' },
-{ id: 'conf-002', name: 'Chocolate Fudge Cake (1.5kg)', category: 'Cakes', price: 85000, rating: 4.8, leadTime: '24h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_15321a258-1772464596437.png", tag: 'Rich & Dark', schedulable: true, description: 'Triple-layer chocolate fudge cake with ganache drip, serves 10–12' },
-{ id: 'conf-003', name: 'Red Velvet Cake (1kg)', category: 'Cakes', price: 72000, rating: 4.7, leadTime: '24h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_11b4e1d9f-1772985545370.png", tag: 'Popular', schedulable: true, description: 'Vibrant red velvet layers with cream cheese frosting, custom decorations' },
-{ id: 'conf-004', name: 'Birthday Deluxe Package', category: 'Birthday Packages', price: 185000, rating: 5.0, leadTime: '48h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1935e7062-1779095230262.png", tag: 'Complete Package', schedulable: true, description: '2kg cake + 12 cupcakes + 20 cake pops + personalized decoration & candles' },
-{ id: 'conf-005', name: 'Kids Birthday Package', category: 'Birthday Packages', price: 120000, rating: 4.9, leadTime: '36h notice', image: "https://images.unsplash.com/photo-1624027390997-d4dc600fa432", tag: 'Kids Fav', schedulable: true, description: '1kg themed cake + 10 cupcakes + party favors + balloon set' },
-{ id: 'conf-006', name: 'Corporate Event Package', category: 'Birthday Packages', price: 350000, rating: 4.8, leadTime: '72h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1935e7062-1779095230262.png", tag: 'Corporate', schedulable: true, description: '3kg cake + 50 mini pastries + branded packaging for events of 30+ people' },
-{ id: 'conf-007', name: 'Cinnamon Croissants (6 pack)', category: 'Pastries', price: 22000, rating: 4.6, leadTime: '3h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1a0f08120-1772413576166.png", tag: 'Fresh Baked', schedulable: false, description: 'Flaky, buttery croissants with cinnamon filling, baked fresh daily' },
-{ id: 'conf-008', name: 'Assorted Pastry Box (12 pcs)', category: 'Pastries', price: 45000, rating: 4.7, leadTime: '4h notice', image: "https://images.unsplash.com/photo-1733108948784-a4fecc17b8b7", tag: 'Variety Pack', schedulable: true, description: 'Mix of croissants, pain au chocolat, danish pastries and cinnamon rolls' },
-{ id: 'conf-009', name: 'Red Velvet Cupcakes (6 pack)', category: 'Pastries', price: 32000, rating: 4.8, leadTime: '3h notice', image: "https://images.unsplash.com/photo-1614707267785-109d783758ea", tag: 'Popular', schedulable: false, description: 'Moist red velvet cupcakes topped with cream cheese frosting' },
-{ id: 'conf-010', name: 'Chocolate Brownie Dessert Box', category: 'Dessert Boxes', price: 28000, rating: 4.7, leadTime: '2h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_19229641b-1779095229526.png", tag: 'Indulgent', schedulable: true, description: 'Box of 9 fudgy brownies — plain, walnut, and caramel swirl' },
-{ id: 'conf-011', name: 'Luxury Dessert Box (Mixed)', category: 'Dessert Boxes', price: 55000, rating: 4.9, leadTime: '4h notice', image: "https://img.rocket.new/generatedImages/rocket_gen_img_1dfb448d2-1772288683051.png", tag: 'Gift Ready', schedulable: true, description: 'Macarons, chocolate truffles, mini tarts and brownies — perfect gift' },
-{ id: 'conf-012', name: 'Weekly Dessert Pack Subscription', category: 'Dessert Boxes', price: 95000, rating: 4.8, leadTime: 'Weekly', image: "https://img.rocket.new/generatedImages/rocket_gen_img_100547903-1772211482970.png", tag: 'Subscribe & Save', schedulable: true, description: 'Fresh dessert box every week — curated selection, 10% off vs individual orders' }];
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  department: string;
+  category: string;
+  price: number;
+  original_price: number | null;
+  image_url: string | null;
+  tag: string |null;
+  rating: number | null;
+  prep_time: string | null;
+  available: boolean;
+  featured: boolean;
+  orders_count: number;
+}
 
 //  FIXED HOOKS SECTION:
 export default function ConfectionaryPageClient() {
-  const [activeCategory, setActiveCategory] = useState('conf-all'); // Restored
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [scheduleItem, setScheduleItem] = useState<typeof confectionaryItems[0] | null>(null); // Clean single declaration
-  const [addingId, setAddingId] = useState<string | null>(null);
-  const { user } = useAuth();
-  const { addToCart } = useCart();
-  const isLoggedIn = !!user;
 
-  const filtered =
-  activeCategory === 'conf-all' ?
-  confectionaryItems :
-  confectionaryItems?.filter(
-    (item) =>
-    item?.category ===
-    subCategories?.find((c) => c?.id === activeCategory)?.label
-  );
+const [products, setProducts] = useState<Product[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+const [activeCategory, setActiveCategory] = useState('All');
+const [searchQuery, setSearchQuery] = useState('');
+const [scheduleOpen, setScheduleOpen] = useState(false);
+const [scheduleItem, setScheduleItem] = useState<Product | null>(null);
+const { user } = useAuth();
+const { addToCart } = useCart();
+const [addingId, setAddingId] = useState<string | null>(null);
+const [scheduleItem, setScheduleItem] = useState<Product | null>(null);
 
-  const handleAddToCart = (item: typeof confectionaryItems[0]) => {
+  useEffect(() => {
+  async function fetchProducts() {
+    try {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('department', 'Confectionary')
+        .order('featured', { ascending: false })
+        .order('orders_count', { ascending: false });
+
+      if (error) throw error;
+
+      setProducts(data || []);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to load products'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  fetchProducts();
+}, []);
+  
+  // Build category list from the database
+const categories = [
+  'All',
+  ...Array.from(
+    new Set(products.map((p) => p.category).filter(Boolean))
+  ),
+];
+
+// Filter products
+const filteredProducts = products.filter((product) => {
+  const matchesCategory =
+    activeCategory === 'All' ||
+    product.category === activeCategory;
+
+  const matchesSearch =
+    searchQuery === '' ||
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (product.description ?? '')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+  return matchesCategory && matchesSearch;
+});
+
+  const handleAddToCart = (item: Product) => {
     setAddingId(item.id);
     addToCart({
       id: item.id,
@@ -114,18 +159,19 @@ export default function ConfectionaryPageClient() {
       </div>
       {/* Sub-category tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
-        {subCategories?.map((cat) =>
-        <button
-          key={cat?.id}
-          onClick={() => setActiveCategory(cat?.id)}
-          className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-150 ${
-          activeCategory === cat?.id ?
-          'bg-secondary text-secondary-foreground' :
-          'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'}`
-          }>
-            {cat?.label}
-          </button>
-        )}
+ {categories.map((category) => (
+  <button
+    key={category}
+    onClick={() => setActiveCategory(category)}
+    className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-150 ${
+      activeCategory === category
+        ? 'bg-secondary text-secondary-foreground'
+        : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+    }`}
+  >
+    {category}
+  </button>
+))}
       </div>
       {/* Notice */}
       <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
