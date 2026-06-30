@@ -56,7 +56,7 @@ export default function AdminProducts() {
     'Restaurant': ['Breakfast', 'Meals', 'Wraps', 'Bowl Meals', 'Pizza', 'Roasts & Grills', 'Specials & Toppings', 'Bakery', 'Party & Group Platters', 'Drinks'],
     'Confectionary': ['Cakes', 'Pastries', 'Birthday Packages', 'Chocolates & Sweets', 'Cookies', 'Bread & Buns', 'Desserts'],
     'Juice Bar': ['Fresh Juices', 'Smoothies', 'Milkshakes', 'Blended Drinks', 'Cold Pressed'],
-    'Wine & Liquor': ['Whiskey', 'Red Wine', 'White Wine', 'Rosé Wine', 'Spirits', 'Beer & Cider', 'Champagne & Sparkling'],
+    'Wine & Liquor': ['Whiskey', 'Red Wine', 'White Wine', 'Rosé Wine', 'Spirits', 'Beer & Cider', 'Champagne'],
     'Market Specials': ['Fresh Produce', 'Dairy & Eggs', 'Meat & Poultry', 'Pantry Staples', 'Snacks', 'Beverages'],
   };
 
