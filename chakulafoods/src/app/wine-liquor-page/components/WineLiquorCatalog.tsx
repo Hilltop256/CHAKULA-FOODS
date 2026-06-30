@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Star, Search, Plus, Wine, Clock } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 
@@ -25,22 +24,14 @@ interface Product {
   orders_count: number;
 }
 
-const subCategories = [
-  { id: 'wl-all', label: 'All' },
-  { id: 'wl-wines', label: 'Wines' },
-  { id: 'wl-whiskey', label: 'Whiskey' },
-  { id: 'wl-champagne', label: 'Champagne' },
-  { id: 'wl-bundles', label: 'Party Bundles' }
-];
-
 export default function WineLiquorCatalog() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [addingId, setAddingId] = useState<string | null>(null);
-  const { user } = useAuth();
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -48,13 +39,24 @@ export default function WineLiquorCatalog() {
       try {
         setLoading(true);
         const supabase = createClient();
+        
+        // Fetch products only belonging to the Wine & Liquor department
         const { data, error: fetchError } = await supabase
           .from('products')
           .select('*')
           .eq('department', 'Wine & Liquor');
 
         if (fetchError) throw fetchError;
-        setProducts(data || []);
+
+        const fetchedProducts = data || [];
+        setProducts(fetchedProducts);
+
+        // Dynamically extract unique categories present in the fetched database items
+        const uniqueCategories = [
+          'All',
+          ...Array.from(new Set(fetchedProducts.map((p) => p.category).filter(Boolean)))
+        ];
+        setCategories(uniqueCategories);
       } catch (err: any) {
         setError(err.message || 'Failed to load products');
       } finally {
@@ -83,7 +85,7 @@ export default function WineLiquorCatalog() {
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory = activeCategory === 'All' || product.category.toLowerCase() === activeCategory.toLowerCase();
+    const matchesCategory = activeCategory === 'All' || product.category?.toLowerCase() === activeCategory.toLowerCase();
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
@@ -103,19 +105,19 @@ export default function WineLiquorCatalog() {
         />
       </div>
 
-      {/* Categories Tabs */}
+      {/* Dynamic Categories Tabs derived from DB data */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
-        {subCategories.map((cat) => (
+        {categories.map((category) => (
           <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.label)}
-            className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              activeCategory === cat.label
+            key={category}
+            onClick={() => setActiveCategory(category)}
+            className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors capitalize ${
+              activeCategory === category
                 ? 'bg-accent text-accent-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
-            {cat.label}
+            {category}
           </button>
         ))}
       </div>
@@ -128,7 +130,7 @@ export default function WineLiquorCatalog() {
       ) : error ? (
         <div className="text-center text-destructive py-8">{error}</div>
       ) : filteredProducts.length === 0 ? (
-        <div className="text-center text-muted-foreground py-12">No products found in this category.</div>
+        <div className="text-center text-muted-foreground py-12">No products found in this selection.</div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
           {filteredProducts.map((product) => (
