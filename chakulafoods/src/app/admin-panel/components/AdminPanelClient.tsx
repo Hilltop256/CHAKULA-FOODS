@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingBag, Users, Store, ChevronLeft, ChevronRight, LogOut, Bell, Search, Tag } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Store, ChevronLeft, ChevronRight, LogOut, Bell, Search, Tag, Layers } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
 import AdminOverview from './AdminOverview';
 import AdminProducts from './AdminProducts';
@@ -10,6 +10,7 @@ import AdminOrders from './AdminOrders';
 import AdminUsers from './AdminUsers';
 import AdminMarketSpecials from './AdminMarketSpecials';
 import AdminOrderDispatch from './AdminOrderDispatch';
+import AdminCategories from './AdminCategories';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -18,6 +19,7 @@ const navItems = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'products', label: 'Products', icon: Package, badge: 0 },
   { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: 7 },
+  { id: 'categories', label: 'Categories', icon: Layers, badge: 0 },
   { id: 'users', label: 'Users', icon: Users, badge: 0 },
   { id: 'departments', label: 'Departments', icon: Store, badge: 0 },
   { id: 'market-specials', label: 'Market Specials', icon: Tag, badge: 0 },
@@ -47,6 +49,7 @@ export default function AdminPanelClient() {
           onBack={() => { setDispatchOrderId(null); setActiveSection('orders'); }}
         />
       );
+      case 'categories': return <AdminCategories />;
       case 'users': return <AdminUsers />;
       case 'market-specials': return <AdminMarketSpecials />;
       default: return <AdminOverview />;
@@ -56,6 +59,7 @@ export default function AdminPanelClient() {
   const getSectionTitle = () => {
     switch (activeSection) {
       case 'overview': return 'Dashboard Overview';
+      case 'categories': return 'Categories';
       case 'market-specials': return 'Market Specials';
       case 'orders': return 'Orders';
       case 'order-dispatch': return 'Order Dispatch';
