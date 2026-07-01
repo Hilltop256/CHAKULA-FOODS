@@ -22,7 +22,9 @@ const navTabs = [
   { label: 'Confectionary', href: '/confectionary-page' },
   { label: 'Juice Bar', href: '/juice-bar-page' },
   { label: 'Wine & Liquor', href: '/wine-liquor-page' },
+  { label: 'Market Specials', href: '/market-specials' },
   { label: 'Subscriptions', href: '#subscriptions' },
+  
 ];
 
 interface TopNavProps {
