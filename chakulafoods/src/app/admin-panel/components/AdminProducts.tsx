@@ -20,6 +20,12 @@ interface Product {
   description?: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  department: string;
+}
+
 type ProductForm = {
   name: string;
   department: string;
@@ -32,10 +38,11 @@ type ProductForm = {
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all'); // New category filter state
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortField, setSortField] = useState<'name' | 'price' | 'orders_count'>('orders_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -50,21 +57,32 @@ export default function AdminProducts() {
   const addForm = useForm<ProductForm>();
   const editForm = useForm<ProductForm>();
 
-  const departments = ['all', 'Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
-
-  const DEPARTMENT_CATEGORIES: Record<string, string[]> = {
-    'Restaurant': ['Breakfast', 'Meals', 'Wraps', 'Bowl Meals', 'Pizza', 'Roasts & Grills', 'Specials & Toppings', 'Bakery', 'Party & Group Platters', 'Drinks'],
-    'Confectionary': ['Cakes', 'Pastries', 'Birthday Packages', 'Chocolates & Sweets', 'Cookies', 'Bread & Buns', 'Desserts'],
-    'Juice Bar': ['Fresh Juices', 'Smoothies', 'Milkshakes', 'Blended Drinks', 'Cold Pressed'],
-    'Wine & Liquor': ['Whiskey', 'Red Wine', 'White Wine', 'Rosé Wine', 'Spirits', 'Beer & Cider', 'Champagne'],
-    'Market Specials': ['Fresh Produce', 'Dairy & Eggs', 'Meat & Poultry', 'Pantry Staples', 'Snacks', 'Beverages'],
-  };
+  const departments = ['Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
 
   const addDepartment = addForm.watch('department');
   const editDepartment = editForm.watch('department');
 
-  const addCategories = DEPARTMENT_CATEGORIES[addDepartment] ?? [];
-  const editCategories = DEPARTMENT_CATEGORIES[editDepartment] ?? [];
+  // Get categories for selected department
+  const addCategories = categories.filter((c) => c.department === addDepartment).map((c) => c.name);
+  const editCategories = categories.filter((c) => c.department === editDepartment).map((c) => c.name);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, department')
+        .order('department', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.log('Categories fetch error:', error.message);
+      } else {
+        setCategories(data || []);
+      }
+    } catch {
+      // silent
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -86,6 +104,7 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
+    fetchCategories();
     fetchProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -94,7 +113,7 @@ export default function AdminProducts() {
     .filter((p) => {
       const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
       const matchDept = deptFilter === 'all' || p.department === deptFilter;
-      const matchCategory = categoryFilter === 'all' || p.category === categoryFilter; // New category filter check
+      const matchCategory = categoryFilter === 'all' || p.category === categoryFilter;
       
       return matchSearch && matchDept && matchCategory;
     })
@@ -301,19 +320,20 @@ export default function AdminProducts() {
               value={deptFilter}
               onChange={(e) => {
                 setDeptFilter(e.target.value);
-                setCategoryFilter('all'); // Reset category when dept changes
+                setCategoryFilter('all');
               }}
               className="input-field h-9 text-sm w-44"
             >
+              <option value="all">All Departments</option>
               {departments.map((d) => (
                 <option key={`dept-filter-${d}`} value={d}>
-                  {d === 'all' ? 'All Departments' : d}
+                  {d}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* New Category Dropdown Filter */}
+          {/* Category Filter */}
           <div className="flex items-center gap-1.5">
             <Filter size={14} className="text-muted-foreground" />
             <select
@@ -323,11 +343,13 @@ export default function AdminProducts() {
               className="input-field h-9 text-sm w-44 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="all">All Categories</option>
-              {deptFilter !== 'all' && DEPARTMENT_CATEGORIES[deptFilter]?.map((c) => (
-                <option key={`cat-filter-${c}`} value={c}>
-                  {c}
-                </option>
-              ))}
+              {deptFilter !== 'all' && categories
+                .filter((c) => c.department === deptFilter)
+                .map((c) => (
+                  <option key={`cat-filter-${c.id}`} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -531,7 +553,7 @@ export default function AdminProducts() {
                     }}
                   >
                     <option value="">Select...</option>
-                    {departments.filter((d) => d !== 'all').map((d) => (
+                    {departments.map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
@@ -636,7 +658,7 @@ export default function AdminProducts() {
                     }}
                   >
                     <option value="">Select...</option>
-                    {departments.filter((d) => d !== 'all').map((d) => (
+                    {departments.map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
