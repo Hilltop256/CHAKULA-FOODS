@@ -32,7 +32,7 @@ const ACTION_OPTIONS = [
   { value: 'order_ready', label: 'Order Ready' },
   { value: 'rider_assigned', label: 'Rider Assigned' },
   { value: 'out_for_delivery', label: 'Out For Delivery' },
-  { value: 'delivered', label: 'Delivered' },
+  { value: 'delivered', label: 'Complete' },
 ];
 
 const statusOptions = ['All', 'new_order', 'confirmed', 'preparing', 'order_ready', 'rider_assigned', 'out_for_delivery', 'delivered', 'cancelled'];
@@ -44,7 +44,7 @@ const statusLabel: Record<string, string> = {
   order_ready: 'Order Ready',
   rider_assigned: 'Rider Assigned',
   out_for_delivery: 'Out For Delivery',
-  delivered: 'Delivered',
+  delivered: 'Completed',
   cancelled: 'Cancelled',
 };
 
@@ -128,15 +128,74 @@ export default function AdminOrders({ onNavigateToDispatch }: AdminOrdersProps) 
     return matchSearch && matchStatus;
   });
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    // If admin selects "Order Ready" from dropdown, treat it like the Order Ready button
-    if (newStatus === 'order_ready') {
-      const order = orderList.find((o) => o.id === id);
-      if (order) {
-        await handleOrderReady(order);
-        return;
+  const handleCompleteOrder = async (order: Order) => {
+    setUpdatingId(order.id);
+
+    try {
+      const completedAt = new Date().toISOString();
+      const { data: dispatch, error: dispatchFetchError } = await supabase
+        .from('order_dispatch')
+        .select('id, rider_id')
+        .eq('order_id', order.id)
+        .maybeSingle();
+
+      if (dispatchFetchError) throw dispatchFetchError;
+
+      if (dispatch) {
+        const { error: dispatchError } = await supabase
+          .from('order_dispatch')
+          .update({ status: 'delivered', delivered_at: completedAt })
+          .eq('id', dispatch.id);
+
+        if (dispatchError) throw dispatchError;
+
+        if (dispatch.rider_id) {
+          const { error: riderError } = await supabase
+            .from('riders')
+            .update({ status: 'available' })
+            .eq('id', dispatch.rider_id);
+
+          if (riderError) {
+            console.error('Failed to release rider after completion:', riderError.message);
+          }
+        }
+      } else {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .update({ status: 'delivered' })
+          .eq('id', order.id);
+
+        if (orderError) throw orderError;
       }
+
+      setOrderList((prev) =>
+        prev.map((item) =>
+          item.id === order.id ? { ...item, status: 'delivered' } : item
+        )
+      );
+      toast.success('Order completed and added to POS Online');
+    } catch (error) {
+      console.error('Complete order error:', error);
+      toast.error('Failed to complete order');
+    } finally {
+      setUpdatingId(null);
     }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    const order = orderList.find((item) => item.id === id);
+
+    // Route special workflow statuses through their dedicated handlers.
+    if (newStatus === 'order_ready' && order) {
+      await handleOrderReady(order);
+      return;
+    }
+
+    if (newStatus === 'delivered' && order) {
+      await handleCompleteOrder(order);
+      return;
+    }
+
     setUpdatingId(id);
     try {
       const { error } = await supabase
@@ -201,17 +260,27 @@ export default function AdminOrders({ onNavigateToDispatch }: AdminOrdersProps) 
       );
     }
 
-    // For rider_assigned or out_for_delivery: show View Dispatch button only
+    // Active deliveries can be opened in Dispatch or completed directly here.
     if (order.status === 'rider_assigned' || order.status === 'out_for_delivery') {
       return (
-        <button
-          onClick={(e) => { e.stopPropagation(); onNavigateToDispatch?.(order.id); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors whitespace-nowrap"
-          title="View Dispatch"
-        >
-          <Truck size={13} />
-          View Dispatch
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onNavigateToDispatch?.(order.id); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors whitespace-nowrap"
+            title="View Dispatch"
+          >
+            <Truck size={13} />
+            View Dispatch
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleCompleteOrder(order); }}
+            disabled={updatingId === order.id}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            title="Complete order and send it to POS Online"
+          >
+            Complete
+          </button>
+        </div>
       );
     }
 
