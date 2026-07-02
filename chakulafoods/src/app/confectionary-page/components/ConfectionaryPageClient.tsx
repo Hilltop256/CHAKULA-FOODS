@@ -365,15 +365,20 @@ export default function ConfectionaryPageClient() {
       </div>
 
       {/* Scheduling Modals */}
-      {scheduleOpen && scheduleItem && (
-        <ScheduleConfectionaryModal
-          item={scheduleItem}
-          onClose={() => {
-            setScheduleOpen(false);
-            setScheduleItem(null);
-          }}
-        />
-      )}
+     {scheduleOpen && scheduleItem && (
+  <ScheduleConfectionaryModal
+    item={{
+      id: scheduleItem.id,
+      name: scheduleItem.name,
+      price: scheduleItem.price,
+      leadTime: scheduleItem.prep_time || '24 hours',
+    }}
+    onClose={() => {
+      setScheduleOpen(false);
+      setScheduleItem(null);
+    }}
+  />
+)}
     </div>
   );
 }
