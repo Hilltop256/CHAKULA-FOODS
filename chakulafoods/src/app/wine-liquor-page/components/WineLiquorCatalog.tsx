@@ -69,14 +69,13 @@ export default function WineLiquorCatalog() {
   const handleAddToCart = async (product: Product) => {
     setAddingId(product.id);
     try {
-      await addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image_url: product.image_url || '',
-        quantity: 1
-      });
-      toast.success(`${product.name} added to cart`);
+addToCart({
+  id: product.id,
+  name: product.name,
+  price: product.price,
+  image: product.image_url || '/assets/images/no_image.png',
+  department: 'Wine & Liquor',
+});
     } catch {
       toast.error('Failed to add item to cart');
     } finally {
