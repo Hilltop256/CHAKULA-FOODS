@@ -1,75 +1,136 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingBag, Users, Store, ChevronLeft, ChevronRight, LogOut, Bell, Search, Tag, Layers, Monitor } from 'lucide-react';
-import AppLogo from '@/components/ui/AppLogo';
-import AdminOverview from './AdminOverview';
-import AdminProducts from './AdminProducts';
-import AdminOrders from './AdminOrders';
-import AdminUsers from './AdminUsers';
-import AdminMarketSpecials from './AdminMarketSpecials';
-import AdminOrderDispatch from './AdminOrderDispatch';
-import AdminCategories from './AdminCategories';
-import AdminPosOnline from './AdminPosOnline';
-import Icon from '@/components/ui/AppIcon';
-import { useAuth } from '@/contexts/AuthContext';
-
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Users,
+  Store,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Bell,
+  Search,
+  Tag,
+  Layers,
+  Monitor,
+  TrendingUp,
+} from "lucide-react";
+import AppLogo from "@/components/ui/AppLogo";
+import AdminOverview from "./AdminOverview";
+import AdminProducts from "./AdminProducts";
+import AdminOrders from "./AdminOrders";
+import AdminUsers from "./AdminUsers";
+import AdminMarketSpecials from "./AdminMarketSpecials";
+import AdminOrderDispatch from "./AdminOrderDispatch";
+import AdminCategories from "./AdminCategories";
+import AdminPosOnline from "./AdminPosOnline";
+import AdminPosCounter from "./AdminPosCounter";
+import AdminBalanceSheet from "./AdminBalanceSheet";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'products', label: 'Products', icon: Package, badge: 0 },
-  { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: 7 },
-  { id: 'pos-online', label: 'POS Online', icon: Monitor, badge: 0 },
-  { id: 'categories', label: 'Categories', icon: Layers, badge: 0 },
-  { id: 'users', label: 'Users', icon: Users, badge: 0 },
-  { id: 'departments', label: 'Departments', icon: Store, badge: 0 },
-  { id: 'market-specials', label: 'Market Specials', icon: Tag, badge: 0 },
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "products", label: "Products", icon: Package, badge: 0 },
+  { id: "orders", label: "Orders", icon: ShoppingBag, badge: 7 },
+  { id: "pos-online", label: "POS Online", icon: Monitor, badge: 0 },
+  { id: "pos-counter", label: "POS Counter", icon: Store, badge: 0 },
+  { id: "balance-sheet", label: "Balance Sheet", icon: TrendingUp, badge: 0 },
+  { id: "categories", label: "Categories", icon: Layers, badge: 0 },
+  { id: "users", label: "Users", icon: Users, badge: 0 },
+  { id: "departments", label: "Departments", icon: Store, badge: 0 },
+  { id: "market-specials", label: "Market Specials", icon: Tag, badge: 0 },
 ];
 
+const cashierSections = ["pos-online", "pos-counter", "balance-sheet"];
+
 export default function AdminPanelClient() {
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dispatchOrderId, setDispatchOrderId] = useState<string | null>(null);
   const { user, profile } = useAuth();
 
-  const adminName = profile?.full_name || user?.email?.split('@')?.[0] || 'Admin';
+  const adminName =
+    profile?.full_name || user?.email?.split("@")?.[0] || "Admin";
+  const operatorLabel = profile?.role === "cashier" ? "Cashier" : "Admin";
+  const visibleNavItems =
+    profile?.role === "cashier"
+      ? navItems.filter((item) => cashierSections.includes(item.id))
+      : navItems;
+
+  useEffect(() => {
+    if (
+      profile?.role === "cashier" &&
+      !cashierSections.includes(activeSection)
+    ) {
+      setActiveSection("pos-counter");
+    }
+  }, [profile?.role, activeSection]);
 
   const handleNavigateToDispatch = (orderId: string) => {
     setDispatchOrderId(orderId);
-    setActiveSection('order-dispatch');
+    setActiveSection("order-dispatch");
   };
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'overview': return <AdminOverview />;
-      case 'products': return <AdminProducts />;
-      case 'orders': return <AdminOrders onNavigateToDispatch={handleNavigateToDispatch} />;
-      case 'pos-online': return <AdminPosOnline />;
-      case 'order-dispatch': return dispatchOrderId ? (
-        <AdminOrderDispatch
-          orderId={dispatchOrderId}
-          onBack={() => { setDispatchOrderId(null); setActiveSection('orders'); }}
-        />
-      ) : (
-        <AdminOrders onNavigateToDispatch={handleNavigateToDispatch} />
-      );
-      case 'categories': return <AdminCategories />;
-      case 'users': return <AdminUsers />;
-      case 'market-specials': return <AdminMarketSpecials />;
-      default: return <AdminOverview />;
+      case "overview":
+        return <AdminOverview />;
+      case "products":
+        return <AdminProducts />;
+      case "orders":
+        return <AdminOrders onNavigateToDispatch={handleNavigateToDispatch} />;
+      case "pos-online":
+        return <AdminPosOnline />;
+      case "pos-counter":
+        return <AdminPosCounter />;
+      case "balance-sheet":
+        return <AdminBalanceSheet />;
+      case "order-dispatch":
+        return dispatchOrderId ? (
+          <AdminOrderDispatch
+            orderId={dispatchOrderId}
+            onBack={() => {
+              setDispatchOrderId(null);
+              setActiveSection("orders");
+            }}
+          />
+        ) : (
+          <AdminOrders onNavigateToDispatch={handleNavigateToDispatch} />
+        );
+      case "categories":
+        return <AdminCategories />;
+      case "users":
+        return <AdminUsers />;
+      case "market-specials":
+        return <AdminMarketSpecials />;
+      default:
+        return <AdminOverview />;
     }
   };
 
   const getSectionTitle = () => {
     switch (activeSection) {
-      case 'overview': return 'Dashboard Overview';
-      case 'categories': return 'Categories';
-      case 'market-specials': return 'Market Specials';
-      case 'orders': return 'Orders';
-      case 'pos-online': return 'POS Online';
-      case 'order-dispatch': return 'Order Dispatch';
-      default: return activeSection;
+      case "overview":
+        return "Dashboard Overview";
+      case "categories":
+        return "Categories";
+      case "market-specials":
+        return "Market Specials";
+      case "orders":
+        return "Orders";
+      case "pos-online":
+        return "POS Online";
+      case "pos-counter":
+        return "POS Counter";
+      case "balance-sheet":
+        return "Balance Sheet";
+      case "order-dispatch":
+        return "Order Dispatch";
+      default:
+        return activeSection;
     }
   };
 
@@ -78,7 +139,7 @@ export default function AdminPanelClient() {
       {/* Sidebar */}
       <aside
         className={`flex flex-col bg-primary text-primary-foreground transition-all duration-300 ease-in-out shrink-0 ${
-          sidebarCollapsed ? 'w-16' : 'w-60'
+          sidebarCollapsed ? "w-16" : "w-60"
         }`}
       >
         {/* Logo */}
@@ -86,32 +147,39 @@ export default function AdminPanelClient() {
           <AppLogo size={32} />
           {!sidebarCollapsed && (
             <div className="overflow-hidden">
-              <span className="font-extrabold text-sm block leading-none">Chakula</span>
-              <span className="text-secondary text-xs font-semibold">Admin Panel</span>
+              <span className="font-extrabold text-sm block leading-none">
+                Chakula
+              </span>
+              <span className="text-secondary text-xs font-semibold">
+                {operatorLabel} Panel
+              </span>
             </div>
           )}
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-          {navItems?.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item?.icon;
             const isActive = activeSection === item?.id;
             return (
               <button
                 key={`admin-nav-${item?.id}`}
                 onClick={() => {
-                  if (item.id !== 'order-dispatch') setDispatchOrderId(null);
+                  if (item.id !== "order-dispatch") setDispatchOrderId(null);
                   setActiveSection(item?.id);
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${
                   isActive
-                    ? 'bg-white/20 text-white' :'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? "bg-white/20 text-white"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
                 title={sidebarCollapsed ? item?.label : undefined}
               >
                 <Icon size={18} className="shrink-0" />
-                {!sidebarCollapsed && <span className="flex-1 text-left">{item?.label}</span>}
+                {!sidebarCollapsed && (
+                  <span className="flex-1 text-left">{item?.label}</span>
+                )}
                 {!sidebarCollapsed && item?.badge && item?.badge > 0 ? (
                   <span className="bg-secondary text-secondary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {item?.badge}
@@ -130,7 +198,9 @@ export default function AdminPanelClient() {
           <Link
             href="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150"
-            style={{ background: 'linear-gradient(135deg, #7B1C1C 0%, #5A1212 100%)' }}
+            style={{
+              background: "linear-gradient(135deg, #7B1C1C 0%, #5A1212 100%)",
+            }}
           >
             <LogOut size={18} className="shrink-0" />
             {!sidebarCollapsed && <span>Back to Store</span>}
@@ -141,7 +211,12 @@ export default function AdminPanelClient() {
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           className="absolute top-20 -right-3 bg-primary border-2 border-background rounded-full p-0.5 z-10 hover:bg-primary/80 transition-colors"
-          style={{ position: 'relative', alignSelf: 'flex-end', marginBottom: '-12px', marginRight: '-6px' }}
+          style={{
+            position: "relative",
+            alignSelf: "flex-end",
+            marginBottom: "-12px",
+            marginRight: "-6px",
+          }}
         >
           {sidebarCollapsed ? (
             <ChevronRight size={14} className="text-primary-foreground" />
@@ -159,7 +234,11 @@ export default function AdminPanelClient() {
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className="p-1.5 rounded-lg hover:bg-muted transition-colors"
             >
-              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+              {sidebarCollapsed ? (
+                <ChevronRight size={18} />
+              ) : (
+                <ChevronLeft size={18} />
+              )}
             </button>
             <h1 className="font-bold text-lg text-foreground capitalize">
               {getSectionTitle()}
@@ -167,7 +246,10 @@ export default function AdminPanelClient() {
           </div>
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              />
               <input
                 type="text"
                 placeholder="Search orders, products..."
@@ -183,17 +265,17 @@ export default function AdminPanelClient() {
                 <Users size={14} className="text-primary" />
               </div>
               <div className="hidden sm:block">
-                <p className="text-xs font-semibold text-foreground leading-none">{adminName}</p>
-                <p className="text-xs text-muted-foreground">Admin</p>
+                <p className="text-xs font-semibold text-foreground leading-none">
+                  {adminName}
+                </p>
+                <p className="text-xs text-muted-foreground">{operatorLabel}</p>
               </div>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {renderContent()}
-        </main>
+        <main className="flex-1 overflow-y-auto p-6">{renderContent()}</main>
       </div>
     </div>
   );

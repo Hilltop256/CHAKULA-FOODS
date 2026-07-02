@@ -25,6 +25,7 @@ interface PosOnlineRecord {
   items: PosOrderItem[] | null;
   items_count: number;
   total: number;
+  created_at: string;
 }
 
 export default function AdminPosOnline() {
@@ -39,9 +40,9 @@ export default function AdminPosOnline() {
       const { data, error } = await supabase
         .from("pos_online")
         .select(
-          "order_number, customer_name, department, items, items_count, total",
+          "order_number, customer_name, department, items, items_count, total, created_at",
         )
-        .order("order_number", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("POS Online fetch error:", error.message);
@@ -247,6 +248,7 @@ export default function AdminPosOnline() {
               <tr>
                 {[
                   "Order Number",
+                  "Completed At",
                   "Customer Name",
                   "Department",
                   "Ordered Items",
@@ -278,8 +280,14 @@ export default function AdminPosOnline() {
                     key={record.order_number}
                     className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-5 py-3 text-sm font-mono font-semibold text-primary">
+                    <td className="px-5 py-3 text-sm font-mono font-semibold text-primary whitespace-nowrap">
                       #{record.order_number}
+                    </td>
+                    <td className="px-5 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                      {new Date(record.created_at).toLocaleString("en-UG", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
                     </td>
                     <td className="px-5 py-3 text-sm font-medium text-foreground">
                       {record.customer_name}
@@ -338,7 +346,7 @@ export default function AdminPosOnline() {
               {filteredRecords.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-5 py-12 text-center text-sm text-muted-foreground"
                   >
                     No completed online orders found.

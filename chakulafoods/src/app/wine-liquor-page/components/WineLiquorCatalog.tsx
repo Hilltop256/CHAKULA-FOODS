@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Star, Search, Plus, Wine, Clock } from 'lucide-react';
-import AppImage from '@/components/ui/AppImage';
-import { createClient } from '@/lib/supabase/client';
-import { useCart } from '@/contexts/CartContext';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { Star, Search, Plus, Wine, Clock } from "lucide-react";
+import AppImage from "@/components/ui/AppImage";
+import { createClient } from "@/lib/supabase/client";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -26,11 +26,11 @@ interface Product {
 
 export default function WineLiquorCatalog() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>(['All']);
+  const [categories, setCategories] = useState<string[]>(["All"]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
   const { addToCart } = useCart();
 
@@ -39,12 +39,12 @@ export default function WineLiquorCatalog() {
       try {
         setLoading(true);
         const supabase = createClient();
-        
+
         // Fetch products only belonging to the Wine & Liquor department
         const { data, error: fetchError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('department', 'Wine & Liquor');
+          .from("products")
+          .select("*")
+          .eq("department", "Wine & Liquor");
 
         if (fetchError) throw fetchError;
 
@@ -53,12 +53,14 @@ export default function WineLiquorCatalog() {
 
         // Dynamically extract unique categories present in the fetched database items
         const uniqueCategories = [
-          'All',
-          ...Array.from(new Set(fetchedProducts.map((p) => p.category).filter(Boolean)))
+          "All",
+          ...Array.from(
+            new Set(fetchedProducts.map((p) => p.category).filter(Boolean)),
+          ),
         ];
         setCategories(uniqueCategories);
       } catch (err: any) {
-        setError(err.message || 'Failed to load products');
+        setError(err.message || "Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -69,24 +71,28 @@ export default function WineLiquorCatalog() {
   const handleAddToCart = async (product: Product) => {
     setAddingId(product.id);
     try {
-addToCart({
-  id: product.id,
-  name: product.name,
-  price: product.price,
-  image: product.image_url || '/assets/images/no_image.png',
-  department: 'Wine & Liquor',
-});
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image_url || "/assets/images/no_image.png",
+        department: "Wine & Liquor",
+      });
     } catch {
-      toast.error('Failed to add item to cart');
+      toast.error("Failed to add item to cart");
     } finally {
       setAddingId(null);
     }
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory = activeCategory === 'All' || product.category?.toLowerCase() === activeCategory.toLowerCase();
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory =
+      activeCategory === "All" ||
+      product.category?.toLowerCase() === activeCategory.toLowerCase();
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description &&
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -112,8 +118,8 @@ addToCart({
             onClick={() => setActiveCategory(category)}
             className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors capitalize ${
               activeCategory === category
-                ? 'bg-accent text-accent-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                ? "bg-accent text-accent-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             {category}
@@ -129,14 +135,19 @@ addToCart({
       ) : error ? (
         <div className="text-center text-destructive py-8">{error}</div>
       ) : filteredProducts.length === 0 ? (
-        <div className="text-center text-muted-foreground py-12">No products found in this selection.</div>
+        <div className="text-center text-muted-foreground py-12">
+          No products found in this selection.
+        </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="group relative flex flex-col bg-card rounded-2xl overflow-hidden border border-border transition-all duration-200 hover:shadow-md">
+            <div
+              key={product.id}
+              className="group relative flex flex-col bg-card rounded-2xl overflow-hidden border border-border transition-all duration-200 hover:shadow-md"
+            >
               <div className="relative aspect-square w-full bg-muted">
                 <AppImage
-                  src={product.image_url || ''}
+                  src={product.image_url || ""}
                   alt={product.name}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -164,20 +175,23 @@ addToCart({
                   )}
                 </div>
 
-                <h3 className="font-bold text-foreground text-sm line-clamp-1 mb-1">{product.name}</h3>
+                <h3 className="font-bold text-foreground text-sm line-clamp-1 mb-1">
+                  {product.name}
+                </h3>
                 <p className="text-muted-foreground text-xs line-clamp-2 mb-3 min-h-[2rem] leading-relaxed">
-                  {product.description || 'Premium selection'}
+                  {product.description || "Premium selection"}
                 </p>
 
                 <div className="flex items-center gap-1.5 mb-3 mt-auto">
                   <span className="font-extrabold text-accent tabular-nums text-sm">
                     UGX {product.price.toLocaleString()}
                   </span>
-                  {product.original_price && product.original_price > product.price && (
-                    <span className="text-xs text-muted-foreground line-through tabular-nums">
-                      UGX {product.original_price.toLocaleString()}
-                    </span>
-                  )}
+                  {product.original_price &&
+                    product.original_price > product.price && (
+                      <span className="text-xs text-muted-foreground line-through tabular-nums">
+                        UGX {product.original_price.toLocaleString()}
+                      </span>
+                    )}
                 </div>
 
                 <button
@@ -190,7 +204,7 @@ addToCart({
                   ) : (
                     <>
                       <Plus size={13} />
-                      {product.available ? 'Add to Cart' : 'Out of Stock'}
+                      {product.available ? "Add to Cart" : "Out of Stock"}
                     </>
                   )}
                 </button>
@@ -204,11 +218,14 @@ addToCart({
       <div className="border border-border rounded-2xl p-5 flex items-start gap-4 bg-muted/30">
         <Wine size={24} className="text-muted-foreground shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-foreground mb-1">Drink Responsibly</p>
+          <p className="text-sm font-bold text-foreground mb-1">
+            Drink Responsibly
+          </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Chakula Foods promotes responsible alcohol consumption. Do not drink and drive. 
-            Alcohol is harmful to your health if consumed excessively. 
-            For alcohol helpline support in Uganda, call <strong>0800 200 600</strong>.
+            Chakula Foods promotes responsible alcohol consumption. Do not drink
+            and drive. Alcohol is harmful to your health if consumed
+            excessively. For alcohol helpline support in Uganda, call{" "}
+            <strong>0800 200 600</strong>.
           </p>
         </div>
       </div>
