@@ -27,6 +27,12 @@ interface Product {
   available: boolean;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  department: string;
+}
+
 interface PosCounterItem {
   product_id: string;
   product_name: string;
@@ -50,6 +56,9 @@ interface PosCounterRecord {
 const formatCurrency = (value: number) =>
   `UGX ${(value || 0).toLocaleString()}`;
 
+const normalizeKey = (value: string | null | undefined) =>
+  (value || "").trim().toLocaleLowerCase();
+
 const normalizeItems = (
   items: PosCounterItem[] | null | undefined,
 ): PosCounterItem[] =>
@@ -67,6 +76,7 @@ const normalizeItems = (
 export default function AdminPosCounter() {
   const [records, setRecords] = useState<PosCounterRecord[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categoryRows, setCategoryRows] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState<string | null>(null);
@@ -87,27 +97,47 @@ export default function AdminPosCounter() {
 
   const fetchData = async () => {
     try {
-      const [recordsResult, productsResult] = await Promise.all([
-        supabase
-          .from("pos_counter")
-          .select(
-            "order_number, customer_name, department, items, items_count, total, created_at, updated_at",
-          )
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("products")
-          .select("id, name, department, category, price, available")
-          .eq("available", true)
-          .order("department", { ascending: true })
-          .order("category", { ascending: true })
-          .order("name", { ascending: true }),
-      ]);
+      const [recordsResult, productsResult, categoriesResult] =
+        await Promise.all([
+          supabase
+            .from("pos_counter")
+            .select(
+              "order_number, customer_name, department, items, items_count, total, created_at, updated_at",
+            )
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("products")
+            .select("id, name, department, category, price, available")
+            .eq("available", true)
+            .order("department", { ascending: true })
+            .order("category", { ascending: true })
+            .order("name", { ascending: true }),
+          supabase
+            .from("categories")
+            .select("id, name, department")
+            .order("department", { ascending: true })
+            .order("name", { ascending: true }),
+        ]);
 
       if (recordsResult.error) throw recordsResult.error;
       if (productsResult.error) throw productsResult.error;
 
+      // Category access is helpful but not allowed to block the entire POS page.
+      // Active product data remains a fallback if the categories query is denied.
+      if (categoriesResult.error) {
+        console.warn(
+          "POS Counter categories fetch error:",
+          categoriesResult.error.message,
+        );
+      }
+
       setRecords((recordsResult.data || []) as PosCounterRecord[]);
       setProducts((productsResult.data || []) as Product[]);
+      setCategoryRows(
+        categoriesResult.error
+          ? []
+          : ((categoriesResult.data || []) as Category[]),
+      );
     } catch (error) {
       console.error("POS Counter fetch error:", error);
       toast.error("Failed to load POS Counter data");
@@ -134,36 +164,54 @@ export default function AdminPosCounter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const departments = useMemo(
-    () =>
-      Array.from(
-        new Set(products.map((product) => product.department).filter(Boolean)),
-      ).sort(),
-    [products],
-  );
-
-  const categories = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          products
-            .filter((product) => product.department === department)
-            .map((product) => product.category)
-            .filter(Boolean),
-        ),
-      ).sort(),
-    [products, department],
-  );
-
-  const selectableProducts = useMemo(
-    () =>
-      products.filter(
-        (product) =>
-          product.department === department &&
-          (!category || product.category === category),
+  const departments = useMemo(() => {
+    // There is no departments table. Department values are stored on each
+    // category, so categories are the primary source. Product departments are
+    // included as a fallback for older data that has no category row yet.
+    return Array.from(
+      new Set(
+        [
+          ...categoryRows.map((row) => row.department),
+          ...products.map((product) => product.department),
+        ]
+          .map((value) => value?.trim())
+          .filter((value): value is string => Boolean(value)),
       ),
-    [products, department, category],
-  );
+    ).sort((a, b) => a.localeCompare(b));
+  }, [categoryRows, products]);
+
+  const categories = useMemo(() => {
+    const selectedDepartmentKey = normalizeKey(department);
+    const categoryTableOptions = categoryRows
+      .filter((row) => normalizeKey(row.department) === selectedDepartmentKey)
+      .map((row) => row.name);
+
+    const productFallbackOptions = products
+      .filter(
+        (product) => normalizeKey(product.department) === selectedDepartmentKey,
+      )
+      .map((product) => product.category);
+
+    return Array.from(
+      new Set(
+        [...categoryTableOptions, ...productFallbackOptions]
+          .map((value) => value?.trim())
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [categoryRows, products, department]);
+
+  const selectableProducts = useMemo(() => {
+    const selectedDepartmentKey = normalizeKey(department);
+    const selectedCategoryKey = normalizeKey(category);
+
+    return products.filter(
+      (product) =>
+        normalizeKey(product.department) === selectedDepartmentKey &&
+        (!selectedCategoryKey ||
+          normalizeKey(product.category) === selectedCategoryKey),
+    );
+  }, [products, department, category]);
 
   const total = items.reduce(
     (sum, item) => sum + item.quantity * item.unit_price,
@@ -495,7 +543,11 @@ export default function AdminPosCounter() {
                 onChange={(event) => handleDepartmentChange(event.target.value)}
                 className="input-field"
               >
-                <option value="">Select department...</option>
+                <option value="">
+                  {departments.length > 0
+                    ? "Select department..."
+                    : "No departments found"}
+                </option>
                 {departments.map((option) => (
                   <option key={`counter-department-${option}`} value={option}>
                     {option}

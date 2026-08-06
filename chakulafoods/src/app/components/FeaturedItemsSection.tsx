@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 
 const categories = [
-  { id: 'cat-all', label: 'All Items' },
   { id: 'cat-restaurant', label: 'Restaurant' },
   { id: 'cat-confectionary', label: 'Confectionary' },
   { id: 'cat-juice', label: 'Juice Bar' },
@@ -30,7 +29,7 @@ interface Product {
 }
 
 export default function FeaturedItemsSection() {
-  const [activeCategory, setActiveCategory] = useState('cat-all');
+  const [activeCategory, setActiveCategory] = useState('cat-restaurant');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -101,21 +100,39 @@ export default function FeaturedItemsSection() {
       </div>
 
       {/* Category filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
-              activeCategory === cat.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+<div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-1">
+  {categories.map((cat) => {
+    if (cat.id === 'cat-restaurant') {
+      return (
+<Link
+  key={cat.id}
+  href="/restaurant-page"
+  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
+    activeCategory === cat.id
+      ? 'bg-green-600 text-white'
+      : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+  }`}
+>
+  {cat.label}
+</Link>
+      );
+    }
+
+    return (
+      <button
+        key={cat.id}
+        onClick={() => setActiveCategory(cat.id)}
+        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
+  activeCategory === cat.id
+    ? 'bg-green-600 text-white'
+    : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+}`}
+      >
+        {cat.label}
+      </button>
+    );
+  })}
+</div>
 
       {/* Loading state */}
       {loading && (

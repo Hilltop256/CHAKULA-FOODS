@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createContext, useContext, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  role: 'customer' | 'admin' | 'delivery';
+  role: "customer" | "admin" | "cashier" | "delivery";
   phone?: string;
   avatar_url?: string;
   is_active: boolean;
@@ -32,7 +32,7 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -47,9 +47,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
         .single();
       if (!error && data) {
         setProfile(data as UserProfile);
@@ -83,21 +83,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signUp = async (email: string, password: string, metadata: any = {}) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    metadata: any = {},
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: metadata?.fullName || '',
-          avatar_url: metadata?.avatarUrl || '',
-          phone: metadata?.phone || '',
-          role: 'customer',
+          full_name: metadata?.fullName || "",
+          avatar_url: metadata?.avatarUrl || "",
+          phone: metadata?.phone || "",
+          role: "customer",
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/auth/callback`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/auth/callback`,
       },
     });
     if (error) throw error;
@@ -105,9 +109,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Update phone in user_profiles if user was created immediately
     if (data.user && metadata?.phone) {
       await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update({ phone: metadata.phone })
-        .eq('id', data.user.id);
+        .eq("id", data.user.id);
     }
 
     return data;
@@ -134,7 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear all Supabase tokens from localStorage
       try {
         Object.keys(localStorage)
-          .filter((k) => k.startsWith('sb_') || k.includes('supabase'))
+          .filter((k) => k.startsWith("sb_") || k.includes("supabase"))
           .forEach((k) => localStorage.removeItem(k));
       } catch {
         // localStorage may not be available
@@ -161,9 +165,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const getUserProfile = async (): Promise<UserProfile | null> => {
     if (!user) return null;
     const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
+      .from("user_profiles")
+      .select("*")
+      .eq("id", user.id)
       .single();
     if (error) throw error;
     return data as UserProfile;

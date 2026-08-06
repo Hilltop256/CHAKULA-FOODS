@@ -20,6 +20,12 @@ interface Product {
   description?: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  department: string;
+}
+
 type ProductForm = {
   name: string;
   department: string;
@@ -32,9 +38,11 @@ type ProductForm = {
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortField, setSortField] = useState<'name' | 'price' | 'orders_count'>('orders_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -49,21 +57,32 @@ export default function AdminProducts() {
   const addForm = useForm<ProductForm>();
   const editForm = useForm<ProductForm>();
 
-  const departments = ['all', 'Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
-
-  const DEPARTMENT_CATEGORIES: Record<string, string[]> = {
-    'Restaurant': ['Meals', 'Shawarma/Wraps/Rolex/Burgers', 'Bowl Meals', 'Pizza', 'Roasts & Grills', 'Specials & Toppings', 'Bakery & Breakfast', 'Party & Group Platters', 'Drinks'],
-    'Confectionary': ['Cakes', 'Pastries', 'Cookies & Biscuits', 'Chocolates & Sweets', 'Bread & Buns', 'Desserts'],
-    'Juice Bar': ['Fresh Juices', 'Smoothies', 'Milkshakes', 'Blended Drinks', 'Cold Pressed'],
-    'Wine & Liquor': ['Red Wine', 'White Wine', 'Rosé Wine', 'Spirits', 'Beer & Cider', 'Champagne & Sparkling'],
-    'Market Specials': ['Fresh Produce', 'Dairy & Eggs', 'Meat & Poultry', 'Pantry Staples', 'Snacks', 'Beverages'],
-  };
+  const departments = ['Restaurant', 'Confectionary', 'Juice Bar', 'Wine & Liquor', 'Market Specials'];
 
   const addDepartment = addForm.watch('department');
   const editDepartment = editForm.watch('department');
 
-  const addCategories = DEPARTMENT_CATEGORIES[addDepartment] ?? [];
-  const editCategories = DEPARTMENT_CATEGORIES[editDepartment] ?? [];
+  // Get categories for selected department
+  const addCategories = categories.filter((c) => c.department === addDepartment).map((c) => c.name);
+  const editCategories = categories.filter((c) => c.department === editDepartment).map((c) => c.name);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, department')
+        .order('department', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.log('Categories fetch error:', error.message);
+      } else {
+        setCategories(data || []);
+      }
+    } catch {
+      // silent
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -85,6 +104,7 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
+    fetchCategories();
     fetchProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -93,7 +113,9 @@ export default function AdminProducts() {
     .filter((p) => {
       const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
       const matchDept = deptFilter === 'all' || p.department === deptFilter;
-      return matchSearch && matchDept;
+      const matchCategory = categoryFilter === 'all' || p.category === categoryFilter;
+      
+      return matchSearch && matchDept && matchCategory;
     })
     .sort((a, b) => {
       const val =
@@ -165,7 +187,7 @@ export default function AdminProducts() {
         .insert({
           name: data.name,
           department: data.department,
-          category: data.category || '',
+          category: data.category,
           price: Number(data.price),
           available: data.available,
           description: data.description,
@@ -213,7 +235,7 @@ export default function AdminProducts() {
         .update({
           name: data.name,
           department: data.department,
-          category: data.category || '',
+          category: data.category,
           price: Number(data.price),
           available: data.available,
           description: data.description || null,
@@ -232,7 +254,7 @@ export default function AdminProducts() {
                   ...p,
                   name: data.name,
                   department: data.department,
-                  category: data.category || '',
+                  category: data.category,
                   price: Number(data.price),
                   available: data.available,
                   description: data.description,
@@ -291,20 +313,46 @@ export default function AdminProducts() {
               className="input-field pl-9 w-56 h-9 text-sm"
             />
           </div>
+          
           <div className="flex items-center gap-1.5">
             <Filter size={14} className="text-muted-foreground" />
             <select
               value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
+              onChange={(e) => {
+                setDeptFilter(e.target.value);
+                setCategoryFilter('all');
+              }}
               className="input-field h-9 text-sm w-44"
             >
+              <option value="all">All Departments</option>
               {departments.map((d) => (
                 <option key={`dept-filter-${d}`} value={d}>
-                  {d === 'all' ? 'All Departments' : d}
+                  {d}
                 </option>
               ))}
             </select>
           </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center gap-1.5">
+            <Filter size={14} className="text-muted-foreground" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              disabled={deptFilter === 'all'}
+              className="input-field h-9 text-sm w-44 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="all">All Categories</option>
+              {deptFilter !== 'all' && categories
+                .filter((c) => c.department === deptFilter)
+                .map((c) => (
+                  <option key={`cat-filter-${c.id}`} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
           <span className="text-sm text-muted-foreground">
             {filtered.length} product{filtered.length !== 1 ? 's' : ''}
           </span>
@@ -502,37 +550,23 @@ export default function AdminProducts() {
                     onChange={(e) => {
                       addForm.setValue('department', e.target.value);
                       addForm.setValue('category', '');
-                      addForm.clearErrors('category');
                     }}
                   >
                     <option value="">Select...</option>
-                    {departments.filter((d) => d !== 'all').map((d) => (
+                    {departments.map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
                   {addForm.formState.errors.department && <p className="text-xs text-accent mt-1">{addForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">
-                    Category {addDepartment === 'Restaurant' ? '*' : '(Optional)'}
-                  </label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
                   <select
-                    {...addForm.register('category', {
-                      validate: (value) =>
-                        addForm.getValues('department') !== 'Restaurant' ||
-                        Boolean(value) ||
-                        'Category is required for Restaurant products',
-                    })}
+                    {...addForm.register('category', { required: 'Required' })}
                     className="input-field w-full"
                     disabled={!addDepartment || addCategories.length === 0}
                   >
-                    <option value="">
-                      {!addDepartment
-                        ? 'Select dept first'
-                        : addDepartment === 'Restaurant'
-                          ? 'Select category...'
-                          : 'No category (optional)'}
-                    </option>
+                    <option value="">{addDepartment ? 'Select category...' : 'Select dept first'}</option>
                     {addCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
@@ -621,37 +655,23 @@ export default function AdminProducts() {
                     onChange={(e) => {
                       editForm.setValue('department', e.target.value);
                       editForm.setValue('category', '');
-                      editForm.clearErrors('category');
                     }}
                   >
                     <option value="">Select...</option>
-                    {departments.filter((d) => d !== 'all').map((d) => (
+                    {departments.map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
                   {editForm.formState.errors.department && <p className="text-xs text-accent mt-1">{editForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">
-                    Category {editDepartment === 'Restaurant' ? '*' : '(Optional)'}
-                  </label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
                   <select
-                    {...editForm.register('category', {
-                      validate: (value) =>
-                        editForm.getValues('department') !== 'Restaurant' ||
-                        Boolean(value) ||
-                        'Category is required for Restaurant products',
-                    })}
+                    {...editForm.register('category', { required: 'Required' })}
                     className="input-field w-full"
                     disabled={!editDepartment || editCategories.length === 0}
                   >
-                    <option value="">
-                      {!editDepartment
-                        ? 'Select dept first'
-                        : editDepartment === 'Restaurant'
-                          ? 'Select category...'
-                          : 'No category (optional)'}
-                    </option>
+                    <option value="">{editDepartment ? 'Select category...' : 'Select dept first'}</option>
                     {editCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
