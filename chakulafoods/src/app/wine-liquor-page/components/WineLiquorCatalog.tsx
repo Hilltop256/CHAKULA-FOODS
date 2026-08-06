@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, Search, Plus, Wine, Clock } from "lucide-react";
+import { Star, Search, Plus, Wine, Clock, Zap } from "lucide-react";
 import AppImage from "@/components/ui/AppImage";
 import { createClient } from "@/lib/supabase/client";
-import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
+import ProductOptionsModal from "@/components/ProductOptionsModal";
+import { ProductOptionGroup, PurchasableProduct } from "@/types/product-options";
 
 interface Product {
   id: string;
@@ -22,6 +22,7 @@ interface Product {
   available: boolean;
   featured: boolean;
   orders_count: number;
+  product_options?: ProductOptionGroup[];
 }
 
 export default function WineLiquorCatalog() {
@@ -31,8 +32,8 @@ export default function WineLiquorCatalog() {
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [addingId, setAddingId] = useState<string | null>(null);
-  const { addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<PurchasableProduct | null>(null);
+  const [productAction, setProductAction] = useState<"cart" | "order">("cart");
 
   useEffect(() => {
     async function fetchProducts() {
@@ -68,22 +69,19 @@ export default function WineLiquorCatalog() {
     fetchProducts();
   }, []);
 
-  const handleAddToCart = async (product: Product) => {
-    setAddingId(product.id);
-    try {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image_url || "/assets/images/no_image.png",
-        department: "Wine & Liquor",
-      });
-    } catch {
-      toast.error("Failed to add item to cart");
-    } finally {
-      setAddingId(null);
-    }
+  const openProduct = (product: Product, action: "cart" | "order" = "cart") => {
+    setProductAction(action);
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image_url || "/assets/images/no_image.png",
+      department: "Wine & Liquor",
+      product_options: product.product_options || [],
+    });
   };
+
 
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
@@ -143,7 +141,8 @@ export default function WineLiquorCatalog() {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="group relative flex flex-col bg-card rounded-2xl overflow-hidden border border-border transition-all duration-200 hover:shadow-md"
+              onClick={() => product.available && openProduct(product)}
+              className="group relative flex flex-col bg-card rounded-2xl overflow-hidden border border-border transition-all duration-200 hover:shadow-md cursor-pointer"
             >
               <div className="relative aspect-square w-full bg-muted">
                 <AppImage
@@ -194,20 +193,24 @@ export default function WineLiquorCatalog() {
                     )}
                 </div>
 
-                <button
-                  onClick={() => product.available && handleAddToCart(product)}
-                  disabled={!product.available || addingId === product.id}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {addingId === product.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={13} />
-                      {product.available ? "Add to Cart" : "Out of Stock"}
-                    </>
-                  )}
-                </button>
+                <div className="grid grid-cols-2 gap-2" onClick={(event) => event.stopPropagation()}>
+                  <button
+                    onClick={() => product.available && openProduct(product, "cart")}
+                    disabled={!product.available}
+                    className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={13} />
+                    {product.available ? "Add to Cart" : "Out of Stock"}
+                  </button>
+                  <button
+                    onClick={() => product.available && openProduct(product, "order")}
+                    disabled={!product.available}
+                    className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#C41230] text-white hover:bg-[#A90F29] text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Zap size={13} />
+                    Order Now
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -229,6 +232,12 @@ export default function WineLiquorCatalog() {
           </p>
         </div>
       </div>
+      <ProductOptionsModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        initialAction={productAction}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 }

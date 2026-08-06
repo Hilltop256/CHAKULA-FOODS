@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { RotateCcw, Calendar, Clock, Star, Plus, Search } from 'lucide-react';
+import { RotateCcw, Calendar, Clock, Star, Plus, Search, Zap } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import { toast } from 'sonner';
 import ScheduleMealModal from './ScheduleMealModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
+import ProductOptionsModal from '@/components/ProductOptionsModal';
+import { ProductOptionGroup, PurchasableProduct } from '@/types/product-options';
 
 interface RestaurantProduct {
   id: string;
@@ -20,6 +21,7 @@ interface RestaurantProduct {
   category: string;
   tag?: string;
   originalPrice?: number;
+  productOptions?: ProductOptionGroup[];
 }
 
 const lastOrder = {
@@ -38,14 +40,14 @@ export default function RestaurantPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<PurchasableProduct | null>(null);
+  const [productAction, setProductAction] = useState<'cart' | 'order'>('cart');
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleItem, setScheduleItem] = useState<RestaurantProduct | null>(null);
   const [repeatLoading, setRepeatLoading] = useState(false);
 
   const supabase = createClient();
   const { user } = useAuth();
-  const { addToCart } = useCart();
   const isLoggedIn = !!user;
 
   useEffect(() => {
@@ -71,7 +73,8 @@ export default function RestaurantPageClient() {
             prepTime: p.prep_time || '15-25 mins',
             category: p.category || 'Uncategorized',
             tag: p.tag,
-            originalPrice: p.original_price
+            originalPrice: p.original_price,
+            productOptions: p.product_options || [],
           }));
           setProducts(mapped);
         }
@@ -113,17 +116,19 @@ export default function RestaurantPageClient() {
     }, 1200);
   };
 
-  const handleAddToCart = (item: RestaurantProduct) => {
-    setAddingId(item.id);
-    addToCart({
+  const openProduct = (item: RestaurantProduct, action: 'cart' | 'order' = 'cart') => {
+    setProductAction(action);
+    setSelectedProduct({
       id: item.id,
       name: item.name,
+      description: item.description,
       price: item.price,
       image: item.image,
-      department: 'Restaurant'
+      department: 'Restaurant',
+      product_options: item.productOptions || [],
     });
-    setTimeout(() => setAddingId(null), 600);
   };
+
 
   if (loading) {
     return (
@@ -275,7 +280,7 @@ export default function RestaurantPageClient() {
       {/* Items grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-12">
         {filteredProducts.map((item) => (
-          <div key={item.id} className="card-base overflow-hidden card-hover flex flex-col group">
+          <div key={item.id} onClick={() => openProduct(item)} className="card-base overflow-hidden card-hover flex flex-col group cursor-pointer">
             <div className="relative">
               <AppImage
                 src={item.image}
@@ -334,14 +339,15 @@ export default function RestaurantPageClient() {
                   </span>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {(item.category === 'Bowl Meals' || item.category === 'Meals') && (
                   <button
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation();
                       setScheduleItem(item);
                       setScheduleOpen(true);
                     }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 text-xs font-semibold transition-all duration-150"
+                    className="col-span-2 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-primary hover:bg-primary/5 text-xs font-semibold transition-all duration-150"
                     title="Schedule this order"
                   >
                     <Calendar size={13} className="text-muted-foreground" />
@@ -349,24 +355,31 @@ export default function RestaurantPageClient() {
                   </button>
                 )}
                 <button
-                  onClick={() => handleAddToCart(item)}
-                  disabled={addingId === item.id}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-70"
+                  onClick={(event) => { event.stopPropagation(); openProduct(item, 'cart'); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95"
                 >
-                  {addingId === item.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={13} />
-                      Add to Cart
-                    </>
-                  )}
+                  <Plus size={13} />
+                  Add to Cart
+                </button>
+                <button
+                  onClick={(event) => { event.stopPropagation(); openProduct(item, 'order'); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#C41230] text-white hover:bg-[#A90F29] text-xs font-semibold transition-all duration-150 active:scale-95"
+                >
+                  <Zap size={13} />
+                  Order Now
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <ProductOptionsModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        initialAction={productAction}
+        onClose={() => setSelectedProduct(null)}
+      />
 
       {scheduleOpen && scheduleItem && (
         <ScheduleMealModal

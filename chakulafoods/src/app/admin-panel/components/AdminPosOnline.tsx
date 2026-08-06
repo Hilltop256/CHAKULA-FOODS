@@ -16,6 +16,7 @@ interface PosOrderItem {
   quantity: number;
   unit_price: number;
   line_total: number;
+  selected_options?: Array<{ group_name: string; option_name: string; additional_price: number }>;
 }
 
 interface PosOnlineRecord {
@@ -309,6 +310,11 @@ export default function AdminPosOnline() {
                                     {item.quantity}×
                                   </span>
                                   {item.product_name}
+                                  {item.selected_options?.length ? (
+                                    <span className="block pl-7 mt-0.5 text-[11px] font-normal text-muted-foreground">
+                                      {item.selected_options.map((option) => `${option.group_name}: ${option.option_name}`).join(' · ')}
+                                    </span>
+                                  ) : null}
                                 </p>
                                 <p className="shrink-0 text-xs font-bold tabular-nums text-foreground">
                                   UGX{" "}

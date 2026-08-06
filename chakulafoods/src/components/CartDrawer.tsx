@@ -59,7 +59,7 @@ export default function CartDrawer() {
           ) : (
             items?.map((item) => (
               <div
-                key={`cart-item-${item?.id}`}
+                key={`cart-item-${item?.cartItemId}`}
                 className="flex gap-3 p-3 rounded-xl bg-muted/40 border border-border"
               >
                 <AppImage
@@ -74,13 +74,23 @@ export default function CartDrawer() {
                     {item?.name}
                   </p>
                   <p className="text-xs text-muted-foreground">{item?.department}</p>
+                  {item?.selectedOptions?.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {item.selectedOptions.map((option) => (
+                        <p key={`${item.cartItemId}-${option.group_id}-${option.option_id}`} className="text-[11px] text-muted-foreground leading-tight">
+                          <span className="font-medium">{option.group_name}:</span> {option.option_name}
+                          {option.additional_price > 0 && ` (+UGX ${option.additional_price.toLocaleString()})`}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-primary mt-1 tabular-nums">
                     UGX {(item?.price * item?.quantity)?.toLocaleString()}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <button
-                    onClick={() => removeItem(item?.id)}
+                    onClick={() => removeItem(item?.cartItemId)}
                     className="p-1 rounded hover:bg-accent/10 text-accent transition-colors"
                     aria-label={`Remove ${item?.name}`}
                   >
@@ -88,7 +98,7 @@ export default function CartDrawer() {
                   </button>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => updateQty(item?.id, item?.quantity - 1)}
+                      onClick={() => updateQty(item?.cartItemId, item?.quantity - 1)}
                       className="w-6 h-6 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
                       aria-label="Decrease quantity"
                     >
@@ -98,7 +108,7 @@ export default function CartDrawer() {
                       {item?.quantity}
                     </span>
                     <button
-                      onClick={() => updateQty(item?.id, item?.quantity + 1)}
+                      onClick={() => updateQty(item?.cartItemId, item?.quantity + 1)}
                       className="w-6 h-6 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
                       aria-label="Increase quantity"
                     >

@@ -338,6 +338,8 @@ export default function CheckoutPageClient() {
         product_name: item.name,
         quantity: item.quantity,
         unit_price: item.price,
+        base_unit_price: item.basePrice,
+        selected_options: item.selectedOptions,
       }));
 
       const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
@@ -690,7 +692,7 @@ export default function CheckoutPageClient() {
                 </div>
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                   {items.map((item) => (
-                    <div key={`checkout-item-${item.id}`} className="flex gap-3">
+                    <div key={`checkout-item-${item.cartItemId}`} className="flex gap-3">
                       <AppImage
                         src={item.image}
                         alt={item.name}
@@ -701,6 +703,11 @@ export default function CheckoutPageClient() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
                         <p className="text-xs text-muted-foreground">{item.department}</p>
+                        {item.selectedOptions?.length > 0 && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {item.selectedOptions.map((option) => `${option.group_name}: ${option.option_name}`).join(' · ')}
+                          </p>
+                        )}
                         <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                       </div>
                       <p className="text-sm font-bold text-primary tabular-nums shrink-0">

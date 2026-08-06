@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Star, Clock, Search, Plus } from 'lucide-react';
+import { Star, Clock, Search, Plus, Zap } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/contexts/CartContext';
+import ProductOptionsModal from '@/components/ProductOptionsModal';
+import { ProductOptionGroup, PurchasableProduct } from '@/types/product-options';
 
 interface Product {
   id: string;
@@ -22,6 +22,7 @@ interface Product {
   available: boolean;
   featured: boolean;
   orders_count: number;
+  product_options?: ProductOptionGroup[];
 }
 
 export default function MarketSpecialsCatalog() {
@@ -30,9 +31,8 @@ export default function MarketSpecialsCatalog() {
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [addingId, setAddingId] = useState<string | null>(null);
-  const { user } = useAuth();
-  const { addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<PurchasableProduct | null>(null);
+  const [productAction, setProductAction] = useState<'cart' | 'order'>('cart');
 
   useEffect(() => {
     async function fetchProducts() {
@@ -68,16 +68,17 @@ export default function MarketSpecialsCatalog() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddToCart = (product: Product) => {
-    setAddingId(product.id);
-    addToCart({
+  const openProduct = (product: Product, action: 'cart' | 'order' = 'cart') => {
+    setProductAction(action);
+    setSelectedProduct({
       id: product.id,
       name: product.name,
+      description: product.description,
       price: product.price,
       image: product.image_url || '/assets/images/no_image.png',
       department: 'Market Specials',
+      product_options: product.product_options || [],
     });
-    setTimeout(() => setAddingId(null), 600);
   };
 
   if (loading) {
@@ -182,7 +183,8 @@ export default function MarketSpecialsCatalog() {
           {filtered.map((product) => (
             <div
               key={product.id}
-              className={`card-base overflow-hidden card-hover flex flex-col group ${
+              onClick={() => product.available && openProduct(product)}
+              className={`card-base overflow-hidden card-hover flex flex-col group cursor-pointer ${
                 !product.available ? 'opacity-60' : ''
               }`}
             >
@@ -244,25 +246,35 @@ export default function MarketSpecialsCatalog() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => product.available && handleAddToCart(product)}
-                  disabled={!product.available || addingId === product.id}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150"
-                >
-                  {addingId === product.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={13} />
-                      {product.available ? 'Add to Cart' : 'Out of Stock'}
-                    </>
-                  )}
-                </button>
+                <div className="grid grid-cols-2 gap-2" onClick={(event) => event.stopPropagation()}>
+                  <button
+                    onClick={() => product.available && openProduct(product, 'cart')}
+                    disabled={!product.available}
+                    className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={13} />
+                    {product.available ? 'Add to Cart' : 'Out of Stock'}
+                  </button>
+                  <button
+                    onClick={() => product.available && openProduct(product, 'order')}
+                    disabled={!product.available}
+                    className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#C41230] text-white hover:bg-[#A90F29] text-xs font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Zap size={13} />
+                    Order Now
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+      <ProductOptionsModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        initialAction={productAction}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 }

@@ -20,12 +20,14 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import TopNav from '@/components/TopNav';
+import { SelectedProductOption } from '@/types/product-options';
 
 interface OrderItem {
   id: string;
   product_name: string;
   quantity: number;
   unit_price: number;
+  selected_options: SelectedProductOption[];
 }
 
 interface Order {
@@ -87,7 +89,7 @@ export default function OrderConfirmationClient() {
         // Fetch order items
         const { data: items } = await supabase
           .from('order_items')
-          .select('id, product_name, quantity, unit_price')
+          .select('id, product_name, quantity, unit_price, selected_options')
           .eq('order_id', data.id);
         if (items) setOrderItems(items);
       }
@@ -196,7 +198,14 @@ export default function OrderConfirmationClient() {
                     <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
                       {item.quantity}
                     </span>
-                    <p className="text-sm text-foreground truncate">{item.product_name}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground truncate">{item.product_name}</p>
+                      {item.selected_options?.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {item.selected_options.map((option) => `${option.group_name}: ${option.option_name}`).join(' · ')}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm font-semibold text-foreground tabular-nums shrink-0">
                     UGX {(item.unit_price * item.quantity).toLocaleString()}

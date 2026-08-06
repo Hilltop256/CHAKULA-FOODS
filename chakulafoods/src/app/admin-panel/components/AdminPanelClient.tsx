@@ -13,6 +13,7 @@ import {
   LogOut,
   Bell,
   Search,
+  Tag,
   Layers,
   Monitor,
   TrendingUp,
@@ -22,6 +23,7 @@ import AdminOverview from "./AdminOverview";
 import AdminProducts from "./AdminProducts";
 import AdminOrders from "./AdminOrders";
 import AdminUsers from "./AdminUsers";
+import AdminMarketSpecials from "./AdminMarketSpecials";
 import AdminOrderDispatch from "./AdminOrderDispatch";
 import AdminCategories from "./AdminCategories";
 import AdminPosOnline from "./AdminPosOnline";
@@ -39,14 +41,13 @@ const navItems = [
   { id: "categories", label: "Categories", icon: Layers, badge: 0 },
   { id: "users", label: "Users", icon: Users, badge: 0 },
   { id: "departments", label: "Departments", icon: Store, badge: 0 },
+  { id: "market-specials", label: "Market Specials", icon: Tag, badge: 0 },
 ];
 
 const cashierSections = ["pos-online", "pos-counter", "balance-sheet"];
-const ADMIN_SECTION_STORAGE_KEY = "chakula-admin-active-section";
 
 export default function AdminPanelClient() {
   const [activeSection, setActiveSection] = useState("overview");
-  const [sectionRestored, setSectionRestored] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dispatchOrderId, setDispatchOrderId] = useState<string | null>(null);
   const { user, profile } = useAuth();
@@ -58,34 +59,6 @@ export default function AdminPanelClient() {
     profile?.role === "cashier"
       ? navItems.filter((item) => cashierSections.includes(item.id))
       : navItems;
-
-  useEffect(() => {
-    const hashSection = window.location.hash.replace(/^#/, "");
-    const savedSection = window.localStorage.getItem(ADMIN_SECTION_STORAGE_KEY);
-    const requestedSection = hashSection || savedSection;
-    const isKnownSection = navItems.some((item) => item.id === requestedSection);
-
-    if (requestedSection && isKnownSection) {
-      setActiveSection(requestedSection);
-    }
-
-    setSectionRestored(true);
-  }, []);
-
-  useEffect(() => {
-    if (!sectionRestored || activeSection === "order-dispatch") return;
-
-    window.localStorage.setItem(ADMIN_SECTION_STORAGE_KEY, activeSection);
-
-    const nextHash = `#${activeSection}`;
-    if (window.location.hash !== nextHash) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}${nextHash}`
-      );
-    }
-  }, [activeSection, sectionRestored]);
 
   useEffect(() => {
     if (
@@ -131,6 +104,8 @@ export default function AdminPanelClient() {
         return <AdminCategories />;
       case "users":
         return <AdminUsers />;
+      case "market-specials":
+        return <AdminMarketSpecials />;
       default:
         return <AdminOverview />;
     }
@@ -142,6 +117,8 @@ export default function AdminPanelClient() {
         return "Dashboard Overview";
       case "categories":
         return "Categories";
+      case "market-specials":
+        return "Market Specials";
       case "orders":
         return "Orders";
       case "pos-online":

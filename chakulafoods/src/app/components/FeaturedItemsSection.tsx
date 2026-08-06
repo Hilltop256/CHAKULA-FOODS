@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Star, Clock, Plus } from 'lucide-react';
+import { Star, Clock, Plus, Zap } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { useCart } from '@/contexts/CartContext';
+import ProductOptionsModal from '@/components/ProductOptionsModal';
+import { ProductOptionGroup, PurchasableProduct } from '@/types/product-options';
 
 const categories = [
   { id: 'cat-restaurant', label: 'Restaurant' },
@@ -26,14 +27,16 @@ interface Product {
   image_url: string;
   tag: string;
   available: boolean;
+  description?: string | null;
+  product_options?: ProductOptionGroup[];
 }
 
 export default function FeaturedItemsSection() {
   const [activeCategory, setActiveCategory] = useState('cat-restaurant');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addingId, setAddingId] = useState<string | null>(null);
-  const { addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<PurchasableProduct | null>(null);
+  const [productAction, setProductAction] = useState<'cart' | 'order'>('cart');
   const supabase = createClient();
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function FeaturedItemsSection() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('id, name, price, original_price, department, rating, prep_time, image_url, tag, available')
+          .select('id, name, description, price, original_price, department, rating, prep_time, image_url, tag, available, product_options')
           .eq('featured', true)
           .eq('available', true)
           .order('orders_count', { ascending: false })
@@ -73,17 +76,19 @@ export default function FeaturedItemsSection() {
             categories.find((c) => c.id === activeCategory)?.label?.toLowerCase()
         );
 
-  const handleAddToCart = (item: Product) => {
-    setAddingId(item.id);
-    addToCart({
+  const openProduct = (item: Product, action: 'cart' | 'order' = 'cart') => {
+    setProductAction(action);
+    setSelectedProduct({
       id: item.id,
       name: item.name,
+      description: item.description,
       price: item.price,
-      image: item.image_url || '',
+      image: item.image_url || '/assets/images/no_image.png',
       department: item.department,
+      product_options: item.product_options || [],
     });
-    setTimeout(() => setAddingId(null), 600);
   };
+
 
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 pb-16">
@@ -155,7 +160,8 @@ export default function FeaturedItemsSection() {
           {filtered.map((item) => (
             <div
               key={item.id}
-              className="card-base overflow-hidden card-hover group flex flex-col"
+              onClick={() => openProduct(item)}
+              className="card-base overflow-hidden card-hover group flex flex-col cursor-pointer"
             >
               <div className="relative">
                 <AppImage
@@ -205,20 +211,22 @@ export default function FeaturedItemsSection() {
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => handleAddToCart(item)}
-                  disabled={addingId === item.id}
-                  className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-70"
-                >
-                  {addingId === item.id ? (
-                    <span className="w-3 h-3 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={12} />
-                      Add to Cart
-                    </>
-                  )}
-                </button>
+                <div className="grid grid-cols-2 gap-2" onClick={(event) => event.stopPropagation()}>
+                  <button
+                    onClick={() => openProduct(item, 'cart')}
+                    className="flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition-all duration-150 active:scale-95"
+                  >
+                    <Plus size={12} />
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => openProduct(item, 'order')}
+                    className="flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#C41230] text-white hover:bg-[#A90F29] text-xs font-semibold transition-all duration-150 active:scale-95"
+                  >
+                    <Zap size={12} />
+                    Order Now
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -229,6 +237,12 @@ export default function FeaturedItemsSection() {
           )}
         </div>
       )}
+      <ProductOptionsModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        initialAction={productAction}
+        onClose={() => setSelectedProduct(null)}
+      />
     </section>
   );
 }

@@ -19,6 +19,7 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   line_total: number;
+  selected_options?: Array<{ group_name: string; option_name: string; additional_price: number }>;
 }
 
 interface Order {
@@ -508,8 +509,13 @@ export default function AdminOrders({
                                 <span className="inline-flex min-w-7 justify-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">
                                   {item.quantity}×
                                 </span>
-                                <span className="truncate font-medium">
-                                  {item.product_name}
+                                <span className="min-w-0">
+                                  <span className="block truncate font-medium">{item.product_name}</span>
+                                  {item.selected_options?.length ? (
+                                    <span className="block truncate text-[11px] text-muted-foreground">
+                                      {item.selected_options.map((option) => option.option_name).join(', ')}
+                                    </span>
+                                  ) : null}
                                 </span>
                               </div>
                             ))}
@@ -595,7 +601,12 @@ export default function AdminOrders({
                                           key={`${order.id}-detail-${item.product_id || item.product_name}-${index}`}
                                         >
                                           <td className="px-4 py-2.5 font-medium text-foreground">
-                                            {item.product_name}
+                                            <span className="block">{item.product_name}</span>
+                                            {item.selected_options?.length ? (
+                                              <span className="block text-[11px] font-normal text-muted-foreground mt-0.5">
+                                                {item.selected_options.map((option) => `${option.group_name}: ${option.option_name}`).join(' · ')}
+                                              </span>
+                                            ) : null}
                                           </td>
                                           <td className="px-4 py-2.5 font-semibold tabular-nums text-foreground">
                                             {item.quantity}

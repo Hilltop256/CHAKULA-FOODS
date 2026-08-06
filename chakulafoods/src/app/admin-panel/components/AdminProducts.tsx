@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploadField from './ImageUploadField';
+import ProductOptionsEditor from './ProductOptionsEditor';
+import { normalizeProductOptionGroups, ProductOptionGroup } from '@/types/product-options';
 
 interface Product {
   id: string;
@@ -18,6 +20,7 @@ interface Product {
   orders_count: number;
   image_url: string;
   description?: string;
+  product_options: ProductOptionGroup[];
 }
 
 interface Category {
@@ -25,6 +28,15 @@ interface Category {
   name: string;
   department: string;
 }
+
+
+const hasIncompleteOptionGroups = (groups: ProductOptionGroup[]) =>
+  groups.some(
+    (group) =>
+      !group.name.trim() ||
+      group.options.length === 0 ||
+      group.options.some((option) => !option.name.trim())
+  );
 
 type ProductForm = {
   name: string;
@@ -52,6 +64,8 @@ export default function AdminProducts() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addImageUrl, setAddImageUrl] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [addOptionGroups, setAddOptionGroups] = useState<ProductOptionGroup[]>([]);
+  const [editOptionGroups, setEditOptionGroups] = useState<ProductOptionGroup[]>([]);
   const supabase = createClient();
 
   const addForm = useForm<ProductForm>();
@@ -61,8 +75,6 @@ export default function AdminProducts() {
 
   const addDepartment = addForm.watch('department');
   const editDepartment = editForm.watch('department');
-  const isAddRestaurant = addDepartment === 'Restaurant';
-  const isEditRestaurant = editDepartment === 'Restaurant';
 
   // Get categories for selected department
   const addCategories = categories.filter((c) => c.department === addDepartment).map((c) => c.name);
@@ -90,7 +102,7 @@ export default function AdminProducts() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, department, category, price, available, orders_count, image_url, description')
+        .select('id, name, department, category, price, available, orders_count, image_url, description, product_options')
         .order('orders_count', { ascending: false });
 
       if (error) {
@@ -182,6 +194,10 @@ export default function AdminProducts() {
   };
 
   const onAddProduct = async (data: ProductForm) => {
+    if (hasIncompleteOptionGroups(addOptionGroups)) {
+      toast.error('Complete every option group and option name before saving');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const { data: newProduct, error } = await supabase
@@ -189,13 +205,14 @@ export default function AdminProducts() {
         .insert({
           name: data.name,
           department: data.department,
-          category: data.category?.trim() || '',
+          category: data.category || '',
           price: Number(data.price),
           available: data.available,
           description: data.description,
           image_url: data.image_url || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100&q=70',
           orders_count: 0,
           featured: false,
+          product_options: normalizeProductOptionGroups(addOptionGroups),
         })
         .select()
         .single();
@@ -207,6 +224,7 @@ export default function AdminProducts() {
         setShowAddModal(false);
         addForm.reset();
         setAddImageUrl('');
+        setAddOptionGroups([]);
         toast.success(`${data.name} added to ${data.department}`);
       }
     } catch {
@@ -226,10 +244,15 @@ export default function AdminProducts() {
     editForm.setValue('image_url', product.image_url || '');
     editForm.setValue('available', product.available);
     setEditImageUrl(product.image_url || '');
+    setEditOptionGroups(normalizeProductOptionGroups(product.product_options));
   };
 
   const onEditProduct = async (data: ProductForm) => {
     if (!editingProduct) return;
+    if (hasIncompleteOptionGroups(editOptionGroups)) {
+      toast.error('Complete every option group and option name before saving');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const { error } = await supabase
@@ -237,11 +260,12 @@ export default function AdminProducts() {
         .update({
           name: data.name,
           department: data.department,
-          category: data.category?.trim() || '',
+          category: data.category || '',
           price: Number(data.price),
           available: data.available,
           description: data.description || null,
           image_url: data.image_url || editingProduct.image_url,
+          product_options: normalizeProductOptionGroups(editOptionGroups),
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingProduct.id);
@@ -256,11 +280,12 @@ export default function AdminProducts() {
                   ...p,
                   name: data.name,
                   department: data.department,
-                  category: data.category?.trim() || '',
+                  category: data.category || '',
                   price: Number(data.price),
                   available: data.available,
                   description: data.description,
                   image_url: data.image_url || p.image_url,
+                  product_options: normalizeProductOptionGroups(editOptionGroups),
                 }
               : p
           )
@@ -268,6 +293,7 @@ export default function AdminProducts() {
         setEditingProduct(null);
         editForm.reset();
         setEditImageUrl('');
+        setEditOptionGroups([]);
         toast.success(`${data.name} updated successfully`);
       }
     } catch {
@@ -423,6 +449,7 @@ export default function AdminProducts() {
                 >
                   <span className="flex items-center gap-1">Orders <SortIcon field="orders_count" /></span>
                 </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Options</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Actions</th>
               </tr>
@@ -461,6 +488,9 @@ export default function AdminProducts() {
                     UGX {product.price?.toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-sm text-foreground tabular-nums">{product.orders_count}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {normalizeProductOptionGroups(product.product_options).length || '—'}
+                  </td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handleToggleAvailable(product.id, product.available)}
@@ -494,7 +524,7 @@ export default function AdminProducts() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="px-5 py-10 text-center text-sm text-muted-foreground">
                     No products found.
                   </td>
                 </tr>
@@ -525,10 +555,10 @@ export default function AdminProducts() {
       {/* Add Product Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in">
-          <div className="card-base shadow-2xl p-6 max-w-md w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="card-base shadow-2xl p-6 max-w-2xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-foreground">Add New Product</h3>
-              <button onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); }} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+              <button onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); setAddOptionGroups([]); }} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -550,9 +580,8 @@ export default function AdminProducts() {
                     {...addForm.register('department', { required: 'Required' })}
                     className="input-field w-full"
                     onChange={(e) => {
-                      addForm.setValue('department', e.target.value, { shouldValidate: true });
-                      addForm.setValue('category', '', { shouldValidate: false });
-                      addForm.clearErrors('category');
+                      addForm.setValue('department', e.target.value);
+                      addForm.setValue('category', '');
                     }}
                   >
                     <option value="">Select...</option>
@@ -563,37 +592,17 @@ export default function AdminProducts() {
                   {addForm.formState.errors.department && <p className="text-xs text-accent mt-1">{addForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">
-                    Category{isAddRestaurant ? ' *' : ' (Optional)'}
-                  </label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">{addDepartment === 'Restaurant' ? 'Category *' : 'Category (optional)'}</label>
                   <select
-                    {...addForm.register('category', {
-                      validate: (value) =>
-                        !isAddRestaurant ||
-                        Boolean(value?.trim()) ||
-                        'Category is required for Restaurant',
-                    })}
+                    {...addForm.register('category', { required: addDepartment === 'Restaurant' ? 'Category is required for Restaurant products' : false })}
                     className="input-field w-full"
                     disabled={!addDepartment || addCategories.length === 0}
                   >
-                    <option value="">
-                      {!addDepartment
-                        ? 'Select department first'
-                        : addCategories.length === 0
-                          ? 'No categories available'
-                          : isAddRestaurant
-                            ? 'Select category...'
-                            : 'No category / select category...'}
-                    </option>
+                    <option value="">{addDepartment ? 'Select category...' : 'Select dept first'}</option>
                     {addCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
-                  {isAddRestaurant && addDepartment && addCategories.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Add a Restaurant category in the Categories section first.
-                    </p>
-                  )}
                   {addForm.formState.errors.category && <p className="text-xs text-accent mt-1">{addForm.formState.errors.category.message}</p>}
                 </div>
               </div>
@@ -621,6 +630,7 @@ export default function AdminProducts() {
                   className="input-field w-full resize-none"
                 />
               </div>
+              <ProductOptionsEditor value={addOptionGroups} onChange={setAddOptionGroups} />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" {...addForm.register('available')} defaultChecked className="accent-primary" />
                 <span className="text-sm text-foreground">Available for ordering</span>
@@ -637,7 +647,7 @@ export default function AdminProducts() {
                     'Add Product'
                   )}
                 </button>
-                <button type="button" onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); }} className="flex-1 btn-outline">
+                <button type="button" onClick={() => { setShowAddModal(false); addForm.reset(); setAddImageUrl(''); setAddOptionGroups([]); }} className="flex-1 btn-outline">
                   Cancel
                 </button>
               </div>
@@ -649,11 +659,11 @@ export default function AdminProducts() {
       {/* Edit Product Modal */}
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in">
-          <div className="card-base shadow-2xl p-6 max-w-md w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
+          <div className="card-base shadow-2xl p-6 max-w-2xl w-full mx-4 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-foreground">Edit Product</h3>
               <button
-                onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); }}
+                onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); setEditOptionGroups([]); }}
                 className="p-1.5 rounded-lg hover:bg-muted transition-colors"
               >
                 <X size={16} />
@@ -676,9 +686,8 @@ export default function AdminProducts() {
                     {...editForm.register('department', { required: 'Required' })}
                     className="input-field w-full"
                     onChange={(e) => {
-                      editForm.setValue('department', e.target.value, { shouldValidate: true });
-                      editForm.setValue('category', '', { shouldValidate: false });
-                      editForm.clearErrors('category');
+                      editForm.setValue('department', e.target.value);
+                      editForm.setValue('category', '');
                     }}
                   >
                     <option value="">Select...</option>
@@ -689,37 +698,17 @@ export default function AdminProducts() {
                   {editForm.formState.errors.department && <p className="text-xs text-accent mt-1">{editForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">
-                    Category{isEditRestaurant ? ' *' : ' (Optional)'}
-                  </label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">{editDepartment === 'Restaurant' ? 'Category *' : 'Category (optional)'}</label>
                   <select
-                    {...editForm.register('category', {
-                      validate: (value) =>
-                        !isEditRestaurant ||
-                        Boolean(value?.trim()) ||
-                        'Category is required for Restaurant',
-                    })}
+                    {...editForm.register('category', { required: editDepartment === 'Restaurant' ? 'Category is required for Restaurant products' : false })}
                     className="input-field w-full"
                     disabled={!editDepartment || editCategories.length === 0}
                   >
-                    <option value="">
-                      {!editDepartment
-                        ? 'Select department first'
-                        : editCategories.length === 0
-                          ? 'No categories available'
-                          : isEditRestaurant
-                            ? 'Select category...'
-                            : 'No category / select category...'}
-                    </option>
+                    <option value="">{editDepartment ? 'Select category...' : 'Select dept first'}</option>
                     {editCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
-                  {isEditRestaurant && editDepartment && editCategories.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Add a Restaurant category in the Categories section first.
-                    </p>
-                  )}
                   {editForm.formState.errors.category && <p className="text-xs text-accent mt-1">{editForm.formState.errors.category.message}</p>}
                 </div>
               </div>
@@ -745,6 +734,7 @@ export default function AdminProducts() {
                   className="input-field w-full resize-none"
                 />
               </div>
+              <ProductOptionsEditor value={editOptionGroups} onChange={setEditOptionGroups} />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" {...editForm.register('available')} className="accent-primary" />
                 <span className="text-sm text-foreground">Available for ordering</span>
@@ -763,7 +753,7 @@ export default function AdminProducts() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); }}
+                  onClick={() => { setEditingProduct(null); editForm.reset(); setEditImageUrl(''); setEditOptionGroups([]); }}
                   className="flex-1 btn-outline"
                 >
                   Cancel

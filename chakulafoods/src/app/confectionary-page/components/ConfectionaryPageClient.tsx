@@ -9,12 +9,13 @@ import {
   Repeat,
   Plus,
   Search,
+  Zap,
 } from "lucide-react";
 import AppImage from "@/components/ui/AppImage";
 import ScheduleConfectionaryModal from "./ScheduleConfectionaryModal";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
+import ProductOptionsModal from "@/components/ProductOptionsModal";
+import { ProductOptionGroup, PurchasableProduct } from "@/types/product-options";
 
 interface Product {
   id: string;
@@ -32,6 +33,7 @@ interface Product {
   featured: boolean;
   orders_count: number;
   schedulable?: boolean; // Supported if present in schema
+  product_options?: ProductOptionGroup[];
 }
 
 export default function ConfectionaryPageClient() {
@@ -42,10 +44,9 @@ export default function ConfectionaryPageClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleItem, setScheduleItem] = useState<Product | null>(null);
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<PurchasableProduct | null>(null);
+  const [productAction, setProductAction] = useState<"cart" | "order">("cart");
 
-  const { user } = useAuth();
-  const { addToCart } = useCart();
 
   // Fetch data dynamically from Supabase
   useEffect(() => {
@@ -99,16 +100,17 @@ export default function ConfectionaryPageClient() {
       p.name.toLowerCase().includes("subscription"),
   );
 
-  const handleAddToCart = (product: Product) => {
-    setAddingId(product.id);
-    addToCart({
+  const openProduct = (product: Product, action: "cart" | "order" = "cart") => {
+    setProductAction(action);
+    setSelectedProduct({
       id: product.id,
       name: product.name,
+      description: product.description,
       price: product.price,
       image: product.image_url || "/assets/images/no_image.png",
       department: "Confectionary",
+      product_options: product.product_options || [],
     });
-    setTimeout(() => setAddingId(null), 600);
   };
 
   // Helper logic to verify if an item can be scheduled (falls back to category rules if missing field)
@@ -302,7 +304,8 @@ export default function ConfectionaryPageClient() {
         {filtered.map((item) => (
           <div
             key={item.id}
-            className={`card-base overflow-hidden card-hover flex flex-col group ${
+            onClick={() => item.available && openProduct(item)}
+            className={`card-base overflow-hidden card-hover flex flex-col group cursor-pointer ${
               !item.available ? "opacity-60" : ""
             }`}
           >
@@ -379,15 +382,16 @@ export default function ConfectionaryPageClient() {
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {isSchedulable(item) && (
                   <button
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation();
                       setScheduleItem(item);
                       setScheduleOpen(true);
                     }}
                     disabled={!item.available}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-secondary hover:bg-secondary/5 text-xs font-semibold transition-all duration-150 disabled:opacity-50"
+                    className="col-span-2 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-border hover:border-secondary hover:bg-secondary/5 text-xs font-semibold transition-all duration-150 disabled:opacity-50"
                     title="Schedule this order"
                   >
                     <Calendar size={13} className="text-muted-foreground" />
@@ -395,24 +399,33 @@ export default function ConfectionaryPageClient() {
                   </button>
                 )}
                 <button
-                  onClick={() => item.available && handleAddToCart(item)}
-                  disabled={!item.available || addingId === item.id}
+                  onClick={(event) => { event.stopPropagation(); item.available && openProduct(item, "cart"); }}
+                  disabled={!item.available}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/90 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {addingId === item.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-secondary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Plus size={13} />
-                      {item.available ? "Add to Cart" : "Out of Stock"}
-                    </>
-                  )}
+                  <Plus size={13} />
+                  {item.available ? "Add to Cart" : "Out of Stock"}
+                </button>
+                <button
+                  onClick={(event) => { event.stopPropagation(); item.available && openProduct(item, "order"); }}
+                  disabled={!item.available}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#C41230] text-white hover:bg-[#A90F29] text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap size={13} />
+                  Order Now
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <ProductOptionsModal
+        product={selectedProduct}
+        open={Boolean(selectedProduct)}
+        initialAction={productAction}
+        onClose={() => setSelectedProduct(null)}
+      />
 
       {/* Scheduling Modals */}
       {scheduleOpen && scheduleItem && (
