@@ -61,6 +61,8 @@ export default function AdminProducts() {
 
   const addDepartment = addForm.watch('department');
   const editDepartment = editForm.watch('department');
+  const isAddRestaurant = addDepartment === 'Restaurant';
+  const isEditRestaurant = editDepartment === 'Restaurant';
 
   // Get categories for selected department
   const addCategories = categories.filter((c) => c.department === addDepartment).map((c) => c.name);
@@ -187,7 +189,7 @@ export default function AdminProducts() {
         .insert({
           name: data.name,
           department: data.department,
-          category: data.category,
+          category: data.category?.trim() || '',
           price: Number(data.price),
           available: data.available,
           description: data.description,
@@ -235,7 +237,7 @@ export default function AdminProducts() {
         .update({
           name: data.name,
           department: data.department,
-          category: data.category,
+          category: data.category?.trim() || '',
           price: Number(data.price),
           available: data.available,
           description: data.description || null,
@@ -254,7 +256,7 @@ export default function AdminProducts() {
                   ...p,
                   name: data.name,
                   department: data.department,
-                  category: data.category,
+                  category: data.category?.trim() || '',
                   price: Number(data.price),
                   available: data.available,
                   description: data.description,
@@ -548,8 +550,9 @@ export default function AdminProducts() {
                     {...addForm.register('department', { required: 'Required' })}
                     className="input-field w-full"
                     onChange={(e) => {
-                      addForm.setValue('department', e.target.value);
-                      addForm.setValue('category', '');
+                      addForm.setValue('department', e.target.value, { shouldValidate: true });
+                      addForm.setValue('category', '', { shouldValidate: false });
+                      addForm.clearErrors('category');
                     }}
                   >
                     <option value="">Select...</option>
@@ -560,17 +563,37 @@ export default function AdminProducts() {
                   {addForm.formState.errors.department && <p className="text-xs text-accent mt-1">{addForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
+                    Category{isAddRestaurant ? ' *' : ' (Optional)'}
+                  </label>
                   <select
-                    {...addForm.register('category', { required: 'Required' })}
+                    {...addForm.register('category', {
+                      validate: (value) =>
+                        !isAddRestaurant ||
+                        Boolean(value?.trim()) ||
+                        'Category is required for Restaurant',
+                    })}
                     className="input-field w-full"
                     disabled={!addDepartment || addCategories.length === 0}
                   >
-                    <option value="">{addDepartment ? 'Select category...' : 'Select dept first'}</option>
+                    <option value="">
+                      {!addDepartment
+                        ? 'Select department first'
+                        : addCategories.length === 0
+                          ? 'No categories available'
+                          : isAddRestaurant
+                            ? 'Select category...'
+                            : 'No category / select category...'}
+                    </option>
                     {addCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {isAddRestaurant && addDepartment && addCategories.length === 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Add a Restaurant category in the Categories section first.
+                    </p>
+                  )}
                   {addForm.formState.errors.category && <p className="text-xs text-accent mt-1">{addForm.formState.errors.category.message}</p>}
                 </div>
               </div>
@@ -653,8 +676,9 @@ export default function AdminProducts() {
                     {...editForm.register('department', { required: 'Required' })}
                     className="input-field w-full"
                     onChange={(e) => {
-                      editForm.setValue('department', e.target.value);
-                      editForm.setValue('category', '');
+                      editForm.setValue('department', e.target.value, { shouldValidate: true });
+                      editForm.setValue('category', '', { shouldValidate: false });
+                      editForm.clearErrors('category');
                     }}
                   >
                     <option value="">Select...</option>
@@ -665,17 +689,37 @@ export default function AdminProducts() {
                   {editForm.formState.errors.department && <p className="text-xs text-accent mt-1">{editForm.formState.errors.department.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-foreground mb-1.5">Category *</label>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
+                    Category{isEditRestaurant ? ' *' : ' (Optional)'}
+                  </label>
                   <select
-                    {...editForm.register('category', { required: 'Required' })}
+                    {...editForm.register('category', {
+                      validate: (value) =>
+                        !isEditRestaurant ||
+                        Boolean(value?.trim()) ||
+                        'Category is required for Restaurant',
+                    })}
                     className="input-field w-full"
                     disabled={!editDepartment || editCategories.length === 0}
                   >
-                    <option value="">{editDepartment ? 'Select category...' : 'Select dept first'}</option>
+                    <option value="">
+                      {!editDepartment
+                        ? 'Select department first'
+                        : editCategories.length === 0
+                          ? 'No categories available'
+                          : isEditRestaurant
+                            ? 'Select category...'
+                            : 'No category / select category...'}
+                    </option>
                     {editCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {isEditRestaurant && editDepartment && editCategories.length === 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Add a Restaurant category in the Categories section first.
+                    </p>
+                  )}
                   {editForm.formState.errors.category && <p className="text-xs text-accent mt-1">{editForm.formState.errors.category.message}</p>}
                 </div>
               </div>
