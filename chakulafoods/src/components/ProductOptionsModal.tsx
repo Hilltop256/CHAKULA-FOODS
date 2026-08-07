@@ -112,9 +112,9 @@ export default function ProductOptionsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/45 backdrop-blur-sm p-4" onMouseDown={onClose}>
-      <div className="card-base w-full max-w-2xl max-h-[92vh] overflow-hidden shadow-2xl animate-scale-in" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+    <div className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center bg-foreground/45 backdrop-blur-sm p-2 sm:p-4 overflow-hidden" onMouseDown={onClose}>
+      <div className="card-base w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[92dvh] flex flex-col overflow-hidden shadow-2xl animate-scale-in" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-[#C41230]">Customise your order</p>
             <h2 className="text-lg font-extrabold text-foreground">{product.name}</h2>
@@ -124,7 +124,7 @@ export default function ProductOptionsModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(92vh-150px)]">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="grid md:grid-cols-[220px_1fr] gap-5 p-5">
             <div>
               <AppImage src={product.image} alt={product.name} width={440} height={320} className="w-full h-48 md:h-44 object-cover rounded-xl" />
@@ -179,7 +179,7 @@ export default function ProductOptionsModal({
           </div>
         </div>
 
-        <div className="border-t border-border p-4 bg-card">
+        <div className="shrink-0 border-t border-border p-4 bg-card">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-muted-foreground">Total</span>
             <span className="text-lg font-extrabold text-[#C41230]">UGX {total.toLocaleString()}</span>
