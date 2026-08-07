@@ -21,7 +21,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { addOpenStreetMapTiles, createEmojiMapIcon, loadLeaflet } from '@/lib/leafletLoader';
 import TopNav from '@/components/TopNav';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -111,8 +111,7 @@ const RIDER_INFO = {
 
 declare global {
   interface Window {
-    google: any;
-    initOrderTrackingMap: () => void;
+    L: any;
   }
 }
 
@@ -134,6 +133,7 @@ export default function OrderTrackingClient() {
   const [loading, setLoading] = useState(true);
   const [mapApiLoaded, setMapApiLoaded] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState('');
   const [riderProgress, setRiderProgress] = useState(0.1);
   const [refreshing, setRefreshing] = useState(false);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
@@ -249,112 +249,104 @@ export default function OrderTrackingClient() {
     return () => clearInterval(interval);
   }, [selectedOrder?.status]);
 
-  // Load Google Maps
+  // Load Leaflet + OpenStreetMap. No Google Maps API key is required.
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey || apiKey === 'your-google-maps-api-key-here') return;
-
-    loadGoogleMaps(apiKey, () => {
-      setMapApiLoaded(true);
-    });
+    loadLeaflet()
+      .then(() => {
+        setMapApiLoaded(true);
+        setMapError('');
+      })
+      .catch(() => {
+        setMapError('Unable to load the map. Please check your internet connection and try again.');
+      });
   }, []);
 
   const initMap = useCallback(() => {
-    if (!mapRef.current || !window.google || !selectedOrder) return;
+    if (!mapRef.current || !window.L || !selectedOrder) return;
 
+    const L = window.L;
     const customerLocation =
       selectedOrder.delivery_lat && selectedOrder.delivery_lng
         ? { lat: selectedOrder.delivery_lat, lng: selectedOrder.delivery_lng }
         : null;
 
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+      riderMarkerRef.current = null;
+      storeMarkerRef.current = null;
+      customerMarkerRef.current = null;
+      routeLineRef.current = null;
+    }
+
     const center = customerLocation || STORE_LOCATION;
-
-    const map = new window.google.maps.Map(mapRef.current, {
-      center,
-      zoom: 14,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true,
+    const map = L.map(mapRef.current, {
       zoomControl: true,
-      styles: [
-        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit', stylers: [{ visibility: 'simplified' }] },
-      ],
-    });
+      attributionControl: true,
+    }).setView([center.lat, center.lng], 14);
 
+    addOpenStreetMapTiles(L, map);
     mapInstanceRef.current = map;
 
-    // Store marker
-    storeMarkerRef.current = new window.google.maps.Marker({
-      position: STORE_LOCATION,
-      map,
+    storeMarkerRef.current = L.marker([STORE_LOCATION.lat, STORE_LOCATION.lng], {
+      icon: createEmojiMapIcon(L, '🏪', '#16a34a'),
       title: 'Chakula Foods Naalya',
-      icon: {
-        url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-        scaledSize: new window.google.maps.Size(36, 36),
-      },
-      label: { text: '🏪', fontSize: '18px' },
-    });
+    }).addTo(map).bindPopup('Chakula Foods Naalya');
 
-    // Customer marker
     if (customerLocation) {
-      customerMarkerRef.current = new window.google.maps.Marker({
-        position: customerLocation,
-        map,
+      customerMarkerRef.current = L.marker([customerLocation.lat, customerLocation.lng], {
+        icon: createEmojiMapIcon(L, '📍', '#C41230'),
         title: 'Delivery Location',
-        icon: {
-          url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-          scaledSize: new window.google.maps.Size(36, 36),
-        },
-        label: { text: '📍', fontSize: '18px' },
-      });
+      }).addTo(map).bindPopup('Delivery Location');
 
-      // Route line
-      routeLineRef.current = new window.google.maps.Polyline({
-        path: [STORE_LOCATION, customerLocation],
-        geodesic: true,
-        strokeColor: '#1B5E38',
-        strokeOpacity: 0.6,
-        strokeWeight: 3,
-        map,
-      });
+      routeLineRef.current = L.polyline(
+        [
+          [STORE_LOCATION.lat, STORE_LOCATION.lng],
+          [customerLocation.lat, customerLocation.lng],
+        ],
+        { color: '#1B5E38', opacity: 0.65, weight: 4, dashArray: '8 8' },
+      ).addTo(map);
 
-      // Rider marker
       const riderPos = getRiderLocation(STORE_LOCATION, customerLocation, riderProgress);
-      riderMarkerRef.current = new window.google.maps.Marker({
-        position: riderPos,
-        map,
+      riderMarkerRef.current = L.marker([riderPos.lat, riderPos.lng], {
+        icon: createEmojiMapIcon(L, '🛵', '#2563eb'),
         title: 'Rider',
-        icon: {
-          url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-          scaledSize: new window.google.maps.Size(40, 40),
-        },
-        label: { text: '🛵', fontSize: '20px' },
-      });
+      }).addTo(map).bindPopup('Rider');
 
-      // Fit bounds
-      const bounds = new window.google.maps.LatLngBounds();
-      bounds.extend(STORE_LOCATION);
-      bounds.extend(customerLocation);
-      map.fitBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+      const bounds = L.latLngBounds([
+        [STORE_LOCATION.lat, STORE_LOCATION.lng],
+        [customerLocation.lat, customerLocation.lng],
+      ]);
+      map.fitBounds(bounds, { padding: [55, 55], maxZoom: 16 });
     }
 
     setMapLoaded(true);
-  }, [selectedOrder, riderProgress]);
+    window.setTimeout(() => map.invalidateSize(), 0);
+  }, [selectedOrder?.id]);
 
   useEffect(() => {
     if (mapApiLoaded && mapRef.current && selectedOrder) {
+      setMapLoaded(false);
       initMap();
     }
-  }, [mapApiLoaded, selectedOrder?.id]);
+  }, [mapApiLoaded, selectedOrder?.id, initMap]);
 
-  // Update rider marker position
+  // Update the simulated rider marker position as the demo progress changes.
   useEffect(() => {
     if (!riderMarkerRef.current || !selectedOrder?.delivery_lat || !selectedOrder?.delivery_lng) return;
     const customerLocation = { lat: selectedOrder.delivery_lat, lng: selectedOrder.delivery_lng };
     const riderPos = getRiderLocation(STORE_LOCATION, customerLocation, riderProgress);
-    riderMarkerRef.current.setPosition(riderPos);
+    riderMarkerRef.current.setLatLng([riderPos.lat, riderPos.lng]);
   }, [riderProgress, selectedOrder]);
+
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -369,9 +361,6 @@ export default function OrderTrackingClient() {
   const isOutForDelivery = activeStatus === 'out_for_delivery';
   const isRiderAssigned = activeStatus === 'rider_assigned' || isOutForDelivery;
   const showMap = ['rider_assigned', 'out_for_delivery', 'delivered'].includes(activeStatus);
-  const apiKeyMissing =
-    !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY === 'your-google-maps-api-key-here';
 
   return (
     <div className="min-h-screen bg-background">
@@ -385,7 +374,7 @@ export default function OrderTrackingClient() {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-foreground">Track Your Order</h1>
-            <p className="text-sm text-muted-foreground">Real-time delivery updates</p>
+            <p className="text-sm text-muted-foreground">Real-time order status updates</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             {/* Real-time connection indicator */}
@@ -659,9 +648,9 @@ export default function OrderTrackingClient() {
                 <div className="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <Bike size={18} className="text-primary" />
-                    <p className="font-semibold text-foreground text-sm">Live Rider Tracking</p>
+                    <p className="font-semibold text-foreground text-sm">Rider Tracking</p>
                   </div>
-                  {showMap && !apiKeyMissing && (
+                  {showMap && (
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Store
@@ -678,23 +667,11 @@ export default function OrderTrackingClient() {
 
                 {/* Map area */}
                 <div className="flex-1">
-                  {apiKeyMissing ? (
+                  {mapError ? (
                     <div className="flex flex-col items-center justify-center h-80 bg-muted/30 gap-3 px-6 text-center">
-                      <MapPin size={36} className="text-muted-foreground" />
-                      <p className="text-sm font-semibold text-foreground">Google Maps not configured</p>
-                      <p className="text-xs text-muted-foreground max-w-xs">
-                        Add your <code className="bg-muted px-1 rounded text-xs">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to enable live rider tracking on the map.
-                      </p>
-                      {selectedOrder?.delivery_lat && selectedOrder?.delivery_lng && (
-                        <a
-                          href={`https://www.google.com/maps?q=${selectedOrder.delivery_lat},${selectedOrder.delivery_lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-outline text-xs py-1.5 px-3 mt-1"
-                        >
-                          View on Google Maps ↗
-                        </a>
-                      )}
+                      <AlertCircle size={34} className="text-accent" />
+                      <p className="text-sm font-semibold text-foreground">Map temporarily unavailable</p>
+                      <p className="text-xs text-muted-foreground max-w-xs">{mapError}</p>
                     </div>
                   ) : !showMap ? (
                     <div className="flex flex-col items-center justify-center h-80 bg-muted/20 gap-3 px-6 text-center">
@@ -703,7 +680,7 @@ export default function OrderTrackingClient() {
                       </div>
                       <p className="text-sm font-semibold text-foreground">Map activates when rider is assigned</p>
                       <p className="text-xs text-muted-foreground max-w-xs">
-                        Once your order is picked up, you'll see the rider's live location here.
+                        Once your order is picked up, you'll see the rider's delivery progress here.
                       </p>
                       {/* Progress bar */}
                       {selectedOrder && !isCancelled && (

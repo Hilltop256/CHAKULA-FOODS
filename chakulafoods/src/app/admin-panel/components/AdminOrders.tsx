@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import OrderLocationMap from "@/components/OrderLocationMap";
 
 interface OrderItem {
   product_id: string | null;
@@ -668,13 +669,13 @@ export default function AdminOrders({
                                         {order.delivery_lng.toFixed(6)}
                                       </p>
                                       <a
-                                        href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
+                                        href={`https://www.openstreetmap.org/?mlat=${order.delivery_lat}&mlon=${order.delivery_lng}#map=17/${order.delivery_lat}/${order.delivery_lng}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={(e) => e.stopPropagation()}
                                         className="text-xs text-primary hover:underline font-medium"
                                       >
-                                        View on Google Maps →
+                                        View on OpenStreetMap →
                                       </a>
                                     </div>
                                   ) : (
@@ -718,6 +719,24 @@ export default function AdminOrders({
                                   </p>
                                 </div>
                               </div>
+                            </div>
+
+                            <div>
+                              <div className="mb-2 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Navigation size={15} className="text-primary" />
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Delivery Map
+                                  </p>
+                                </div>
+                                <span className="text-[11px] text-muted-foreground">OpenStreetMap</span>
+                              </div>
+                              <OrderLocationMap
+                                customerLat={order.delivery_lat}
+                                customerLng={order.delivery_lng}
+                                status={order.status}
+                                height={260}
+                              />
                             </div>
                           </div>
                         </td>

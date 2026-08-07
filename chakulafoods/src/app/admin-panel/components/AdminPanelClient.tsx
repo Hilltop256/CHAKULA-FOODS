@@ -46,10 +46,18 @@ const navItems = [
 
 const cashierSections = ["pos-online", "pos-counter", "balance-sheet"];
 
+const ADMIN_SECTION_STORAGE_KEY = "chakula_admin_active_section";
+const ADMIN_DISPATCH_STORAGE_KEY = "chakula_admin_dispatch_order_id";
+const validAdminSections = new Set([
+  ...navItems.map((item) => item.id),
+  "order-dispatch",
+]);
+
 export default function AdminPanelClient() {
   const [activeSection, setActiveSection] = useState("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dispatchOrderId, setDispatchOrderId] = useState<string | null>(null);
+  const [navigationReady, setNavigationReady] = useState(false);
   const { user, profile } = useAuth();
 
   const adminName =
@@ -59,6 +67,47 @@ export default function AdminPanelClient() {
     profile?.role === "cashier"
       ? navItems.filter((item) => cashierSections.includes(item.id))
       : navItems;
+
+  // Restore the last admin section after a browser refresh.
+  useEffect(() => {
+    try {
+      const savedSection = window.localStorage.getItem(ADMIN_SECTION_STORAGE_KEY);
+      const savedDispatchOrderId = window.localStorage.getItem(ADMIN_DISPATCH_STORAGE_KEY);
+
+      if (savedSection && validAdminSections.has(savedSection)) {
+        if (savedSection === "order-dispatch") {
+          if (savedDispatchOrderId) {
+            setDispatchOrderId(savedDispatchOrderId);
+            setActiveSection("order-dispatch");
+          } else {
+            setActiveSection("orders");
+          }
+        } else {
+          setActiveSection(savedSection);
+        }
+      }
+    } catch {
+      // localStorage can be unavailable in private/restricted browser modes.
+    } finally {
+      setNavigationReady(true);
+    }
+  }, []);
+
+  // Persist navigation state as the admin moves between modules.
+  useEffect(() => {
+    if (!navigationReady) return;
+
+    try {
+      window.localStorage.setItem(ADMIN_SECTION_STORAGE_KEY, activeSection);
+      if (dispatchOrderId) {
+        window.localStorage.setItem(ADMIN_DISPATCH_STORAGE_KEY, dispatchOrderId);
+      } else if (activeSection !== "order-dispatch") {
+        window.localStorage.removeItem(ADMIN_DISPATCH_STORAGE_KEY);
+      }
+    } catch {
+      // Navigation still works even when browser storage is unavailable.
+    }
+  }, [navigationReady, activeSection, dispatchOrderId]);
 
   useEffect(() => {
     if (

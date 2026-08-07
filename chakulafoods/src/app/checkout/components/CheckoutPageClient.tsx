@@ -25,7 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import AppImage from '@/components/ui/AppImage';
 import TopNav from '@/components/TopNav';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { addOpenStreetMapTiles, createEmojiMapIcon, loadLeaflet } from '@/lib/leafletLoader';
 
 interface DeliveryLocation {
   lat: number;
@@ -45,8 +45,7 @@ const STORE_LOCATION = { lat: 0.3476, lng: 32.6252 };
 
 declare global {
   interface Window {
-    google: any;
-    initCheckoutMap: () => void;
+    L: any;
   }
 }
 
@@ -58,7 +57,6 @@ export default function CheckoutPageClient() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
-  const geocoderRef = useRef<any>(null);
 
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -148,98 +146,94 @@ export default function CheckoutPageClient() {
     setSavingNewAddress(false);
   };
 
-  const initMap = useCallback(() => {
-    if (!mapRef.current || !window.google) return;
+  const setPinnedLocation = useCallback((lat: number, lng: number) => {
+    setDeliveryLocation({
+      lat,
+      lng,
+      address: `Pinned location (${lat.toFixed(6)}, ${lng.toFixed(6)})`,
+    });
+    setLocationError('');
+  }, []);
 
+  const placeDeliveryMarker = useCallback((lat: number, lng: number) => {
+    const L = window.L;
+    const map = mapInstanceRef.current;
+    if (!L || !map) return;
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+      return;
+    }
+
+    const marker = L.marker([lat, lng], {
+      draggable: true,
+      icon: createEmojiMapIcon(L, '📍', '#C41230'),
+      title: 'Delivery Location',
+    }).addTo(map);
+
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      setPinnedLocation(pos.lat, pos.lng);
+      setSelectedAddressId(null);
+    });
+
+    markerRef.current = marker;
+  }, [setPinnedLocation]);
+
+  const initMap = useCallback(() => {
+    if (!mapRef.current || !window.L || mapInstanceRef.current) return;
+
+    const L = window.L;
     const center = deliveryLocation && deliveryLocation.lat !== 0
       ? { lat: deliveryLocation.lat, lng: deliveryLocation.lng }
       : STORE_LOCATION;
 
-    const map = new window.google.maps.Map(mapRef.current, {
-      center,
-      zoom: 15,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      styles: [
-        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-      ],
-    });
+    const map = L.map(mapRef.current, {
+      zoomControl: true,
+      attributionControl: true,
+    }).setView([center.lat, center.lng], 15);
 
+    addOpenStreetMapTiles(L, map);
     mapInstanceRef.current = map;
-    geocoderRef.current = new window.google.maps.Geocoder();
-
-    const marker = new window.google.maps.Marker({
-      map,
-      draggable: true,
-      icon: {
-        url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        scaledSize: new window.google.maps.Size(40, 40),
-      },
-      title: 'Delivery Location',
-    });
 
     if (deliveryLocation && deliveryLocation.lat !== 0) {
-      marker.setPosition({ lat: deliveryLocation.lat, lng: deliveryLocation.lng });
+      placeDeliveryMarker(deliveryLocation.lat, deliveryLocation.lng);
     }
 
-    markerRef.current = marker;
-
-    // Click on map to set delivery location
-    map.addListener('click', (e: any) => {
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      marker.setPosition({ lat, lng });
-      reverseGeocode(lat, lng);
-      setSelectedAddressId(null); // deselect saved address when map is clicked
-    });
-
-    // Drag marker to set location
-    marker.addListener('dragend', () => {
-      const pos = marker.getPosition();
-      if (pos) {
-        reverseGeocode(pos.lat(), pos.lng());
-        setSelectedAddressId(null);
-      }
+    map.on('click', (event: any) => {
+      const lat = event.latlng.lat;
+      const lng = event.latlng.lng;
+      placeDeliveryMarker(lat, lng);
+      setPinnedLocation(lat, lng);
+      setSelectedAddressId(null);
     });
 
     setMapLoaded(true);
-  }, [deliveryLocation]);
+    window.setTimeout(() => map.invalidateSize(), 0);
+  }, [deliveryLocation, placeDeliveryMarker, setPinnedLocation]);
 
-  const reverseGeocode = (lat: number, lng: number) => {
-    if (!geocoderRef.current) return;
-    geocoderRef.current.geocode(
-      { location: { lat, lng } },
-      (results: any[], status: string) => {
-        const address =
-          status === 'OK' && results[0]
-            ? results[0].formatted_address
-            : `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        setDeliveryLocation({ lat, lng, address });
-        setLocationError('');
-      }
-    );
-  };
-
-  // Load Google Maps script
+  // Load Leaflet + OpenStreetMap. No Google Maps API key is required.
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey || apiKey === 'your-google-maps-api-key-here') {
-      setLocationError('Google Maps API key not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.');
-      return;
-    }
-
-    loadGoogleMaps(apiKey, () => {
-      setMapApiLoaded(true);
-    });
+    loadLeaflet()
+      .then(() => setMapApiLoaded(true))
+      .catch(() => {
+        setLocationError('Unable to load the map. Please check your internet connection and try again.');
+      });
   }, []);
 
-  // Init map once API is loaded
+  // Init map once Leaflet is loaded.
   useEffect(() => {
-    if (mapApiLoaded && mapRef.current) {
-      initMap();
-    }
+    if (mapApiLoaded && mapRef.current) initMap();
   }, [mapApiLoaded, initMap]);
+
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   // Use device GPS to locate customer
   const handleLocateMe = () => {
@@ -256,15 +250,11 @@ export default function CheckoutPageClient() {
         setLocating(false);
         setSelectedAddressId(null);
 
-        if (mapInstanceRef.current && markerRef.current) {
-          const pos = { lat, lng };
-          mapInstanceRef.current.setCenter(pos);
-          mapInstanceRef.current.setZoom(17);
-          markerRef.current.setPosition(pos);
-          reverseGeocode(lat, lng);
-        } else {
-          reverseGeocode(lat, lng);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([lat, lng], 17);
+          placeDeliveryMarker(lat, lng);
         }
+        setPinnedLocation(lat, lng);
       },
       (err) => {
         setLocating(false);
@@ -591,7 +581,7 @@ export default function CheckoutPageClient() {
                   </div>
                   <button
                     onClick={handleLocateMe}
-                    disabled={locating || !mapApiLoaded}
+                    disabled={locating}
                     className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                   >
                     {locating ? (

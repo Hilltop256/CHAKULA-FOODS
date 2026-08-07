@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Bike, Phone, CheckCircle, Truck, Package, User, Clock, MapPin, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import OrderLocationMap from '@/components/OrderLocationMap';
 
 interface Order {
   id: string;
@@ -11,6 +12,8 @@ interface Order {
   customer_name: string;
   customer_phone: string | null;
   delivery_address: string | null;
+  delivery_lat: number | null;
+  delivery_lng: number | null;
   total_amount: number;
   status: string;
   department: string | null;
@@ -84,7 +87,7 @@ export default function AdminOrderDispatch({ orderId, onBack }: AdminOrderDispat
       // Fetch order
       const { data: orderData } = await supabase
         .from('orders')
-        .select('id, order_number, customer_name, customer_phone, delivery_address, total_amount, status, department, created_at')
+        .select('id, order_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, total_amount, status, department, created_at')
         .eq('id', orderId)
         .single();
 
@@ -299,6 +302,36 @@ export default function AdminOrderDispatch({ orderId, onBack }: AdminOrderDispat
             );
           })}
         </div>
+      </div>
+
+      <div className="card-base p-5 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Delivery Map</h3>
+            <p className="text-xs text-muted-foreground mt-1">OpenStreetMap view — no Google Maps API key required.</p>
+          </div>
+          {order.delivery_lat && order.delivery_lng ? (
+            <a
+              href={`https://www.openstreetmap.org/?mlat=${order.delivery_lat}&mlon=${order.delivery_lng}#map=17/${order.delivery_lat}/${order.delivery_lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Open full map ↗
+            </a>
+          ) : null}
+        </div>
+        <OrderLocationMap
+          customerLat={order.delivery_lat}
+          customerLng={order.delivery_lng}
+          status={dispatch?.status || order.status}
+          height={300}
+        />
+        {dispatch?.status === 'out_for_delivery' && (
+          <p className="text-xs text-muted-foreground">
+            The blue rider marker is an estimated position until rider GPS reporting is enabled.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
