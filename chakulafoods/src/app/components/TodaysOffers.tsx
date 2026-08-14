@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import AppImage from "@/components/ui/AppImage";
 import Link from "next/link";
+import MarketSpecialsCarousel from "@/app/components/MarketSpecialsCarousel";
 
 interface Offer {
   id: string;
@@ -19,27 +20,67 @@ export default function TodaysOffers() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [index, setIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(3);
+  const [usingMarketSpecials, setUsingMarketSpecials] = useState(false);
   const timerRef = useRef<number | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data, error } = await supabase
+        // First try the dedicated todays_offers table (admin control)
+        const { data: todaysData, error: todaysError } = await supabase
           .from("todays_offers")
           .select("id, title, description, image_url, link_url, is_active, sort_order")
           .eq("is_active", true)
           .order("sort_order", { ascending: true });
 
-        if (!error && data) setOffers(data as Offer[]);
+        if (!todaysError && Array.isArray(todaysData) && todaysData.length > 0) {
+          setOffers(todaysData as Offer[]);
+          setUsingMarketSpecials(false);
+          return;
+        }
+
+        // Fallback to the generic 'offers' table if todays_offers is empty
+        const { data: offersData, error: offersError } = await supabase
+          .from("offers")
+          .select("id, title, description, image_url, link_url, is_active, sort_order")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (!offersError && Array.isArray(offersData) && offersData.length > 0) {
+          setOffers(offersData as Offer[]);
+          setUsingMarketSpecials(false);
+          return;
+        }
+
+        // Final fallback: use market_specials (keeps Market Specials heading on Home)
+        const { data: specialsData, error: specialsError } = await supabase
+          .from("market_specials")
+          .select("id, title, description, image_url, link_url, sort_order")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
+
+        if (!specialsError && Array.isArray(specialsData) && specialsData.length > 0) {
+          // delegate rendering to MarketSpecialsCarousel which includes its own layout/heading
+          setUsingMarketSpecials(true);
+          return;
+        }
+
+        // No offers found — leave offers empty so component renders nothing
       } catch (e) {
-        // silent
+        // silent — don't crash the page; showing nothing is acceptable
+        // console.error("TodaysOffers fetch error:", e);
       }
     };
 
     fetch();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If we're falling back to market specials delegate entirely to that component
+  if (usingMarketSpecials) {
+    return <MarketSpecialsCarousel />;
+  }
 
   // responsive visible count
   useEffect(() => {
