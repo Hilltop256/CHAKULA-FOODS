@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -197,7 +199,7 @@ export default function AdminPanelClient() {
                   if (item.id !== "order-dispatch") setDispatchOrderId(null);
                   setActiveSection(item?.id);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${isActive ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${isActive ? "bg-white/20 text-white" : "text-white/70 h[...]`}
                 title={sidebarCollapsed ? item?.label : undefined}
               >
                 <Icon size={18} className="shrink-0" />
@@ -212,13 +214,13 @@ export default function AdminPanelClient() {
         </nav>
 
         <div className="px-2 py-3 border-t border-white/10">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150" style={{ background: "linear-gradient(135deg, #7B1C1C 0%, #5A1212 100%)" }}>
+          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150" style={{ background: "linear-gradient(135deg, #7B1[...]"}>
             <LogOut size={18} className="shrink-0" />
             {!sidebarCollapsed && <span>Back to Store</span>}
           </Link>
         </div>
 
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="absolute top-20 -right-3 bg-primary border-2 border-background rounded-full p-0.5 z-10 hover:bg-primary/80 transition-colors" style={{ position: "relative", alignSelf: "flex-end", marginBottom: "-12px", marginRight: "-6px" }}>
+        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="absolute top-20 -right-3 bg-primary border-2 border-background rounded-full p-0.5 z-10 hover:bg-primary/80 transi[...]
           {sidebarCollapsed ? <ChevronRight size={14} className="text-primary-foreground" /> : <ChevronLeft size={14} className="text-primary-foreground" />}
         </button>
       </aside>
@@ -226,7 +228,7 @@ export default function AdminPanelClient() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">{sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}</button>
+            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">{sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronL[...]
             <h1 className="font-bold text-lg text-foreground capitalize">{getSectionTitle()}</h1>
           </div>
           <div className="flex items-center gap-3">
