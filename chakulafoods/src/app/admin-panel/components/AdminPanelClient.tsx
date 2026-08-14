@@ -64,8 +64,12 @@ export default function AdminPanelClient() {
 
   const adminName = profile?.full_name || user?.email?.split("@")[0] || "Admin";
   const operatorLabel = profile?.role === "cashier" ? "Cashier" : "Admin";
-  const visibleNavItems = profile?.role === "cashier" ? navItems.filter((item) => cashierSections.includes(item.id)) : navItems;
+  const visibleNavItems =
+    profile?.role === "cashier"
+      ? navItems.filter((item) => cashierSections.includes(item.id))
+      : navItems;
 
+  // Restore the last admin section after a browser refresh.
   useEffect(() => {
     try {
       const savedSection = window.localStorage.getItem(ADMIN_SECTION_STORAGE_KEY);
@@ -90,20 +94,29 @@ export default function AdminPanelClient() {
     }
   }, []);
 
+  // Persist navigation state as the admin moves between modules.
   useEffect(() => {
     if (!navigationReady) return;
 
     try {
       window.localStorage.setItem(ADMIN_SECTION_STORAGE_KEY, activeSection);
-      if (dispatchOrderId) window.localStorage.setItem(ADMIN_DISPATCH_STORAGE_KEY, dispatchOrderId);
-      else if (activeSection !== "order-dispatch") window.localStorage.removeItem(ADMIN_DISPATCH_STORAGE_KEY);
+      if (dispatchOrderId) {
+        window.localStorage.setItem(ADMIN_DISPATCH_STORAGE_KEY, dispatchOrderId);
+      } else if (activeSection !== "order-dispatch") {
+        window.localStorage.removeItem(ADMIN_DISPATCH_STORAGE_KEY);
+      }
     } catch {
       // Navigation still works even when browser storage is unavailable.
     }
   }, [navigationReady, activeSection, dispatchOrderId]);
 
   useEffect(() => {
-    if (profile?.role === "cashier" && !cashierSections.includes(activeSection)) setActiveSection("pos-counter");
+    if (
+      profile?.role === "cashier" &&
+      !cashierSections.includes(activeSection)
+    ) {
+      setActiveSection("pos-counter");
+    }
   }, [profile?.role, activeSection]);
 
   const handleNavigateToDispatch = (orderId: string) => {
@@ -199,7 +212,7 @@ export default function AdminPanelClient() {
                   if (item.id !== "order-dispatch") setDispatchOrderId(null);
                   setActiveSection(item?.id);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${isActive ? "bg-white/20 text-white" : "text-white/70 h[...]`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${isActive ? "bg-white/20 text-white" : "text-white/70"}`}
                 title={sidebarCollapsed ? item?.label : undefined}
               >
                 <Icon size={18} className="shrink-0" />
@@ -214,13 +227,13 @@ export default function AdminPanelClient() {
         </nav>
 
         <div className="px-2 py-3 border-t border-white/10">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150" style={{ background: "linear-gradient(135deg, #7B1[...]"}>
+          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-150" style={{ background: "linear-gradient(135deg, #7B16A8 0%, #16A34A 100%)" }}>
             <LogOut size={18} className="shrink-0" />
             {!sidebarCollapsed && <span>Back to Store</span>}
           </Link>
         </div>
 
-        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="absolute top-20 -right-3 bg-primary border-2 border-background rounded-full p-0.5 z-10 hover:bg-primary/80 transi[...]
+        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="absolute top-20 -right-3 bg-primary border-2 border-background rounded-full p-0.5 z-10 hover:bg-primary/80 transition-transform">
           {sidebarCollapsed ? <ChevronRight size={14} className="text-primary-foreground" /> : <ChevronLeft size={14} className="text-primary-foreground" />}
         </button>
       </aside>
@@ -228,7 +241,7 @@ export default function AdminPanelClient() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">{sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronL[...]
+            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">{sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}</button>
             <h1 className="font-bold text-lg text-foreground capitalize">{getSectionTitle()}</h1>
           </div>
           <div className="flex items-center gap-3">
