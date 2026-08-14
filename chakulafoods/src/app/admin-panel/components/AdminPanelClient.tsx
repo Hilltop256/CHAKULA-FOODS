@@ -29,6 +29,7 @@ import AdminCategories from "./AdminCategories";
 import AdminPosOnline from "./AdminPosOnline";
 import AdminPosCounter from "./AdminPosCounter";
 import AdminBalanceSheet from "./AdminBalanceSheet";
+import AdminTodaysOffers from "./AdminTodaysOffers";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
@@ -42,6 +43,7 @@ const navItems = [
   { id: "users", label: "Users", icon: Users, badge: 0 },
   { id: "departments", label: "Departments", icon: Store, badge: 0 },
   { id: "market-specials", label: "Market Specials", icon: Tag, badge: 0 },
+  { id: "todays-offers", label: "Today's Offers", icon: Tag, badge: 0 },
 ];
 
 const cashierSections = ["pos-online", "pos-counter", "balance-sheet"];
@@ -155,6 +157,8 @@ export default function AdminPanelClient() {
         return <AdminUsers />;
       case "market-specials":
         return <AdminMarketSpecials />;
+      case "todays-offers":
+        return <AdminTodaysOffers />;
       default:
         return <AdminOverview />;
     }
@@ -168,6 +172,8 @@ export default function AdminPanelClient() {
         return "Categories";
       case "market-specials":
         return "Market Specials";
+      case "todays-offers":
+        return "Today's Offers";
       case "orders":
         return "Orders";
       case "pos-online":
