@@ -17,6 +17,7 @@ import {
   Layers,
   Monitor,
   TrendingUp,
+  PartyPopper,
 } from "lucide-react";
 import AppLogo from "@/components/ui/AppLogo";
 import AdminOverview from "./AdminOverview";
@@ -30,6 +31,7 @@ import AdminPosOnline from "./AdminPosOnline";
 import AdminPosCounter from "./AdminPosCounter";
 import AdminBalanceSheet from "./AdminBalanceSheet";
 import AdminTodaysOffers from "./AdminTodaysOffers";
+import AdminCelebrations from "./AdminCelebrations";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
@@ -38,12 +40,14 @@ const navItems = [
   { id: "orders", label: "Orders", icon: ShoppingBag, badge: 7 },
   { id: "pos-online", label: "POS Online", icon: Monitor, badge: 0 },
   { id: "pos-counter", label: "POS Counter", icon: Store, badge: 0 },
-  { id: "balance-sheet", label: "Balance Sheet", icon: TrendingUp, badge: 0 },
+  { id: "balance-sheet", label: "Balance Sheet", icon: TrendingUp,
+  PartyPopper, badge: 0 },
   { id: "categories", label: "Categories", icon: Layers, badge: 0 },
   { id: "users", label: "Users", icon: Users, badge: 0 },
   { id: "departments", label: "Departments", icon: Store, badge: 0 },
   { id: "market-specials", label: "Market Specials", icon: Tag, badge: 0 },
   { id: "todays-offers", label: "Today's Offers", icon: Tag, badge: 0 },
+  { id: "celebrations", label: "Celebrations", icon: PartyPopper, badge: 0 },
 ];
 
 const cashierSections = ["pos-online", "pos-counter", "balance-sheet"];
@@ -159,6 +163,8 @@ export default function AdminPanelClient() {
         return <AdminMarketSpecials />;
       case "todays-offers":
         return <AdminTodaysOffers />;
+      case "celebrations":
+        return <AdminCelebrations />;
       default:
         return <AdminOverview />;
     }
@@ -174,6 +180,8 @@ export default function AdminPanelClient() {
         return "Market Specials";
       case "todays-offers":
         return "Today's Offers";
+      case "celebrations":
+        return "Celebrations";
       case "orders":
         return "Orders";
       case "pos-online":

@@ -187,9 +187,6 @@ export default function ConfectionaryPageClient() {
 
       {/* Birthday package upsell banner */}
       <div className="relative overflow-hidden rounded-2xl mb-8 bg-gradient-to-r from-secondary to-amber-400 p-6 text-white">
-        <div className="absolute right-4 top-2 text-6xl opacity-20 select-none">
-          🎂
-        </div>
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Gift size={18} />

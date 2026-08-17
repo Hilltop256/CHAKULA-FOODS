@@ -18,7 +18,7 @@ interface Offer {
 const AUTO_SLIDE_MS = 4500;
 
 const DEMO_OFFER_ROUTES: Record<string, string> = {
-  "Meals You''ll Love": "/restaurant-page",
+  "Meals You’ll Love": "/restaurant-page",
   "Grocery Savings": "/market-specials",
   "Weekend Drinks": "/wine-liquor-page",
 };
@@ -123,7 +123,7 @@ export default function TodaysOffersCarousel() {
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-7 md:py-9">
       <div className="text-center mb-5 md:mb-6 overflow-visible">
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.15] bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2 overflow-visible px-1">
+        <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.25] bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2 overflow-visible px-1">
           Today&apos;s Offers
         </h2>
         <p className="text-sm md:text-base text-muted-foreground">
