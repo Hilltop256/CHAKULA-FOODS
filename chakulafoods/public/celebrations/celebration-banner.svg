@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420">
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#C41230"/><stop offset="1" stop-color="#8F0D24"/></linearGradient></defs>
+<rect width="1600" height="420" rx="32" fill="url(#g)"/>
+<circle cx="1360" cy="90" r="150" fill="#fff" opacity=".08"/><circle cx="1470" cy="330" r="220" fill="#fff" opacity=".06"/>
+<text x="90" y="145" fill="#fff" font-family="Arial,sans-serif" font-size="58" font-weight="800">Planning a Celebration?</text>
+<text x="90" y="215" fill="#fff" opacity=".9" font-family="Arial,sans-serif" font-size="30">Tell us about your event and request a tailored quote.</text>
+<text x="90" y="310" fill="#fff" font-family="Arial,sans-serif" font-size="25" font-weight="700">Birthdays • Graduations • Showers • More</text>
+<text x="1340" y="245" fill="#fff" font-family="Arial,sans-serif" font-size="110">🎉</text>
+</svg>
