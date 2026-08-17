@@ -23,8 +23,21 @@ export const metadata: Metadata = {
   title: 'Chakula Foods — Order Fresh Meals, Juices & More in Naalya',
   description:
     'Chakula Foods Naalya — order restaurant meals, custom cakes, fresh juices, wines, and grocery bundles. Fast delivery, scheduled orders, and subscriptions.',
+  manifest: '/manifest.webmanifest',
   icons: {
-    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
+    icon: [
+      { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icons/icon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', type: 'image/png', sizes: '180x180' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Chakula Foods',
+    statusBarStyle: 'default',
   },
 };
 
