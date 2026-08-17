@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FAF7EE;
+  --foreground: #1A1A0E;
+  --primary: #1B5E38;
+  --primary-foreground: #FAF7EE;
+  --secondary: #C8890A;
+  --secondary-foreground: #FAF7EE;
+  --accent: #7B1C1C;
+  --accent-foreground: #FAF7EE;
+  --muted: #F0EBD8;
+  --muted-foreground: #6B6347;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A0E;
+  --border: #E2D9C0;
+  --input: #F0EBD8;
+  --ring: #1B5E38;
+  --radius: 0.75rem;
+  --font-sans: var(--font-plus-jakarta-sans), sans-serif;
+  --success: #166534;
+  --warning: #92400E;
+  --error: #991B1B;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, #7B1C1C 0%, #5A1212 60%, #1B5E38 100%);
+  }
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(27, 94, 56, 0.12);
+  }
+  .dept-card-restaurant {
+    background: linear-gradient(135deg, #1B5E38, #2A7A4F);
+  }
+  .dept-card-confectionary {
+    background: linear-gradient(135deg, #C8890A, #E6A020);
+  }
+  .dept-card-juice {
+    background: linear-gradient(135deg, #15803D, #4ADE80);
+  }
+  .dept-card-wine {
+    background: linear-gradient(135deg, #7B1C1C, #B91C1C);
+  }
+  .dept-card-market {
+    background: linear-gradient(135deg, #92400E, #D97706);
+  }
+  .dept-card-subscription {
+    background: linear-gradient(135deg, #1E3A5F, #2563EB);
+  }
+  .age-gate-overlay {
+    background: rgba(15, 61, 34, 0.95);
+    backdrop-filter: blur(8px);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+.btn-primary  {
+    @apply bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-lg transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+.btn-secondary  {
+    @apply bg-secondary text-secondary-foreground font-semibold px-5 py-2.5 rounded-lg transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+.btn-outline  {
+    @apply border border-primary text-primary font-semibold px-5 py-2.5 rounded-lg transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply text-foreground font-medium px-4 py-2 rounded-lg transition-all duration-150 hover:bg-muted active:scale-95;
+  }
+  .input-field {
+    @apply w-full bg-input border border-border rounded-lg px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-150;
+  }
+  .card-base {
+    @apply bg-card border border-border rounded-xl shadow-sm;
+  }
+  .badge-active {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+  .badge-pending {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800;
+  }
+  .badge-cancelled {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+.badge-delivered  {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-primary;
+  }
+  .badge-preparing {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
+  }
+  .nav-tab-active {
+    @apply text-primary border-b-2 border-primary font-semibold;
+  }
+  .nav-tab-inactive {
+    @apply text-muted-foreground hover:text-foreground border-b-2 border-transparent font-medium;
+  }
+}
