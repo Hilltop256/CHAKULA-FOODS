@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppImage from "@/components/ui/AppImage";
@@ -44,6 +44,8 @@ export default function TodaysOffersCarousel() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(3);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const didSwipeRef = useRef(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -120,6 +122,29 @@ export default function TodaysOffersCarousel() {
   const next = () =>
     setCurrentIndex((index) => (index >= maxIndex ? 0 : index + 1));
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    didSwipeRef.current = false;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    // Only treat a clearly horizontal gesture as an offer swipe.
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+    didSwipeRef.current = true;
+    if (deltaX < 0) next();
+    else previous();
+  };
+
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-7 md:py-9">
       <div className="text-center mb-5 md:mb-6 overflow-visible">
@@ -132,7 +157,11 @@ export default function TodaysOffersCarousel() {
       </div>
 
       <div className="relative group">
-        <div className="overflow-hidden rounded-3xl">
+        <div
+          className="overflow-hidden rounded-3xl touch-pan-y select-none"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             className="flex gap-4 transition-transform duration-700 ease-in-out"
             style={{
@@ -170,7 +199,17 @@ export default function TodaysOffersCarousel() {
                 </div>
               );
               return href ? (
-                <Link key={offer.id} href={href} className="contents">
+                <Link
+                  key={offer.id}
+                  href={href}
+                  className="contents"
+                  onClickCapture={(event) => {
+                    if (didSwipeRef.current) {
+                      event.preventDefault();
+                      didSwipeRef.current = false;
+                    }
+                  }}
+                >
                   {card}
                 </Link>
               ) : (
