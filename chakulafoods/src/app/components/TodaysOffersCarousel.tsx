@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Tag } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import AppImage from "@/components/ui/AppImage";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,6 +16,28 @@ interface Offer {
 }
 
 const AUTO_SLIDE_MS = 4500;
+
+const DEMO_OFFER_ROUTES: Record<string, string> = {
+  "Meals You''ll Love": "/restaurant-page",
+  "Grocery Savings": "/market-specials",
+  "Weekend Drinks": "/wine-liquor-page",
+};
+
+function getOfferHref(offer: Offer) {
+  const demoRoute = DEMO_OFFER_ROUTES[offer.title];
+  if (demoRoute) return demoRoute;
+
+  const value = (offer.link_url || "").trim();
+  if (!value || value === "#") return null;
+
+  // Keep internal links inside the Next.js app.
+  if (value.startsWith("/")) return value;
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`;
+  } catch {}
+  return null;
+}
 
 export default function TodaysOffersCarousel() {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -100,8 +122,8 @@ export default function TodaysOffersCarousel() {
 
   return (
     <section className="max-w-screen-2xl mx-auto px-4 lg:px-8 xl:px-10 py-7 md:py-9">
-      <div className="text-center mb-5 md:mb-6">
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2">
+      <div className="text-center mb-5 md:mb-6 overflow-visible">
+        <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-[1.15] bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent mb-2 overflow-visible px-1">
           Today&apos;s Offers
         </h2>
         <p className="text-sm md:text-base text-muted-foreground">
@@ -117,13 +139,13 @@ export default function TodaysOffersCarousel() {
               transform: `translateX(calc(-${currentIndex} * ((100% + 16px) / ${visibleCount})))`,
             }}
           >
-            {offers.map((offer) => (
-              <Link
-                key={offer.id}
-                href={offer.link_url || "#"}
-                className="shrink-0 relative overflow-hidden rounded-3xl min-h-[150px] md:min-h-[175px] bg-primary shadow-lg hover:shadow-xl transition-shadow"
-                style={{ width: cardWidth }}
-              >
+            {offers.map((offer) => {
+              const href = getOfferHref(offer);
+              const card = (
+                <div
+                  className="shrink-0 relative overflow-hidden rounded-3xl min-h-[150px] md:min-h-[175px] bg-primary shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+                  style={{ width: cardWidth }}
+                >
                 {offer.image_url ? (
                   <AppImage
                     src={offer.image_url}
@@ -135,9 +157,6 @@ export default function TodaysOffersCarousel() {
                 <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-black/5" />
                 <div className="absolute inset-0 flex items-center p-5 md:p-7">
                   <div className="max-w-[78%] text-white">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide mb-2">
-                      <Tag size={12} /> Today&apos;s Offer
-                    </span>
                     <h3 className="text-lg md:text-2xl font-extrabold leading-tight">
                       {offer.title}
                     </h3>
@@ -148,8 +167,16 @@ export default function TodaysOffersCarousel() {
                     )}
                   </div>
                 </div>
-              </Link>
-            ))}
+                </div>
+              );
+              return href ? (
+                <Link key={offer.id} href={href} className="contents">
+                  {card}
+                </Link>
+              ) : (
+                <React.Fragment key={offer.id}>{card}</React.Fragment>
+              );
+            })}
           </div>
         </div>
 
